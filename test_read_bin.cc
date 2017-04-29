@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "auxiliary.hh"
+#include "2Darray.hh"
 
 using namespace std;
 
@@ -19,8 +20,6 @@ int16_t swap_bytes(int16_t in){
   return (int16_t)(c[0] << 8 | c[1]);
 }
 
-template <T>
-class 2DArray;
 
 
 int main(int ac, char **av) {
