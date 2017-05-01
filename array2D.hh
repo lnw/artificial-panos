@@ -10,27 +10,27 @@
 using namespace std;
 
 template <typename T> class array2D : public vector<T> {
+
 public:
   int m,n; 
 
   array2D(int m, int n, const vector<T>& A) : vector<T>(A.begin(), A.end()), m(m), n(n) { assert(A.size()==m*n); }
   array2D(int m, int n, const T& zero = 0) : vector<T>(m*n,zero), m(m), n(n) {}
 
-  // Convert from compatible type
   template <typename S> array2D(const array2D<S>& A) : vector<T>(A.begin(),A.end()), m(A.m), n(A.n) {}
 
   T& operator()(int i, int j)       { return (*this)[i*n+j]; }
   T  operator()(int i, int j) const { return (*this)[i*n+j]; }
 
-  array2D transpose(){
+  void transpose(){
     assert(m==n);
-    array2D A(m,m);
+    array2D<T> A(m,m);
     for(int i=0; i<m; i++){
       for(int j=0; j<m; j++){
         A(j,i) = (*this)(i,j);
       }
     }
-    return A;
+    *this = A;
   }
 
   friend ostream& operator<<(ostream& S, const array2D& A)

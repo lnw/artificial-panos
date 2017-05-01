@@ -9,57 +9,64 @@
 #include <string.h>
 
 #include "auxiliary.hh"
-#include "2Darray.hh"
+#include "array2D.hh"
 
 using namespace std;
 
 
-int16_t swap_bytes(int16_t in){
-  char c[2];
+int16_t endian_swap(int16_t in){
+  unsigned char c[2];
   memcpy(c, &in, 2);
   return (int16_t)(c[0] << 8 | c[1]);
 }
 
+array2D<int16_t> read_tile(char * FILENAME, const int dim){
+  array2D<int16_t> A(dim,dim);
+  const int size = dim*dim;
+  int16_t size_test;
+
+  ifstream ifs(FILENAME, ios::in | ios::binary);
+  ifs.read(reinterpret_cast<char *>(&(A(0,0))), size * sizeof(size_test));
+  ifs.close();
+
+  for (int i=0; i<dim; i++){
+    for (int j=0; j<dim; j++){
+      A(i,j) = endian_swap(A(i,j));
+    }
+  }
+  return A;
+}
 
 
 int main(int ac, char **av) {
 
-//  const double deg2rad = M_PI/180;
-//  const double rad2deg = 180/M_PI;
-//  
-//  const double scene_direction = 270*deg2rad; // angle in rad, east is 0
-//  const double scene_width = 60*deg2rad; // angle in rad
-//  const double range = 50000; // in m
-// 
-//  const int view_width = 1000; // pixels  
-//  const int view_height = 500; // pixels  
+  //const int size = 1201;
+  const int size = 3601;
+  array2D<int16_t> A = read_tile("N59E005.hgt", size);
+  //A.transpose();
+ cout << size;
+ for (int i=0;i<size;i++) cout << " " << i+1;
+ cout << endl;
+ for (int i=0;i<size;i++){
+   cout << i+1 << " ";
+   for (int j=0;j<size;j++){
+     cout << A(i,j) << " ";
+   }
+   cout << endl;
+ }
 
-  cout << swap_bytes(int16_t(0)) << " (0)" << endl;
-  cout << swap_bytes(int16_t(1)) << " (256)" << endl;
-  cout << swap_bytes(int16_t(255)) << " (65...)" << endl;
-
-
-
-  std::vector<int16_t> myData;
-  int size = 1201 * 1201;
-  myData.resize(size);
-  int16_t size_test;
-
-  cout << sizeof(size_test) << endl;
-  cout << size * sizeof(size_test) << endl;
-
-  ifstream ifs("N58E005.hgt", ios::in | ios::binary);
-
-  ifs.read(reinterpret_cast<char *>(&(myData[0])), size * sizeof(size_test));
-  ifs.close();
-
-  cout << sizeof(myData) << endl;
-
-  for(int i=0; i<1202; i++)
-    cout << swap_bytes(myData[i]) << " ";
-  cout << endl;
+//   cout << A(0,0) << endl;
+//   cout << A(0,1) << endl;
+//   cout << A(0,2) << endl;
+//   cout << A(0,3) << endl;
+//   cout << A(0,4) << endl;
+//
+//   cout << A(0,30) << endl;
+//   cout << A(0,31) << endl;
+//   cout << A(0,32) << endl;
+//   cout << A(0,33) << endl;
+//   cout << A(0,34) << endl;
 
   return 0;
 }
-
 
