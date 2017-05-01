@@ -1,0 +1,15 @@
+
+first, don't write to pic but to 2d array of height x width
+
+iterate over all little squares of the landscape
+  calc covered pixels and their distance
+  if they are not drawn with a closer distance yet:
+    write distance to all pixels
+
+finally, translate distance to color and write pixels
+
+
+(
+  how does one draw hill tops?
+  some shadings?
+)

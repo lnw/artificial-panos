@@ -1,12 +1,12 @@
 
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
 #include <cmath>
+#include <fstream>
+#include <iostream>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+//#include <string>
+#include <vector>
 
 #include "auxiliary.hh"
 #include "array2D.hh"
@@ -44,16 +44,16 @@ int main(int ac, char **av) {
   const int size = 3601;
   array2D<int16_t> A = read_tile("N59E005.hgt", size);
   //A.transpose();
- cout << size;
- for (int i=0;i<size;i++) cout << " " << i+1;
- cout << endl;
- for (int i=0;i<size;i++){
-   cout << i+1 << " ";
-   for (int j=0;j<size;j++){
-     cout << A(i,j) << " ";
-   }
-   cout << endl;
- }
+  cout << size;
+  for (int i=0;i<size;i++) cout << " " << i+1;
+  cout << endl;
+  for (int i=0;i<size;i++){
+    cout << size - i << " ";
+    for (int j=0;j<size;j++){
+      cout << A(i,j) << " ";
+    }
+    cout << endl;
+  }
 
 //   cout << A(0,0) << endl;
 //   cout << A(0,1) << endl;
