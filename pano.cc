@@ -7,6 +7,7 @@
 
 #include "auxiliary.hh"
 #include "array2D.hh"
+#include "geometry.hh"
 
 using namespace std;
 
