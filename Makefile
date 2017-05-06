@@ -9,4 +9,4 @@ test: Makefile test.cc
 	./test
 
 distclean:
-	rm -f pano
+	rm -f pano test a.out

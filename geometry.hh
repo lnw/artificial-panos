@@ -48,3 +48,11 @@ double angle_v(const double phi1, const double theta1, const double z1, const do
   return up * angle; // [rad]
 }
 
+double angle_v_scaled(const double phi1, const double theta1, const double z1, const double phi2, const double theta2, const double z2){
+  double angle = angle_v(phi1, theta1, z1, phi2, theta2, z2);
+  if(angle<0) angle *= 0.7;
+  return angle; // [rad]
+}
+
+
+

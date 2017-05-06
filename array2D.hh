@@ -12,7 +12,7 @@ using namespace std;
 template <typename T> class array2D : public vector<T> {
 
 public:
-  int m,n; 
+  int m, n; 
 
   array2D(int m, int n, const vector<T>& A) : vector<T>(A.begin(), A.end()), m(m), n(n) { assert(A.size()==m*n); }
   array2D(int m, int n, const T& zero = 0) : vector<T>(m*n,zero), m(m), n(n) {}
@@ -23,10 +23,10 @@ public:
   T  operator()(int i, int j) const { return (*this)[i*n+j]; }
 
   void transpose(){
-    assert(m==n);
-    array2D<T> A(m,m);
+    int x(m); m=n; n=x;
+    array2D<T> A(m,n);
     for(int i=0; i<m; i++){
-      for(int j=0; j<m; j++){
+      for(int j=0; j<n; j++){
         A(j,i) = (*this)(i,j);
       }
     }
