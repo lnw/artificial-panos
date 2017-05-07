@@ -1,4 +1,3 @@
-// test for internal2cart
 
 #define CATCH_CONFIG_MAIN
 #include "/home/lukas/bin/Catch/single_include/catch.hpp"
@@ -28,4 +27,5 @@ TEST_CASE( "gcd", "gcd" ) {
   CHECK( distance_atan(p5,t3,p6,t4) == Approx(111.195) );
   CHECK( distance_acos(p5,t3,p6,t4) == Approx(111.195) );
 }
+
 

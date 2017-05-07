@@ -39,7 +39,7 @@ int main(int ac, char **av) {
   // read files into vector of 2D arrays, the order does not matter as they can be rendered independently
 
   // transform (lower at larger distance) and afterwards elevations are treated to be from a plane
-  // viewfinder uses drop/m = 0.1695 m * (dist / miles)^2 to account for curvature are refraction
+  // viewfinder uses drop/m = 0.1695 m * (dist / miles)^2 to account for curvature and refraction
   // ... distance between two coordinates/z?
   // ... angles on sphere?
 

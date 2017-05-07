@@ -14,8 +14,8 @@ using namespace std;
 class scene {
 
   double lat_standpoint, lon_standpoint, z_standpoint;
-  vector<tile<double>> tiles;
   vector<tile<double>> heights;
+  vector<tile<double>> distances;
 
   
 public:
