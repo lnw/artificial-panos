@@ -43,6 +43,7 @@ int main(int ac, char **av) {
 
   const int view_x(3000), view_y(1000); // pixels
   view V(view_x, view_y, S);
+  V.render();
 
   // iterate over landscape squares, maintain z-buffer
   // possibly transform z axis of picture:  viewfinder compresses forground and stretches region around horizon by 130%-200%
