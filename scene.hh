@@ -24,7 +24,8 @@ public:
     // get tiles
     // add them
     const int size=3601;
-    tile<int16_t> A (tile<int16_t>("N59E006.hgt",size,59,6));
+    char const * FILENAME = "N59E006.hgt";
+    tile<int16_t> A (tile<int16_t>(FILENAME, size, 59, 6));
     add_tile(A);
   };
 

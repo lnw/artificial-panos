@@ -10,6 +10,7 @@
 #include "array2D.hh"
 #include "tile.hh"
 #include "scene.hh"
+#include "view.hh"
 
 using namespace std;
 
@@ -18,18 +19,6 @@ int main(int ac, char **av) {
   const double deg2rad_const = M_PI/180;
   const double rad2deg_const = 180/M_PI;
 
-
-  const double scene_direction = 270*deg2rad_const; // angle in rad, east is 0
-  const double scene_width = 60*deg2rad_const; // angle in rad
-  const double range = 50000; // in m
-
-  const int view_width = 1000; // pixels
-  const int view_height = 500; // pixels
-
-
-  cout << scene_direction << endl;
-  cout << scene_width << endl;
-  cout << range << endl;
 
 
 
@@ -44,9 +33,16 @@ int main(int ac, char **av) {
   // ... distance between two coordinates/z?
   // ... angles on sphere?
 
-  scene S(0.5, 0.5, 200, 1.5, 2.0, 30);
+  const double pos_lat(0.5), pos_lon(0.5), pos_z(200); // rad, rad, m
+  const double scene_direction(270*deg2rad_const); // angle in rad, east is 0
+  const double scene_width(60*deg2rad_const); // angle in rad
+  const double range(50); // in km
+  scene S(pos_lat, pos_lon, pos_z, scene_direction, scene_width, range);
 
   // calculate array of triples with phi/theta/dist for each elevated point
+
+  const int view_x(3000), view_y(1000); // pixels
+  view V(view_x, view_y, S);
 
   // iterate over landscape squares, maintain z-buffer
   // possibly transform z axis of picture:  viewfinder compresses forground and stretches region around horizon by 130%-200%

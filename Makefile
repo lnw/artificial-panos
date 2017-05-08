@@ -1,6 +1,6 @@
 
 
-pano: Makefile pano.cc scene.hh tile.hh array2D.hh geometry.hh auxiliary.hh
+pano: Makefile pano.cc view.hh scene.hh tile.hh array2D.hh geometry.hh auxiliary.hh
 	clang++-3.9 -g -O2 -std=c++14 pano.cc -o pano
 
 .PHONY: test

@@ -27,7 +27,7 @@ public:
 
   tile(int m, int n, int lat, int lon): array2D<T>(m,n), lat(lat), lon(lon) {assert(this->m == this->n);}
   tile(array2D<T> A): array2D<T>(A) {assert(this->m == this->n);}
-  tile<int16_t>(char * FILENAME, int dim, int lat, int lon): array2D<int16_t>(dim,dim), lat(lat), lon(lon) {
+  tile<int16_t>(char const * FILENAME, int dim, int lat, int lon): array2D<int16_t>(dim,dim), lat(lat), lon(lon) {
     const int size = dim*dim;
     int16_t size_test;
   
