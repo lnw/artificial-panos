@@ -1,6 +1,29 @@
+#ifndef GEOMETRY_HH
+#define GEOMETRY_HH
 
 #include <cmath>
 #include <vector>
+
+#include "auxiliary.hh"
+
+const double deg2rad_const = M_PI/180;
+const double rad2deg_const = 180/M_PI;
+
+template <typename T> class coord {
+  public:
+  T lat, lon;
+
+  coord(T lat, T lon): lat(lat), lon(lon) {};
+
+  void deg2rad(){ 
+    lat *= deg2rad_const;
+    lon *= deg2rad_const;
+  }
+  void rad2deg(){ 
+    lat *= rad2deg_const;
+    lon *= rad2deg_const;
+  }
+};
 
 // distance between two points on a sphere, without elevation
 // phi is the latitude, theta the longitude
@@ -23,14 +46,21 @@ double distance_atan(const double phi1, const double theta1, const double phi2, 
   return average_radius_earth * angle; // [km]
 }
 
+
+double central_angle_atan(const double phi1, const double theta1, const double phi2, const double theta2) {
+  // angle = (2*a + b)/3
+  const double latDiff_half = (phi1 - phi2)/2.0;
+  const double longDiff_half = (theta1 - theta2)/2.0;
+  const double a = sin(latDiff_half) * sin(latDiff_half) + sin(longDiff_half) * sin(longDiff_half) * cos(phi2) * cos(phi1);
+  return 2 * atan2(sqrt(a), sqrt(1 - a)); // [rad]
+}
+
 // horizontal angle, ie, angle between two great circles
 double angle_h( const double phi_A, const double theta_A, const double phi_B, const double theta_B, const double phi_C, const double theta_C) {
-  // angle = (2*a + b)/3
-  const double average_radius_earth = (2*6378.137 + 6356.752)/3.0; // 6371.009 km
   // Convert real distances to unit sphere distances
-  const double a = distance_atan(phi_B, theta_B, phi_C, theta_C) / average_radius_earth;
-  const double b = distance_atan(phi_A, theta_A, phi_C, theta_C) / average_radius_earth;
-  const double c = distance_atan(phi_A, theta_A, phi_B, theta_B) / average_radius_earth;
+  const double a = central_angle_atan(phi_B, theta_B, phi_C, theta_C);
+  const double b = central_angle_atan(phi_A, theta_A, phi_C, theta_C);
+  const double c = central_angle_atan(phi_A, theta_A, phi_B, theta_B);
   // Use the Spherical law of cosines to get at the angle between a and b
   const double numerator = cos(b) - cos(a) * cos(c);
   const double denominator = sin(a) * sin(c);
@@ -55,4 +85,4 @@ double angle_v_scaled(const double phi1, const double theta1, const double z1, c
 }
 
 
-
+#endif

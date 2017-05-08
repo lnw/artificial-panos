@@ -6,20 +6,21 @@
 #include <vector>
 
 #include "auxiliary.hh"
+#include "geometry.hh"
+#include "array2D.hh"
 #include "tile.hh"
 #include "scene.hh"
-#include "geometry.hh"
 
 using namespace std;
 
 int main(int ac, char **av) {
 
-  const double deg2rad = M_PI/180;
-  const double rad2deg = 180/M_PI;
+  const double deg2rad_const = M_PI/180;
+  const double rad2deg_const = 180/M_PI;
 
 
-  const double scene_direction = 270*deg2rad; // angle in rad, east is 0
-  const double scene_width = 60*deg2rad; // angle in rad
+  const double scene_direction = 270*deg2rad_const; // angle in rad, east is 0
+  const double scene_width = 60*deg2rad_const; // angle in rad
   const double range = 50000; // in m
 
   const int view_width = 1000; // pixels
