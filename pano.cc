@@ -44,6 +44,8 @@ int main(int ac, char **av) {
   // ... distance between two coordinates/z?
   // ... angles on sphere?
 
+  scene S(0.5, 0.5, 200, 1.5, 2.0, 30);
+
   // calculate array of triples with phi/theta/dist for each elevated point
 
   // iterate over landscape squares, maintain z-buffer
