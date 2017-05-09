@@ -5,7 +5,6 @@
 #include <iostream>
 //#include <climits>
 #include <assert.h>
-#include <cmath>
 
 #include "auxiliary.hh"
 #include "geometry.hh"

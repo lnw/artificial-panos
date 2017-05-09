@@ -3,7 +3,6 @@
 #include "/home/lukas/bin/Catch/single_include/catch.hpp"
 
 #include <assert.h>
-#include <cmath>
 #include <fstream>
 #include <vector>
 

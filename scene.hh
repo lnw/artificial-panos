@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <iostream>
-#include <cmath>
 
 #include "auxiliary.hh"
 #include "geometry.hh"
