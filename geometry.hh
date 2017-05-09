@@ -32,8 +32,13 @@ double distance_acos(const double phi1, const double theta1, const double phi2, 
   // angle = (2*a + b)/3
   const double average_radius_earth = (2*6378.137 + 6356.752)/3.0; // 6371.009 km
   // angle = arccos ( sin phi1 * sin phi 2 + cos phi 1 * cos phi 2 * cos (lambda 1 - lambda 2) )
-  const double angle = acos( sin(phi1)*sin(phi2) + cos(phi1)*cos(phi2)*cos(theta1-theta2) ); // [radians]
+  const double angle = acos( sin(phi1)*sin(phi2) + cos(phi1)*cos(phi2)*cos(theta1-theta2) ); // [rad]
   return average_radius_earth * angle; // [km]
+}
+
+double central_angle_acos(const double phi1, const double theta1, const double phi2, const double theta2){
+  // angle = arccos ( sin phi1 * sin phi 2 + cos phi 1 * cos phi 2 * cos (lambda 1 - lambda 2) )
+  return acos( sin(phi1)*sin(phi2) + cos(phi1)*cos(phi2)*cos(theta1-theta2) ); // [rad]
 }
 
 double distance_atan(const double phi1, const double theta1, const double phi2, const double theta2) {
@@ -46,9 +51,7 @@ double distance_atan(const double phi1, const double theta1, const double phi2, 
   return average_radius_earth * angle; // [km]
 }
 
-
 double central_angle_atan(const double phi1, const double theta1, const double phi2, const double theta2) {
-  // angle = (2*a + b)/3
   const double latDiff_half = (phi1 - phi2)/2.0;
   const double longDiff_half = (theta1 - theta2)/2.0;
   const double a = sin(latDiff_half) * sin(latDiff_half) + sin(longDiff_half) * sin(longDiff_half) * cos(phi2) * cos(phi1);
@@ -84,5 +87,5 @@ double angle_v_scaled(const double phi1, const double theta1, const double z1, c
   return angle; // [rad]
 }
 
-
 #endif
+
