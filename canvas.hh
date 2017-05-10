@@ -3,7 +3,9 @@
 
 #include <vector>
 #include <iostream>
-// #include <climits>
+#include <math.h>
+#include <algorithm> // min, max
+
 
 #include <png.h>
 
@@ -11,6 +13,19 @@
 #include "scene.hh"
 
 using namespace std;
+
+
+// check if line from xmin-1/ymin-1 -- x+.5/y+.5 intersects one or two sides of the triangle
+int intersect( const double e1x1, const double e1y1, const double e1x2, const double e1y2,
+               const double e2x1, const double e2y1, const double e2x2, const double e2y2 ){
+  const double a1 = (e1y1 - e1y2)/(e1x1 - e1x2);
+  const double b1 = e1y1 - a1 * e1x1;
+  if ((e2y1 > a1*e2x1+b1 && e2y2 > a1*e2x2+b1) || (e2y1 < a1*e2x1+b1 && e2y2 < a1*e2x2+b1)) return 0; // both points of the second edge lie on the sam    e side of the first edge
+  const double a2 = (e2y1 - e2y2)/(e2x1 - e2x2);
+  const double b2 = e2y1 - a2 * e2x1;
+  if ((e1y1 > a2*e1x1+b2 && e1y2 > a2*e1x2+b2) || (e1y1 < a2*e1x1+b2 && e1y2 < a2*e1x2+b2)) return 0; // both points of the first edge lie on the same     side of the second edge
+  return 1;
+}
 
 
 class canvas {
@@ -84,8 +99,26 @@ public:
   void write_triangle(double x1, double y1, 
                       double x2, double y2, 
                       double x3, double y3, 
+                      double z,
                       int16_t r, int16_t g, int16_t b, int16_t a){
+    // find triangle's bb
+    const int xmin = min( {floor(x1), floor(x2), floor(x3)} );
+    const int xmax = max( {ceil(x1),  ceil(x2),  ceil(x3)} );
+    const int ymin = min( {floor(y1), floor(y2), floor(y3)} );
+    const int ymax = max( {ceil(y1),  ceil(y2),  ceil(y3)} );
 
+    // iterate over grid points in bb, draw the ones in the triangle
+    for (int i=xmin; i<xmax; i++){
+      for (int j=ymin; j<ymax; j++){
+        int num_intersections=0;
+        num_intersections += intersect(xmin-1,ymin-1,i+0.5,j+0.5, x1,y1,x2,y2);
+        num_intersections += intersect(xmin-1,ymin-1,i+0.5,j+0.5, x2,y2,x3,y3);
+        num_intersections += intersect(xmin-1,ymin-1,i+0.5,j+0.5, x3,y3,x1,y1);
+        if(num_intersections==1){
+          write_pixel_zb(i,j,z, r,g,b,a);
+        }
+      }
+    }
   }
 
   void render_test(){
@@ -107,7 +140,6 @@ public:
   }
 
 };
-
 
 #endif
 

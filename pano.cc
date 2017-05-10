@@ -30,11 +30,11 @@ int main(int ac, char **av) {
   // ... distance between two coordinates/z?
   // ... angles on sphere?
 
-  const double pos_lat(59.75*deg2rad_const), pos_lon(10.75*deg2rad_const), pos_z(200); // rad, rad, m
-  const double scene_direction(90*deg2rad_const); // [rad], east is 0
+  const double pos_lat(49.4*deg2rad_const), pos_lon(8.6*deg2rad_const), pos_z(200); // rad, rad, m
+  const double scene_direction(0*deg2rad_const); // [rad], east is 0
   const double scene_width(120*deg2rad_const); // [rad]
   const double range(50); // [km]
-//  scene S(pos_lat, pos_lon, pos_z, scene_direction, scene_width, range);
+  scene S(pos_lat, pos_lon, pos_z, scene_direction, scene_width, range);
 
   // calculate array of triples with phi/theta/dist for each elevated point
 
@@ -46,7 +46,7 @@ int main(int ac, char **av) {
   V.write_pixel_zb(15,5,500, 0,255,0,255);
   V.write_pixel_zb(5,15,500, 0,255,0,255);
   V.write_pixel_zb(15,15,500, 0,255,0,255);
-  cout << V.zbuffer << endl;
+//  cout << V.zbuffer << endl;
 
   // iterate over landscape squares, maintain z-buffer
   // possibly transform z axis of picture:  viewfinder compresses forground and stretches region around horizon by 130%-200%

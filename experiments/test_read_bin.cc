@@ -8,8 +8,8 @@
 //#include <string>
 #include <vector>
 
-#include "auxiliary.hh"
-#include "array2D.hh"
+#include "../auxiliary.hh"
+#include "../array2D.hh"
 
 using namespace std;
 
@@ -20,7 +20,7 @@ int16_t endian_swap(int16_t in){
   return (int16_t)(c[0] << 8 | c[1]);
 }
 
-array2D<int16_t> read_tile(char * FILENAME, const int dim){
+array2D<int16_t> read_tile(char const * FILENAME, const int dim){
   array2D<int16_t> A(dim,dim);
   const int size = dim*dim;
   int16_t size_test;
@@ -42,7 +42,7 @@ int main(int ac, char **av) {
 
   //const int size = 1201;
   const int size = 3601;
-  array2D<int16_t> A = read_tile("N59E005.hgt", size);
+  array2D<int16_t> A = read_tile("N49E008.hgt", size);
   //A.transpose();
   cout << size;
   for (int i=0;i<size;i++) cout << " " << i+1;
