@@ -87,5 +87,42 @@ double angle_v_scaled(const double phi1, const double theta1, const double z1, c
   return angle; // [rad]
 }
 
+// check if two line segments intersect
+inline int intersect( const double e1x1, const double e1y1, const double e1x2, const double e1y2,
+                      const double e2x1, const double e2y1, const double e2x2, const double e2y2 ){
+  const double a1 = (e1y1 - e1y2)/(e1x1 - e1x2);
+  const double b1 = e1y1 - a1 * e1x1;
+  if ((e2y1 > a1*e2x1+b1 && e2y2 > a1*e2x2+b1) || (e2y1 < a1*e2x1+b1 && e2y2 < a1*e2x2+b1)) return 0; // both points of the second edge lie on the sam    e side of the first edge
+  const double a2 = (e2y1 - e2y2)/(e2x1 - e2x2);
+  const double b2 = e2y1 - a2 * e2x1;
+  if ((e1y1 > a2*e1x1+b2 && e1y2 > a2*e1x2+b2) || (e1y1 < a2*e1x1+b2 && e1y2 < a2*e1x2+b2)) return 0; // both points of the first edge lie on the same     side of the second edge
+  return 1;
+}
+
+// draw a line from a reference point which is known to be outside to the point in question
+// count how many sides intersect with this line
+inline bool point_in_triangle_1(double px, double py,
+                                double refx, double refy,
+                                double x1, double y1, double x2, double y2, double x3, double y3){
+  int num_intersections=0;
+  num_intersections += intersect(refx,refy, px,py, x1,y1,x2,y2);
+  num_intersections += intersect(refx,refy, px,py, x2,y2,x3,y3);
+  num_intersections += intersect(refx,refy, px,py, x3,y3,x1,y1);
+  return num_intersections==1;
+}
+
+inline double orientation( double x1, double y1, double x2, double y2, double x3, double y3 ){
+  return (x1 - x3) * (y2 - y3) - (x2 - x3) * (y1 - y3);
+}
+
+inline bool point_in_triangle_2(double px, double py,
+                                double x1, double y1, double x2, double y2, double x3, double y3){
+  bool b1, b2, b3;
+  b1 = orientation(px, py, x1, y1, x2, y2) < 0;
+  b2 = orientation(px, py, x2, y2, x3, y3) < 0;
+  b3 = orientation(px, py, x3, y3, x1, y1) < 0;
+  return ((b1 == b2) && (b2 == b3));
+}
+
 #endif
 

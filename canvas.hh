@@ -15,19 +15,6 @@
 using namespace std;
 
 
-// check if line from xmin-1/ymin-1 -- x+.5/y+.5 intersects one or two sides of the triangle
-int intersect( const double e1x1, const double e1y1, const double e1x2, const double e1y2,
-               const double e2x1, const double e2y1, const double e2x2, const double e2y2 ){
-  const double a1 = (e1y1 - e1y2)/(e1x1 - e1x2);
-  const double b1 = e1y1 - a1 * e1x1;
-  if ((e2y1 > a1*e2x1+b1 && e2y2 > a1*e2x2+b1) || (e2y1 < a1*e2x1+b1 && e2y2 < a1*e2x2+b1)) return 0; // both points of the second edge lie on the sam    e side of the first edge
-  const double a2 = (e2y1 - e2y2)/(e2x1 - e2x2);
-  const double b2 = e2y1 - a2 * e2x1;
-  if ((e1y1 > a2*e1x1+b2 && e1y2 > a2*e1x2+b2) || (e1y1 < a2*e1x1+b2 && e1y2 < a2*e1x2+b2)) return 0; // both points of the first edge lie on the same     side of the second edge
-  return 1;
-}
-
-
 class canvas {
 
 public:
@@ -110,11 +97,8 @@ public:
     // iterate over grid points in bb, draw the ones in the triangle
     for (int i=xmin; i<xmax; i++){
       for (int j=ymin; j<ymax; j++){
-        int num_intersections=0;
-        num_intersections += intersect(xmin-1,ymin-1,i+0.5,j+0.5, x1,y1,x2,y2);
-        num_intersections += intersect(xmin-1,ymin-1,i+0.5,j+0.5, x2,y2,x3,y3);
-        num_intersections += intersect(xmin-1,ymin-1,i+0.5,j+0.5, x3,y3,x1,y1);
-        if(num_intersections==1){
+        //if(point_in_triangle_1 (i+0.5,j+0.5,xmin-1,ymin-1, x1,y1,x2,y2,x3,y3)){
+        if(point_in_triangle_2 (i+0.5,j+0.5, x1,y1,x2,y2,x3,y3)){
           write_pixel_zb(i,j,z, r,g,b,a);
         }
       }

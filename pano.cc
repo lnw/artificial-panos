@@ -46,6 +46,10 @@ int main(int ac, char **av) {
   V.write_pixel_zb(15,5,500, 0,255,0,255);
   V.write_pixel_zb(5,15,500, 0,255,0,255);
   V.write_pixel_zb(15,15,500, 0,255,0,255);
+  V.write_triangle(20,20,30,30,50,23,500, 0,255,0,255);
+  V.write_triangle(20,21,30.3,31.4,23.5,51.6,500, 0,100,255,255);
+
+  V.write_triangle(60.1,21.2,30.3,31.4,23.5,51.6,500.7, 0,100,255,255);
 //  cout << V.zbuffer << endl;
 
   // iterate over landscape squares, maintain z-buffer
