@@ -23,7 +23,7 @@ int16_t endian_swap(int16_t in){
 template <typename T> class tile: public array2D<T> {
 
 public:
-  int lat, lon; // deg, specifying the lower left corner of the tile.  Hence, northern tiles go from 0..89 while southern tiles go from 1..90, east: 0..179, west: 1..180.
+  int lat, lon; // [deg], specifying the lower left corner of the tile.  Hence, northern tiles go from 0..89 while southern tiles go from 1..90, east: 0..179, west: 1..180.
 
   tile(int m, int n, int lat, int lon): array2D<T>(m,n), lat(lat), lon(lon) {assert(this->m == this->n);}
   tile(array2D<T> A): array2D<T>(A) {assert(this->m == this->n);}
@@ -32,8 +32,14 @@ public:
     int16_t size_test;
   
     ifstream ifs(FILENAME, ios::in | ios::binary);
-    ifs.read(reinterpret_cast<char *>(&((*this)(0,0))), size * sizeof(size_test));
-    ifs.close();
+    ifs.exceptions ( ifstream::failbit | ifstream::badbit );
+    try {
+      ifs.read(reinterpret_cast<char *>(&((*this)(0,0))), size * sizeof(size_test));
+      ifs.close();
+    }
+    catch (const ifstream::failure& e) {
+      cout << "Exception opening/reading file";
+    }
   
     for (int i=0; i<dim; i++){
       for (int j=0; j<dim; j++){
@@ -43,28 +49,30 @@ public:
   }
 
   // viewfinder uses drop/m = 0.1695 m * (dist / miles)^2 to account for curvature and refraction
-  tile<double> adjust_curvature(tile<double> dists){
-    assert(this->m == dists.m);
-    assert(this->n == dists.n);
+  tile<double> curvature_adjusted_elevations(const tile<double>& dists) const {
+    // assert(this->m == dists.m);
+    // assert(this->n == dists.n);
     const int& m = this->m;
     const int& n = this->n;
     tile<double> A(m,n,lat,lon);
     for (int i=0; i<m; i++){
-      for (int j=0; j<n; j++){
-        const double coeff = 0.065444; // = 0.1695 / 1.609^2  // m
+      for (int j=0; j<m; j++){
+        const double coeff = 0.065444 / 1000000.0; // = 0.1695 / 1.609^2  // m
         A(i,j) = (*this)(i,j) - coeff*pow(dists(i,j),2);
+ //cout << (*this)(i,j) << ", " << dists(i,j) << " --> " << A(i,j) << endl;
       }
     }
     return A;
   }
 
-  tile<double> get_distances(const double lat_standpoint, const double lon_standpoint){
+  // matrix of distances [m] from standpoint to tile
+  tile<double> get_distances(const double lat_standpoint, const double lon_standpoint) const {
     const int& m = this->m;
     const int& n = this->n;
     tile<double> A(m,n,lat,lon);
     for (int i=0; i<m; i++){
       for (int j=0; j<n; j++){
-        A(i,j) = distance_atan(lat_standpoint, lon_standpoint, lat + i/(m-1), lon + j/(n-1));
+        A(i,j) = distance_atan(lat_standpoint, lon_standpoint, (lat + i/double(m-1))*deg2rad_const, (lon + j/double(n-1))*deg2rad_const);
       }
     }
     return A;
@@ -73,3 +81,4 @@ public:
 };
 
 #endif
+

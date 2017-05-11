@@ -13,7 +13,7 @@ test: Makefile test.cc scene.hh tile.hh array2D.hh auxiliary.hh
 
 .PHONY: clean distclean
 clean:
-	rm -f out.png
+	rm -f out.png debug
 
 distclean: clean
 	rm -f pano test a.out

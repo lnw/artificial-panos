@@ -15,26 +15,25 @@ using namespace std;
 class scene {
 public:
   double lat_standpoint, lon_standpoint, z_standpoint; // [rad], [rad], [m]
-  double view_dir, view_width, view_dist; // [rad], [rad], [km]
+  double view_dir, view_width, view_height, view_dist; // [rad], [rad], [rad], [m]
   vector<pair<tile<double>,tile<double>>> tiles; // heights, distances
 
-  scene(double lat, double lon, double z, double vdir, double vw, double vdist): lat_standpoint(lat), lon_standpoint(lon), z_standpoint(z), view_dir(vdir), view_width(vw), view_dist(vdist) {
+  scene(double lat, double lon, double z, double vdir, double vw, double vh, double vdist): lat_standpoint(lat), lon_standpoint(lon), z_standpoint(z), view_dir(vdir), view_width(vw), view_height(vh), view_dist(vdist) {
     // determine which tiles to add
     // get tiles
     // add them
     const int size=3601;
-    char const * FILENAME = "N59E006.hgt";
-    tile<int16_t> A (tile<int16_t>(FILENAME, size, 59, 6));
+    char const * FILENAME = "N49E008.hgt";
+    tile<int16_t> A (tile<int16_t>(FILENAME, size, 49, 8));
     add_tile(A);
-  };
-
-  template <typename T> void add_tile(tile<T> Tile){
-    tile<double> D(Tile.get_distances(lat_standpoint, lon_standpoint));
-    tile<double> H(Tile.adjust_curvature(D));
-    tiles.push_back(make_pair(D,H));
+    cout << "scene constructed" << endl;
   }
-  
-  
+
+  template <typename T> void add_tile(const tile<T>& Tile){
+    tile<double> D(Tile.get_distances(lat_standpoint, lon_standpoint));
+    tile<double> H(Tile.curvature_adjusted_elevations(D));
+    tiles.push_back(make_pair(H,D));
+  }
   
 
 };

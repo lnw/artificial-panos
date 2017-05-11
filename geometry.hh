@@ -30,10 +30,10 @@ template <typename T> class coord {
 // Vincenty's formulae might be better (to take into account earth's oblation)
 double distance_acos(const double phi1, const double theta1, const double phi2, const double theta2){
   // angle = (2*a + b)/3
-  const double average_radius_earth = (2*6378.137 + 6356.752)/3.0; // 6371.009 km
+  const double average_radius_earth = (2*6378.137 + 6356.752)/3.0 * 1000; // 6371.009 km [m]
   // angle = arccos ( sin phi1 * sin phi 2 + cos phi 1 * cos phi 2 * cos (lambda 1 - lambda 2) )
   const double angle = acos( sin(phi1)*sin(phi2) + cos(phi1)*cos(phi2)*cos(theta1-theta2) ); // [rad]
-  return average_radius_earth * angle; // [km]
+  return average_radius_earth * angle; // [m]
 }
 
 double central_angle_acos(const double phi1, const double theta1, const double phi2, const double theta2){
@@ -43,12 +43,12 @@ double central_angle_acos(const double phi1, const double theta1, const double p
 
 double distance_atan(const double phi1, const double theta1, const double phi2, const double theta2) {
   // angle = (2*a + b)/3
-  const double average_radius_earth = (2*6378.137 + 6356.752)/3.0; // 6371.009 km
+  const double average_radius_earth = (2*6378.137 + 6356.752)/3.0 * 1000; // 6371.009 km [m]
   const double latDiff_half = (phi1 - phi2)/2.0;
   const double longDiff_half = (theta1 - theta2)/2.0;
   const double a = sin(latDiff_half) * sin(latDiff_half) + sin(longDiff_half) * sin(longDiff_half) * cos(phi2) * cos(phi1);
   const double angle = 2 * atan2(sqrt(a), sqrt(1 - a));
-  return average_radius_earth * angle; // [km]
+  return average_radius_earth * angle; // [m]
 }
 
 double central_angle_atan(const double phi1, const double theta1, const double phi2, const double theta2) {
@@ -71,18 +71,16 @@ double angle_h( const double phi_A, const double theta_A, const double phi_B, co
 }
 
 // vertical angle, using distance and elevation difference
-// in rad
 // positive is up, negative is down
-double angle_v(const double phi1, const double theta1, const double z1, const double phi2, const double theta2, const double z2){
-  const double dist_h = distance_atan(phi1, theta1, phi2, theta2); // km
-  const int up = z1-z2>0 ? 1 : -1;
-  const double diff_z = abs(z1 - z2); // m
-  const double angle = atan(diff_z/(1000*dist_h)); // rad
+double angle_v(const double el_ref /* [m] */, const double el /* [m] */, const double dist /* [m] */){
+  const int up = el-el_ref>0 ? 1 : -1;
+  const double diff_el = abs(el - el_ref); // [m]
+  const double angle = atan(diff_el/dist); // [rad]
   return up * angle; // [rad]
 }
 
-double angle_v_scaled(const double phi1, const double theta1, const double z1, const double phi2, const double theta2, const double z2){
-  double angle = angle_v(phi1, theta1, z1, phi2, theta2, z2);
+double angle_v_scaled(const double el_ref, const double el, const double dist){
+  double angle = angle_v(el_ref, el, dist); // [rad] 
   if(angle<0) angle *= 0.7;
   return angle; // [rad]
 }
@@ -111,16 +109,17 @@ inline bool point_in_triangle_1(double px, double py,
   return num_intersections==1;
 }
 
-inline double orientation( double x1, double y1, double x2, double y2, double x3, double y3 ){
+inline double signed_area( double x1, double y1, double x2, double y2, double x3, double y3 ){
   return (x1 - x3) * (y2 - y3) - (x2 - x3) * (y1 - y3);
 }
 
 inline bool point_in_triangle_2(double px, double py,
                                 double x1, double y1, double x2, double y2, double x3, double y3){
   bool b1, b2, b3;
-  b1 = orientation(px, py, x1, y1, x2, y2) < 0;
-  b2 = orientation(px, py, x2, y2, x3, y3) < 0;
-  b3 = orientation(px, py, x3, y3, x1, y1) < 0;
+  b1 = signed_area(px, py, x1, y1, x2, y2) < 0;
+  b2 = signed_area(px, py, x2, y2, x3, y3) < 0;
+  b3 = signed_area(px, py, x3, y3, x1, y1) < 0;
+  // and we ignore the case of points lying *on* the boundary
   return ((b1 == b2) && (b2 == b3));
 }
 
