@@ -106,7 +106,7 @@ public:
   }
 
   void render_scene(const scene& S){
-    ofstream debug("debug", ofstream::out | ofstream::app);
+    ofstream debug("debug-render_scene", ofstream::out | ofstream::app);
     // determine the dimensions, especially pixels/deg
     const double& view_direction = S.view_dir; // [rad]
     const double& view_width = S.view_width; // [rad]
@@ -116,6 +116,8 @@ public:
     debug << "view direction [rad]: " << view_direction << endl;
     debug << "view width [rad]: " << view_width << endl;
     debug << "view height [rad]: " << view_height << endl;
+    debug << "canvas width: " << width << endl;
+    debug << "canvas height: " << height << endl;
     debug << "horizantal pixels per rad [px/rad]: " << pixels_per_rad_h << endl;
     debug << "vertical pixels per rad [px/rad]: " << pixels_per_rad_v << endl;
 
@@ -131,22 +133,30 @@ public:
       debug << "m: " << m << endl;
       debug << "n: " << n << endl;
       debug << (m-1)*(n-1)*2 << " triangles in tile " << t << endl;
-      for (size_t i=0; i<m-1; i++){
-        for (size_t j=0; j<n-1; j++){
+      // for (size_t i=0; i<m-1; i++){
+      //   for (size_t j=0; j<n-1; j++){
+      for (size_t i=0; i<5; i++){
+        for (size_t j=0; j<5; j++){
           // first triangle: i/j, i+1/j, i/j+1
           // second triangle: i+1/j, i/j+1, i+1/j+1
 
           // get horizontal and vertical angles for all four points of the two triangles
           // translate to image coordinates
-//          const double ha_ij;
-//          const double ha_ijj;
-//          const double ha_iij;
-//          const double ha_iijj;
+          const double h_ij = (view_direction + view_width/2
+                               - horizontal_direction(S.lat_standpoint, S.lon_standpoint, (H.lat + i/double(m-1))*deg2rad_const, (H.lon + j/double(n-1))*deg2rad_const)) * pixels_per_rad_h ;
+          const double h_ijj = (view_direction + view_width/2
+                               - horizontal_direction(S.lat_standpoint, S.lon_standpoint, (H.lat + i/double(m-1))*deg2rad_const, (H.lon + (j+1)/double(n-1))*deg2rad_const)) * pixels_per_rad_h ;
+          const double h_iij = (view_direction + view_width/2
+                               - horizontal_direction(S.lat_standpoint, S.lon_standpoint, (H.lat + (i+1)/double(m-1))*deg2rad_const, (H.lon + j/double(n-1))*deg2rad_const)) * pixels_per_rad_h ;
+          const double h_iijj = (view_direction + view_width/2
+                               - horizontal_direction(S.lat_standpoint, S.lon_standpoint, (H.lat + (i+1)/double(m-1))*deg2rad_const, (H.lon + (j+1)/double(n-1))*deg2rad_const)) * pixels_per_rad_h ;
+         debug << "h: " << h_ij << ", " << h_ijj << ", " << h_iij << ", " << h_iijj << endl;
          //cout << S.z_standpoint << ", " << H(i,j) << ", " <<  D(i,j) << endl;
           const double v_ij = angle_v(S.z_standpoint, H(i,j), D(i,j)) * pixels_per_rad_v; // [px]
           const double v_ijj = angle_v(S.z_standpoint, H(i,j+1), D(i,j+1)) * pixels_per_rad_v; //[px]
           const double v_iij = angle_v(S.z_standpoint, H(i+1,j), D(i+1,j)) * pixels_per_rad_v; // [px]
           const double v_iijj = angle_v(S.z_standpoint, H(i+1,j+1), D(i+1,j+1)) * pixels_per_rad_v; // [px]
+         debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << endl;
           //cout << v_ij << endl;
 
           // check for both triangles if at least one point is on the canvas

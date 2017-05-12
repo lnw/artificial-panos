@@ -32,14 +32,14 @@ public:
     int16_t size_test;
   
     ifstream ifs(FILENAME, ios::in | ios::binary);
-    ifs.exceptions ( ifstream::failbit | ifstream::badbit );
+    ifs.exceptions( ifstream::failbit | ifstream::badbit );
     try {
       ifs.read(reinterpret_cast<char *>(&((*this)(0,0))), size * sizeof(size_test));
-      ifs.close();
     }
     catch (const ifstream::failure& e) {
       cout << "Exception opening/reading file";
     }
+    ifs.close();
   
     for (int i=0; i<dim; i++){
       for (int j=0; j<dim; j++){
