@@ -59,7 +59,9 @@ double central_angle_atan(const double phi1, const double theta1, const double p
 }
 
 // horizontal angle, ie, angle between two great circles
-double angle_h( const double phi_A, const double theta_A, const double phi_B, const double theta_B, const double phi_C, const double theta_C) {
+double angle_h(const double phi_A, const double theta_A,
+               const double phi_B, const double theta_B,
+               const double phi_C, const double theta_C) {
   // Convert real distances to unit sphere distances
   const double a = central_angle_atan(phi_B, theta_B, phi_C, theta_C);
   const double b = central_angle_atan(phi_A, theta_A, phi_C, theta_C);
@@ -70,7 +72,8 @@ double angle_h( const double phi_A, const double theta_A, const double phi_B, co
   return acos(numerator / denominator); // [rad]
 }
 
-double horizontal_direction(const double ref_lat, const double ref_lon, const double lat, const double lon){
+double horizontal_direction(const double ref_lat, const double ref_lon,
+                            const double lat, const double lon){
   const double north_lat(90), north_lon(0);
   const double a = central_angle_atan(lat, lon,             ref_lat, ref_lon);
   const double b = central_angle_atan(north_lat, north_lon, lat, lon);
@@ -84,6 +87,17 @@ double horizontal_direction(const double ref_lat, const double ref_lon, const do
   else if(lat<ref_lat && lon<ref_lon) return 3*M_PI/2-angle; // looking South West
   else /*(lat<ref_lat && lon>ref_lon)*/ return 3*M_PI/2+angle; // looking South East
 }
+
+// bearing, starting from ref
+// where N: 0, E:90, S:+/-180, W:-90
+double bearing(const double ref_lat, const double ref_lon,
+               const double lat, const double lon){
+  const double Dlon = lon - ref_lon;
+  const double x = cos(lat)*sin(Dlon);
+  const double y = cos(ref_lat)*sin(lat) - sin(ref_lat)*cos(lat)*cos(Dlon);
+  return atan2(x,y);
+}
+
 
 // vertical angle, using distance and elevation difference
 // positive is up, negative is down
