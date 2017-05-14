@@ -11,6 +11,7 @@
 #include "geometry.hh"
 #include "array2D.hh"
 #include "scene.hh"
+#include "colour.hh"
 
 using namespace std;
 

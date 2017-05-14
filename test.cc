@@ -8,6 +8,7 @@
 
 #include "auxiliary.hh"
 #include "geometry.hh"
+#include "colour.hh"
 
 using namespace std;
 
@@ -59,3 +60,33 @@ TEST_CASE( "bearing", "bearing" ) {
   latA=-85*deg2rad_const, latB=-85*deg2rad_const, lonA=-170*deg2rad_const, lonB=9.999*deg2rad_const;
   CHECK( bearing(latA,lonA,latB,lonB) == Approx(180.0*deg2rad_const) ); // south
 }
+
+TEST_CASE("rgb2hsl","rgb2hsl") {
+  CHECK( rgb2hsl(0,0,0) == vector<double>({0.0, 0.0, 0.0}) );
+  CHECK( rgb2hsl(20,20,20)[0] == Approx(0) );
+  CHECK( rgb2hsl(20,20,20)[1] == Approx(0) );
+  CHECK( rgb2hsl(20,20,20)[2] == Approx(0.078431) );
+  CHECK( rgb2hsl(255,255,255) == vector<double>({0.0, 0.0, 1.0}) );
+  CHECK( rgb2hsl(50,150,250)[0] == Approx(0.583333) ); //h
+  CHECK( rgb2hsl(50,150,250)[1] == Approx(0.952380) ); //s
+  CHECK( rgb2hsl(50,150,250)[2] == Approx(0.588235) ); //l
+}
+
+TEST_CASE("hsv2rgb","hsv2rgb"){
+  CHECK(hsv2rgb(0,0,0) == vector<int>({int(0*255),int(0*255),int(0*255)}));
+  CHECK(hsv2rgb(1,0,0) == vector<int>({int(0*255),int(0*255),int(0*255)}));
+  CHECK(hsv2rgb(1,1,1) == vector<int>({int(1*255),int(0*255),int(0*255)}));
+  CHECK(hsv2rgb(0.2,0.3,0.4) == vector<int>({int(0.376*255),int(0.4*255),int(0.28*255)}));
+}
+
+TEST_CASE("rgb2hsv","rgb2hsv") {
+  CHECK( rgb2hsv(0,0,0) == vector<double>({0.0, 0.0, 0.0}) );
+  CHECK( rgb2hsl(20,20,20)[0] == Approx(0) );
+  CHECK( rgb2hsl(20,20,20)[1] == Approx(0) );
+  CHECK( rgb2hsl(20,20,20)[2] == Approx(0.078431) );
+  CHECK( rgb2hsv(255,255,255) == vector<double>({0.0, 0.0, 1.0}) );
+  CHECK( rgb2hsv(50,150,250)[0] == Approx(0.583333) ); //h
+  CHECK( rgb2hsv(50,150,250)[1] == Approx(0.8) ); //s
+  CHECK( rgb2hsv(50,150,250)[2] == Approx(0.980392) ); //v
+}
+
