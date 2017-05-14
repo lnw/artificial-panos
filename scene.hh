@@ -19,6 +19,8 @@ public:
   vector<pair<tile<double>,tile<double>>> tiles; // heights, distances
 
   scene(double lat, double lon, double z, double vdir, double vw, double vh, double vdist): lat_standpoint(lat), lon_standpoint(lon), z_standpoint(z), view_dir(vdir), view_width(vw), view_height(vh), view_dist(vdist) {
+    ofstream debug("debug-render_scene", ofstream::out | ofstream::app);
+    debug << "standpoint: " << lat_standpoint*rad2deg << ", " << lon_standpoint*rad2deg << endl;
     // determine which tiles to add
     // get tiles
     // add them
@@ -27,6 +29,7 @@ public:
     tile<int16_t> A (tile<int16_t>(FILENAME, size, 49, 8));
     add_tile(A);
     cout << "scene constructed" << endl;
+    debug.close();
   }
 
   template <typename T> void add_tile(const tile<T>& Tile){

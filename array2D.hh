@@ -14,6 +14,8 @@ using namespace std;
 template <typename T> class array2D : public vector<T> {
 
 public:
+  // m: number of rows (i->m)
+  // n: number of columns (j->n)
   int m, n; 
 
   array2D(int m, int n, const vector<T>& A) : vector<T>(A.begin(), A.end()), m(m), n(n) { assert(A.size()==m*n); }

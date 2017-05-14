@@ -39,15 +39,16 @@ array2D<int16_t> read_tile(char const * FILENAME, const int dim){
 int main(int ac, char **av) {
 
   //const int size = 1201;
-  const int size = 3601;
-  array2D<int16_t> A = read_tile("N49E008.hgt", size);
+  const int m = 3601; // size lon
+  const int n = 3601; // size lat
+  array2D<int16_t> A = read_tile("N49E008.hgt", m);
   //A.transpose();
-  cout << size;
-  for (int i=0;i<size;i++) cout << " " << i+1;
+  cout << n;
+  for (int i=0;i<m;i++) cout << " " << i+1;
   cout << endl;
-  for (int i=0;i<size;i++){
-    cout << size - i << " ";
-    for (int j=0;j<size;j++){
+  for (int i=0;i<m;i++){
+    cout << m - i << " ";
+    for (int j=0;j<n;j++){
       cout << A(i,j) << " ";
     }
     cout << endl;

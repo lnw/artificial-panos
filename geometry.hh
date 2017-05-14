@@ -6,24 +6,8 @@
 
 #include "auxiliary.hh"
 
-const double deg2rad_const = M_PI/180;
-const double rad2deg_const = 180/M_PI;
-
-template <typename T> class coord {
-  public:
-  T lat, lon;
-
-  coord(T lat, T lon): lat(lat), lon(lon) {};
-
-  void deg2rad(){ 
-    lat *= deg2rad_const;
-    lon *= deg2rad_const;
-  }
-  void rad2deg(){ 
-    lat *= rad2deg_const;
-    lon *= rad2deg_const;
-  }
-};
+const double deg2rad = M_PI/180;
+const double rad2deg = 180/M_PI;
 
 // distance between two points on a sphere, without elevation
 // phi is the latitude, theta the longitude

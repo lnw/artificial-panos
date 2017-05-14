@@ -23,7 +23,9 @@ int16_t endian_swap(int16_t in){
 template <typename T> class tile: public array2D<T> {
 
 public:
-  int lat, lon; // [deg], specifying the lower left corner of the tile.  Hence, northern tiles go from 0..89 while southern tiles go from 1..90, east: 0..179, west: 1..180.
+// [deg], specifying the lower left corner of the tile.  Hence, northern tiles go from 0..89 while southern tiles go from 1..90, east: 0..179, west: 1..180.
+  // however, the array stores everything starting from the top/left corner, row major.
+  int lat, lon;
 
   tile(int m, int n, int lat, int lon): array2D<T>(m,n), lat(lat), lon(lon) {assert(this->m == this->n);}
   tile(array2D<T> A): array2D<T>(A) {assert(this->m == this->n);}
@@ -72,10 +74,26 @@ public:
     tile<double> A(m,n,lat,lon);
     for (int i=0; i<m; i++){
       for (int j=0; j<n; j++){
-        A(i,j) = distance_atan(lat_standpoint, lon_standpoint, (lat + i/double(m-1))*deg2rad_const, (lon + j/double(n-1))*deg2rad_const);
+        A(i,j) = distance_atan(lat_standpoint, lon_standpoint, (lat + 1 - i/double(m-1))*deg2rad, (lon + j/double(n-1))*deg2rad);
       }
     }
     return A;
+  }
+
+  friend ostream& operator<<(ostream& S, const tile& TT)
+  {
+    S << TT.n;
+    for (int i=0;i<TT.m;i++)
+      S << " " << i+1;
+    S << endl;
+    for (int i=0;i<TT.m;i++){
+      S << TT.m - i << " ";
+      for (int j=0;j<TT.n;j++){
+        S << TT(i,j) << " ";
+      }
+      S << endl;
+    }
+    return S;
   }
 
 };
