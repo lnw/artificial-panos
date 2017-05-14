@@ -28,65 +28,65 @@ template <typename T> class coord {
 // distance between two points on a sphere, without elevation
 // phi is the latitude, theta the longitude
 // Vincenty's formulae might be better (to take into account earth's oblation)
-double distance_acos(const double phi1, const double theta1, const double phi2, const double theta2){
+double distance_acos(const double latA, const double lonA, const double latB, const double lonB){
   // angle = (2*a + b)/3
   const double average_radius_earth = (2*6378.137 + 6356.752)/3.0 * 1000; // 6371.009 km [m]
-  // angle = arccos ( sin phi1 * sin phi 2 + cos phi 1 * cos phi 2 * cos (lambda 1 - lambda 2) )
-  const double angle = acos( sin(phi1)*sin(phi2) + cos(phi1)*cos(phi2)*cos(theta1-theta2) ); // [rad]
+  // angle = arccos ( sin latA * sin phi 2 + cos phi 1 * cos phi 2 * cos (lambda 1 - lambda 2) )
+  const double angle = acos( sin(latA)*sin(latB) + cos(latA)*cos(latB)*cos(lonA-lonB) ); // [rad]
   return average_radius_earth * angle; // [m]
 }
 
-double central_angle_acos(const double phi1, const double theta1, const double phi2, const double theta2){
-  // angle = arccos ( sin phi1 * sin phi 2 + cos phi 1 * cos phi 2 * cos (lambda 1 - lambda 2) )
-  return acos( sin(phi1)*sin(phi2) + cos(phi1)*cos(phi2)*cos(theta1-theta2) ); // [rad]
+double central_angle_acos(const double latA, const double lonA, const double latB, const double lonB){
+  // angle = arccos ( sin latA * sin phi 2 + cos phi 1 * cos phi 2 * cos (lambda 1 - lambda 2) )
+  return acos( sin(latA)*sin(latB) + cos(latA)*cos(latB)*cos(lonA-lonB) ); // [rad]
 }
 
-double distance_atan(const double phi1, const double theta1, const double phi2, const double theta2) {
+double distance_atan(const double latA, const double lonA, const double latB, const double lonB) {
   // angle = (2*a + b)/3
   const double average_radius_earth = (2*6378.137 + 6356.752)/3.0 * 1000; // 6371.009 km [m]
-  const double latDiff_half = (phi1 - phi2)/2.0;
-  const double longDiff_half = (theta1 - theta2)/2.0;
-  const double a = sin(latDiff_half) * sin(latDiff_half) + sin(longDiff_half) * sin(longDiff_half) * cos(phi2) * cos(phi1);
+  const double latDiff_half = (latA - latB)/2.0;
+  const double longDiff_half = (lonA - lonB)/2.0;
+  const double a = sin(latDiff_half) * sin(latDiff_half) + sin(longDiff_half) * sin(longDiff_half) * cos(latB) * cos(latA);
   const double angle = 2 * atan2(sqrt(a), sqrt(1 - a));
   return average_radius_earth * angle; // [m]
 }
 
-double central_angle_atan(const double phi1, const double theta1, const double phi2, const double theta2) {
-  const double latDiff_half = (phi1 - phi2)/2.0;
-  const double longDiff_half = (theta1 - theta2)/2.0;
-  const double a = sin(latDiff_half) * sin(latDiff_half) + sin(longDiff_half) * sin(longDiff_half) * cos(phi2) * cos(phi1);
+double central_angle_atan(const double latA, const double lonA, const double latB, const double lonB) {
+  const double latDiff_half = (latA - latB)/2.0;
+  const double longDiff_half = (lonA - lonB)/2.0;
+  const double a = sin(latDiff_half) * sin(latDiff_half) + sin(longDiff_half) * sin(longDiff_half) * cos(latB) * cos(latA);
   return 2 * atan2(sqrt(a), sqrt(1 - a)); // [rad]
 }
 
 // horizontal angle, ie, angle between two great circles
-double angle_h(const double phi_A, const double theta_A,
-               const double phi_B, const double theta_B,
-               const double phi_C, const double theta_C) {
+double angle_h(const double latA, const double lonA,
+               const double latB, const double lonB,
+               const double latC, const double lonC) {
   // Convert real distances to unit sphere distances
-  const double a = central_angle_atan(phi_B, theta_B, phi_C, theta_C);
-  const double b = central_angle_atan(phi_A, theta_A, phi_C, theta_C);
-  const double c = central_angle_atan(phi_A, theta_A, phi_B, theta_B);
+  const double a = central_angle_atan(latB, lonB, latC, lonC);
+  const double b = central_angle_atan(latA, lonA, latC, lonC);
+  const double c = central_angle_atan(latA, lonA, latB, lonB);
   // Use the Spherical law of cosines to get at the angle between a and b
   const double numerator = cos(b) - cos(a) * cos(c);
   const double denominator = sin(a) * sin(c);
   return acos(numerator / denominator); // [rad]
 }
 
-// double horizontal_direction(const double ref_lat, const double ref_lon,
-//                             const double lat, const double lon){
-//   const double north_lat(90), north_lon(0);
-//   const double a = central_angle_atan(lat, lon,             ref_lat, ref_lon);
-//   const double b = central_angle_atan(north_lat, north_lon, lat, lon);
-//   const double c = central_angle_atan(ref_lat, ref_lon,     north_lat, north_lon);
-//   // Use the Spherical law of cosines to get at the angle between a and b
-//   const double numerator = cos(b) - cos(a) * cos(c);
-//   const double denominator = sin(a) * sin(c);
-//   const double angle = acos(numerator / denominator); // [rad] // <90
-//   if(lat>ref_lat && lon>ref_lon) return M_PI/2-angle; // looking North East
-//   else if(lat>ref_lat && lon<ref_lon) return M_PI/2+angle; // looking North West
-//   else if(lat<ref_lat && lon<ref_lon) return 3*M_PI/2-angle; // looking South West
-//   else /*(lat<ref_lat && lon>ref_lon)*/ return 3*M_PI/2+angle; // looking South East
-// }
+double horizontal_direction(const double ref_lat, const double ref_lon,
+                            const double lat, const double lon){
+  const double north_lat(90), north_lon(0);
+  const double a = central_angle_atan(lat, lon,             ref_lat, ref_lon);
+  const double b = central_angle_atan(north_lat, north_lon, lat, lon);
+  const double c = central_angle_atan(ref_lat, ref_lon,     north_lat, north_lon);
+  // Use the Spherical law of cosines to get at the angle between a and b
+  const double numerator = cos(b) - cos(a) * cos(c);
+  const double denominator = sin(a) * sin(c);
+  const double angle = acos(numerator / denominator); // [rad] // <90
+  if(lat>ref_lat && lon>ref_lon) return M_PI/2-angle; // looking North East
+  else if(lat>ref_lat && lon<ref_lon) return M_PI/2+angle; // looking North West
+  else if(lat<ref_lat && lon<ref_lon) return 3*M_PI/2-angle; // looking South West
+  else /*(lat<ref_lat && lon>ref_lon)*/ return 3*M_PI/2+angle; // looking South East
+}
 
 // bearing, starting from ref
 // where N: 0, E:90, S:+/-180, W:-90
@@ -138,10 +138,12 @@ inline bool point_in_triangle_1(double px, double py,
   return num_intersections==1;
 }
 
+// area of triangle, but more importantly, are the points CW or CCW?
 inline double signed_area( double x1, double y1, double x2, double y2, double x3, double y3 ){
   return (x1 - x3) * (y2 - y3) - (x2 - x3) * (y1 - y3);
 }
 
+// is point (px/py) inside a triangle?
 inline bool point_in_triangle_2(double px, double py,
                                 double x1, double y1, double x2, double y2, double x3, double y3){
   bool b1, b2, b3;

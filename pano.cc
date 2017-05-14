@@ -27,14 +27,13 @@ int main(int ac, char **av) {
   // ... distance between two coordinates/z?
   // ... angles on sphere?
 
-  const double pos_lat(49.6*deg2rad_const), pos_lon(8.55*deg2rad_const), pos_z(700); // rad, rad, m
+  const double pos_lat(49.4*deg2rad_const), pos_lon(8.6*deg2rad_const), pos_z(300); // rad, rad, m
   const double view_direction(0*deg2rad_const); // [rad], east is 0
   const double view_width(360*deg2rad_const); // [rad]
   const double view_height(20*deg2rad_const); // [rad]
   const double range(50000); // [m]
   scene S(pos_lat, pos_lon, pos_z, view_direction, view_width, view_height, range);
 
-  // calculate array of triples with phi/theta/dist for each elevated point
 
   char const * filename = "out.png";
   const int view_x(10000), view_y(1200); // pixels
