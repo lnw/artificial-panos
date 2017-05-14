@@ -27,17 +27,17 @@ int main(int ac, char **av) {
   // ... distance between two coordinates/z?
   // ... angles on sphere?
 
-  const double pos_lat(49.4*deg2rad_const), pos_lon(8.6*deg2rad_const), pos_z(200); // rad, rad, m
-  const double scene_direction(0*deg2rad_const); // [rad], east is 0
-  const double scene_width(120*deg2rad_const); // [rad]
-  const double scene_height(30*deg2rad_const); // [rad]
+  const double pos_lat(49.6*deg2rad_const), pos_lon(8.55*deg2rad_const), pos_z(700); // rad, rad, m
+  const double view_direction(0*deg2rad_const); // [rad], east is 0
+  const double view_width(360*deg2rad_const); // [rad]
+  const double view_height(20*deg2rad_const); // [rad]
   const double range(50000); // [m]
-  scene S(pos_lat, pos_lon, pos_z, scene_direction, scene_width, scene_height, range);
+  scene S(pos_lat, pos_lon, pos_z, view_direction, view_width, view_height, range);
 
   // calculate array of triples with phi/theta/dist for each elevated point
 
   char const * filename = "out.png";
-  const int view_x(3000), view_y(800); // pixels
+  const int view_x(10000), view_y(1200); // pixels
   canvas V(filename, view_x, view_y);
   V.render_test();
 
@@ -46,9 +46,9 @@ int main(int ac, char **av) {
   V.write_pixel_zb(5,15,500,  0,255,0,255);
   V.write_pixel_zb(15,15,500, 0,255,0,255);
 
-  V.write_triangle(200,200,     300.3,310.4, 600.1,210.2, 500,   0,255,100,255);
-  V.write_triangle(200,200,     300.3,310.4, 230.5,510.6, 500,   0,100,255,255);
-  V.write_triangle(600.1,210.2, 300.3,310.4, 230.5,510.6, 500.7, 0,200,255,255);
+  V.write_triangle(200,200,     300.3,310.4, 600.1,210.2, 15000,   0,255,100,255);
+  V.write_triangle(200,200,     300.3,310.4, 230.5,510.6, 15000,   0,100,255,255);
+  V.write_triangle(600.1,210.2, 300.3,310.4, 230.5,510.6, 15000, 0,200,255,255);
 
   V.render_scene(S);
 //  cout << V.zbuffer << endl;

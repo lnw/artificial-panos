@@ -133,29 +133,46 @@ public:
       debug << "m: " << m << endl;
       debug << "n: " << n << endl;
       debug << (m-1)*(n-1)*2 << " triangles in tile " << t << endl;
-      for (size_t i=0; i<m-1; i++){
-        for (size_t j=0; j<n-1; j++){
+      //for (size_t i=0; i<m-1; i++){
+      //  for (size_t j=0; j<n-1; j++){
+      const int inc = 1;
+      for (size_t i=0; i<m-inc; i+=inc){
+        for (size_t j=0; j<n-inc; j+=inc){
+          if(D(i,j) > S.view_dist) continue;
           // first triangle: i/j, i+1/j, i/j+1
           // second triangle: i+1/j, i/j+1, i+1/j+1
-
           // get horizontal and vertical angles for all four points of the two triangles
           // translate to image coordinates
-          const double h_ij = (view_direction + view_width/2 - bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + i/double(m-1))*deg2rad_const, (H.lon + j/double(n-1))*deg2rad_const)) * pixels_per_rad_h ;
-          const double h_ijj = (view_direction + view_width/2 - bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + i/double(m-1))*deg2rad_const, (H.lon + (j+1)/double(n-1))*deg2rad_const)) * pixels_per_rad_h ;
-          const double h_iij = (view_direction + view_width/2 - bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + (i+1)/double(m-1))*deg2rad_const, (H.lon + j/double(n-1))*deg2rad_const)) * pixels_per_rad_h ;
-          const double h_iijj = (view_direction + view_width/2 - bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + (i+1)/double(m-1))*deg2rad_const, (H.lon + (j+1)/double(n-1))*deg2rad_const)) * pixels_per_rad_h ;
-         //debug << "h: " << h_ij << ", " << h_ijj << ", " << h_iij << ", " << h_iijj << endl;
-         //cout << S.z_standpoint << ", " << H(i,j) << ", " <<  D(i,j) << endl;
-          const double v_ij = angle_v(S.z_standpoint, H(i,j), D(i,j)) * pixels_per_rad_v; // [px]
-          const double v_ijj = angle_v(S.z_standpoint, H(i,j+1), D(i,j+1)) * pixels_per_rad_v; //[px]
-          const double v_iij = angle_v(S.z_standpoint, H(i+1,j), D(i+1,j)) * pixels_per_rad_v; // [px]
-          const double v_iijj = angle_v(S.z_standpoint, H(i+1,j+1), D(i+1,j+1)) * pixels_per_rad_v; // [px]
-         //debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << endl;
+          const double h_ij = (view_direction + view_width/2.0 - bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + i/double(m-1))*deg2rad_const, (H.lon + j/double(n-1))*deg2rad_const)) * pixels_per_rad_h;
+          if(h_ij < 0 || h_ij > width) continue;
+          const double h_ijj = (view_direction + view_width/2.0 - bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + i/double(m-1))*deg2rad_const, (H.lon + (j+inc)/double(n-1))*deg2rad_const)) * pixels_per_rad_h;
+          if(h_ijj < 0 || h_ijj > width) continue;
+          const double h_iij = (view_direction + view_width/2.0 - bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + (i+inc)/double(m-1))*deg2rad_const, (H.lon + j/double(n-1))*deg2rad_const)) * pixels_per_rad_h;
+          if(h_iij < 0 || h_iij > width) continue;
+          const double h_iijj = (view_direction + view_width/2.0 - bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + (i+inc)/double(m-1))*deg2rad_const, (H.lon + (j+inc)/double(n-1))*deg2rad_const)) * pixels_per_rad_h;
+          if(h_iijj < 0 || h_iijj > width) continue;
+          debug << "("<<i<<","<<j<< ") h: " << h_ij << ", " << h_ijj << ", " << h_iij << ", " << h_iijj << endl;
+         
+          //cout << S.z_standpoint << ", " << H(i,j) << ", " <<  D(i,j) << endl;
+          const double v_ij   = (view_height/2.0 - angle_v(S.z_standpoint, H(i,j), D(i,j))) * pixels_per_rad_v; // [px]
+          if(v_ij < 0 || v_ij > height) continue;
+          const double v_ijj  = (view_height/2.0 - angle_v(S.z_standpoint, H(i,j+inc), D(i,j+inc))) * pixels_per_rad_v; //[px]
+          if(v_ijj < 0 || v_ijj > height) continue;
+          const double v_iij  = (view_height/2.0 - angle_v(S.z_standpoint, H(i+inc,j), D(i+inc,j))) * pixels_per_rad_v; // [px]
+          if(v_iij < 0 || v_iij > height) continue;
+          const double v_iijj = (view_height/2.0 - angle_v(S.z_standpoint, H(i+inc,j+inc), D(i+inc,j+inc))) * pixels_per_rad_v; // [px]
+          if(v_iijj < 0 || v_iijj > height) continue;
+          debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << endl;
           //cout << v_ij << endl;
 
           // check for both triangles if at least one point is on the canvas
               
           // if so, write triangle
+           const double dist1 = (D(i,j)+D(i+inc,j)+D(i,j+inc))/3.0;
+           write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, 200, H(i,j)-100, 200, 255);
+           const double dist2 = (D(i+inc,j+inc)+D(i+inc,j)+D(i,j+inc))/3.0;
+           //cout << "d12: " << dist1/10 << ", " << dist2/10 << endl;
+           write_triangle(h_iijj, v_iijj, h_ijj, v_ijj, h_iij, v_iij, dist2, 200, H(i,j)-100 , 200, 255);
 
         }
       }

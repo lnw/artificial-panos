@@ -72,21 +72,21 @@ double angle_h(const double phi_A, const double theta_A,
   return acos(numerator / denominator); // [rad]
 }
 
-double horizontal_direction(const double ref_lat, const double ref_lon,
-                            const double lat, const double lon){
-  const double north_lat(90), north_lon(0);
-  const double a = central_angle_atan(lat, lon,             ref_lat, ref_lon);
-  const double b = central_angle_atan(north_lat, north_lon, lat, lon);
-  const double c = central_angle_atan(ref_lat, ref_lon,     north_lat, north_lon);
-  // Use the Spherical law of cosines to get at the angle between a and b
-  const double numerator = cos(b) - cos(a) * cos(c);
-  const double denominator = sin(a) * sin(c);
-  const double angle = acos(numerator / denominator); // [rad] // <90
-  if(lat>ref_lat && lon>ref_lon) return M_PI/2-angle; // looking North East
-  else if(lat>ref_lat && lon<ref_lon) return M_PI/2+angle; // looking North West
-  else if(lat<ref_lat && lon<ref_lon) return 3*M_PI/2-angle; // looking South West
-  else /*(lat<ref_lat && lon>ref_lon)*/ return 3*M_PI/2+angle; // looking South East
-}
+// double horizontal_direction(const double ref_lat, const double ref_lon,
+//                             const double lat, const double lon){
+//   const double north_lat(90), north_lon(0);
+//   const double a = central_angle_atan(lat, lon,             ref_lat, ref_lon);
+//   const double b = central_angle_atan(north_lat, north_lon, lat, lon);
+//   const double c = central_angle_atan(ref_lat, ref_lon,     north_lat, north_lon);
+//   // Use the Spherical law of cosines to get at the angle between a and b
+//   const double numerator = cos(b) - cos(a) * cos(c);
+//   const double denominator = sin(a) * sin(c);
+//   const double angle = acos(numerator / denominator); // [rad] // <90
+//   if(lat>ref_lat && lon>ref_lon) return M_PI/2-angle; // looking North East
+//   else if(lat>ref_lat && lon<ref_lon) return M_PI/2+angle; // looking North West
+//   else if(lat<ref_lat && lon<ref_lon) return 3*M_PI/2-angle; // looking South West
+//   else /*(lat<ref_lat && lon>ref_lon)*/ return 3*M_PI/2+angle; // looking South East
+// }
 
 // bearing, starting from ref
 // where N: 0, E:90, S:+/-180, W:-90
