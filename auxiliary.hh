@@ -37,4 +37,18 @@ std::string to_string_with_precision(const T a_value, const int n = 3)
   return out.str();
 }
 
+template <typename T>
+std::string to_string_fixedwidth(const T a_value, const int n = 3)
+{
+  std::ostringstream out;
+  int num_digits = to_string(a_value).length();
+  if(num_digits<n){
+    for(int i=0; i<n-num_digits; i++){
+      out << "0";
+    }
+  }
+  out << to_string(a_value);
+  return out.str();
+}
+
 #endif

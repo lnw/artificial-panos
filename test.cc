@@ -61,6 +61,22 @@ TEST_CASE( "bearing", "bearing" ) {
   CHECK( bearing(latA,lonA,latB,lonB) == Approx(180.0*deg2rad) ); // south
 }
 
+TEST_CASE( "destination", "destination (from location+dist+bearing)" ) {
+  double lat(50*deg2rad), lon(6*deg2rad), dist(111195), bearing(0);
+  CHECK( destination(lat,lon,dist,bearing).first == Approx(51*deg2rad) ); //  north
+  CHECK( destination(lat,lon,dist,bearing).second == Approx(6*deg2rad) ); //  north
+  lat=0*deg2rad, lon=6*deg2rad, dist=111195, bearing=90*deg2rad;
+  CHECK( destination(lat,lon,dist,bearing).first == Approx(0*deg2rad) ); //  east
+  CHECK( destination(lat,lon,dist,bearing).second == Approx(7*deg2rad) ); //  east
+  lat=-1*deg2rad, lon=6*deg2rad, dist=111195, bearing=180*deg2rad;
+  CHECK( destination(lat,lon,dist,bearing).first == Approx(-2*deg2rad) ); //  east
+  CHECK( destination(lat,lon,dist,bearing).second == Approx(6*deg2rad) ); //  east
+  lat=0*deg2rad, lon=-2*deg2rad, dist=111195, bearing=-90*deg2rad;
+  CHECK( destination(lat,lon,dist,bearing).first == Approx(0*deg2rad) ); //  east
+  CHECK( destination(lat,lon,dist,bearing).second == Approx(-3*deg2rad) ); //  east
+}
+
+
 TEST_CASE("rgb2hsl","rgb2hsl") {
   CHECK( rgb2hsl(0,0,0) == vector<double>({0.0, 0.0, 0.0}) );
   CHECK( rgb2hsl(20,20,20)[0] == Approx(0) );

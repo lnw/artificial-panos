@@ -1,10 +1,10 @@
 
 
 pano: Makefile pano.cc canvas.hh scene.hh tile.hh array2D.hh geometry.hh auxiliary.hh colour.hh
-	clang++-3.9 -g -O2 -std=c++14 pano.cc -lz -lpng -o pano
+	clang++-3.9 -g -O2 -Wshadow -std=c++14 pano.cc -lz -lpng -o pano
 
 pano-debug: Makefile pano.cc canvas.hh scene.hh tile.hh array2D.hh geometry.hh auxiliary.hh colour.hh
-	clang++-3.9 -g -O0 -Wall -Wpedantic -Wextra -std=c++14 pano.cc -lz -lpng -o pano
+	clang++-3.9 -g -O0 -Wall -Wpedantic -Wextra -Wshadow -std=c++14 pano.cc -lz -lpng -o pano
 
 .PHONY: test
 test: Makefile test.cc scene.hh tile.hh array2D.hh auxiliary.hh

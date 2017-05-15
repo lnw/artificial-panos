@@ -57,8 +57,8 @@ public:
 
     // png_bytep *row_pointers;
     row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
-    for (size_t y=0; y<height; y++){
-      row_pointers[y] = (png_byte*) malloc(png_get_rowbytes(png_ptr,info_ptr));
+    for (size_t yy=0; yy<height; yy++){
+      row_pointers[yy] = (png_byte*) malloc(png_get_rowbytes(png_ptr,info_ptr));
     }
   }
 

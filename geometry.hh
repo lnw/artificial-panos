@@ -8,13 +8,13 @@
 
 const double deg2rad = M_PI/180;
 const double rad2deg = 180/M_PI;
+// angle = (2*a + b)/3
+const double average_radius_earth = (2*6378.137 + 6356.752)/3.0 * 1000; // 6371.009 km [m]
 
 // distance between two points on a sphere, without elevation
 // phi is the latitude, theta the longitude
 // Vincenty's formulae might be better (to take into account earth's oblation)
 double distance_acos(const double latA, const double lonA, const double latB, const double lonB){
-  // angle = (2*a + b)/3
-  const double average_radius_earth = (2*6378.137 + 6356.752)/3.0 * 1000; // 6371.009 km [m]
   // angle = arccos ( sin latA * sin phi 2 + cos phi 1 * cos phi 2 * cos (lambda 1 - lambda 2) )
   const double angle = acos( sin(latA)*sin(latB) + cos(latA)*cos(latB)*cos(lonA-lonB) ); // [rad]
   return average_radius_earth * angle; // [m]
@@ -26,8 +26,6 @@ double central_angle_acos(const double latA, const double lonA, const double lat
 }
 
 double distance_atan(const double latA, const double lonA, const double latB, const double lonB) {
-  // angle = (2*a + b)/3
-  const double average_radius_earth = (2*6378.137 + 6356.752)/3.0 * 1000; // 6371.009 km [m]
   const double latDiff_half = (latA - latB)/2.0;
   const double longDiff_half = (lonA - lonB)/2.0;
   const double a = sin(latDiff_half) * sin(latDiff_half) + sin(longDiff_half) * sin(longDiff_half) * cos(latB) * cos(latA);
@@ -82,6 +80,15 @@ double bearing(const double ref_lat, const double ref_lon,
   return atan2(x,y);
 }
 
+// destination when going from (lat/lon) a distance dist with bearing b
+// bearing from -pi .. pi, 0 is north
+pair<double,double> destination(const double ref_lat, const double ref_lon, const double dist, const double b){
+  const double c_angle = dist/average_radius_earth; // central angle
+  const double lat = asin( sin(ref_lat)*cos(c_angle) + cos(ref_lat)*sin(c_angle)*cos(b) );
+  const double lon = ref_lon + atan2(sin(b)*sin(c_angle)*cos(ref_lat),
+                                     cos(c_angle)-sin(ref_lat)*sin(lat));
+  return make_pair(lat,lon);
+}
 
 // vertical angle, using distance and elevation difference
 // positive is up, negative is down
