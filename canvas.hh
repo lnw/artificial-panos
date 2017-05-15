@@ -98,7 +98,6 @@ public:
     // iterate over grid points in bb, draw the ones in the triangle
     for (size_t i=xmin; i<xmax; i++){
       for (size_t j=ymin; j<ymax; j++){
-        //if(point_in_triangle_1 (i+0.5,j+0.5,xmin-1,ymin-1, x1,y1,x2,y2,x3,y3)){
         if(point_in_triangle_2 (i+0.5,j+0.5, x1,y1,x2,y2,x3,y3)){
           write_pixel_zb(i,j,z, r,g,b,a);
         }
@@ -152,7 +151,7 @@ public:
           if(h_iij < 0 || h_iij > width) continue;
           const double h_iijj = fmod(view_direction + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - (i+inc)/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2.0*M_PI) * pixels_per_rad_h;
           if(h_iijj < 0 || h_iijj > width) continue;
-          debug << "("<<i<<","<<j<< ") h: " << h_ij << ", " << h_ijj << ", " << h_iij << ", " << h_iijj << endl;
+          //debug << "("<<i<<","<<j<< ") h: " << h_ij << ", " << h_ijj << ", " << h_iij << ", " << h_iijj << endl;
 
           // there should be a check here to avoid triangles to wrap around
          
@@ -165,15 +164,14 @@ public:
           if(v_iij < 0 || v_iij > height) continue;
           const double v_iijj = (view_height/2.0 - angle_v(S.z_standpoint, H(i+inc,j+inc), D(i+inc,j+inc))) * pixels_per_rad_v; // [px]
           if(v_iijj < 0 || v_iijj > height) continue;
-          debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << endl;
+          //debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << endl;
           //cout << v_ij << endl;
               
           const double dist1 = (D(i,j)+D(i+inc,j)+D(i,j+inc))/3.0;
           write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, D(i,j)*(255.0/30000), H(i,j)*(255.0/700), 150, 255);
-          const double dist2 = (D(i+inc,j+inc)+D(i+inc,j)+D(i,j+inc))/3.0;
+          const double dist2 = (D(i+inc,j)+D(i,j+inc)+D(i+inc,j+inc))/3.0;
           //cout << "d12: " << dist1/10 << ", " << dist2/10 << endl;
-          write_triangle(h_iijj, v_iijj, h_ijj, v_ijj, h_iij, v_iij, dist2, D(i,j)*(255.0/30000), H(i,j)*(255.0/700) , 150, 255);
-
+          write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, D(i,j)*(255.0/30000), H(i,j)*(255.0/700) , 150, 255);
         }
       }
     }
@@ -193,6 +191,19 @@ public:
         ptr[1] = 0.1*x; // g
         ptr[2] = y; // b
         ptr[3] = 255; // 0 -> transparent, 255 -> opaque
+      }
+    }
+  }
+
+  void bucket_fill( const int r, const int g, const int b, const int a ){
+    for (size_t y=0; y<height; y++) {
+      png_byte* row = row_pointers[y];
+      for (size_t x=0; x<width; x++) {
+        png_byte* ptr = &(row[x*4]);
+        ptr[0] = r; // r
+        ptr[1] = g; // g
+        ptr[2] = b; // b
+        ptr[3] = a; // 0 -> transparent, 255 -> opaque
       }
     }
   }

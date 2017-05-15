@@ -1,0 +1,10 @@
+automatic filenames
+load all required tiles
+download all required files
+
+queri xapi for mountains in region
+labelling
+
+render triangles taking into account whether they have a very small angle with the line of sight.
+ -- what about that fast inverse sqrt?
+
