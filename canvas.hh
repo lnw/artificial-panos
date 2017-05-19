@@ -96,14 +96,49 @@ public:
     const int ymax = max( {ceil(y1),  ceil(y2),  ceil(y3)} );
 
     // iterate over grid points in bb, draw the ones in the triangle
-    for (size_t i=xmin; i<xmax; i++){
-      for (size_t j=ymin; j<ymax; j++){
-        if(point_in_triangle_2 (i+0.5,j+0.5, x1,y1,x2,y2,x3,y3)){
-          write_pixel_zb(i,j,z, r,g,b,a);
+    for (size_t x=xmin; x<xmax; x++){
+      for (size_t y=ymin; y<ymax; y++){
+        if(point_in_triangle_2 (x+0.5,y+0.5, x1,y1,x2,y2,x3,y3)){
+          write_pixel_zb(x,y,z, r,g,b,a);
         }
       }
     }
   }
+
+  // only for dx >= dy
+  void write_line(const double x1, const double y1, 
+                  const double x2, const double y2, 
+                  const double z,
+                  int16_t r, int16_t g, int16_t b, int16_t a){
+    const int Dx = x2-x1, Dy = y2-y1;
+    int d = 2*Dy-Dx;
+    const int DE = 2*Dy; // east
+    const int DNE = 2*(Dy-Dx); // north east
+    
+    if(abs(DE) > abs(DNE)) return;
+    int y = y1;
+    write_pixel_zb(x1,y1,z, r,g,b,a);
+    for(int x=x1+1; x<x2; x++){
+      if(d <= 0){
+        d += DE;
+      }else{
+        d += DNE;
+        y++;
+      }
+      write_pixel_zb(x,y,z, r,g,b,a);
+    }
+  }
+
+  void write_tick_top(const double x, const double y, const int lw,
+                      const double z,
+                      int16_t r, int16_t g, int16_t b, int16_t a){
+    for(int i=x-lw/2; i<x+lw/2; i++){
+      for(int j=1; j<y; j++){
+        write_pixel_zb(i,j,z, r,g,b,a);
+      }
+    }
+  }
+
 
   void render_scene(const scene& S){
     ofstream debug("debug-render_scene", ofstream::out | ofstream::app);
@@ -168,10 +203,11 @@ public:
           //cout << v_ij << endl;
               
           const double dist1 = (D(i,j)+D(i+inc,j)+D(i,j+inc))/3.0;
-          write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, D(i,j)*(255.0/30000), H(i,j)*(255.0/700), 150, 255);
+          // write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, D(i,j)*(255.0/S.view_dist), H(i,j)*(255.0/3500), 150, 255);
+          write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, D(i,j)*(255.0/30000), H(i,j)*(255.0/3500), 150, 255);
           const double dist2 = (D(i+inc,j)+D(i,j+inc)+D(i+inc,j+inc))/3.0;
-          //cout << "d12: " << dist1/10 << ", " << dist2/10 << endl;
-          write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, D(i,j)*(255.0/30000), H(i,j)*(255.0/700) , 150, 255);
+          // write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, D(i,j)*(255.0/S.view_dist), H(i,j)*(255.0/3500) , 150, 255);
+          write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, D(i,j)*(255.0/30000), H(i,j)*(255.0/3500) , 150, 255);
         }
       }
     }
