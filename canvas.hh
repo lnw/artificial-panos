@@ -204,10 +204,10 @@ public:
               
           const double dist1 = (D(i,j)+D(i+inc,j)+D(i,j+inc))/3.0;
           // write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, D(i,j)*(255.0/S.view_dist), H(i,j)*(255.0/3500), 150, 255);
-          write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, D(i,j)*(255.0/30000), H(i,j)*(255.0/3500), 150, 255);
+          write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, 5* pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500), 150, 255);
           const double dist2 = (D(i+inc,j)+D(i,j+inc)+D(i+inc,j+inc))/3.0;
           // write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, D(i,j)*(255.0/S.view_dist), H(i,j)*(255.0/3500) , 150, 255);
-          write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, D(i,j)*(255.0/30000), H(i,j)*(255.0/3500) , 150, 255);
+          write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, 5*pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500) , 150, 255);
         }
       }
     }

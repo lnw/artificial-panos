@@ -1,15 +1,19 @@
+
 #ifndef AUXILIARY_HH
 #define AUXILIARY_HH
 
+#include <cstdlib>
+#include <iomanip> //required for setfill()
 #include <iostream>
-#include <vector>
+#include <math.h>
 #include <sstream>
-#include <iomanip>
+#include <vector>
+
+#include <libxml++/libxml++.h> //definiert GLib::ustring (das aus dem xml faellt)
 
 using namespace std;
 
-template <typename S, typename T> ostream& operator<<(ostream& s, const pair<S,T>& p)
-{
+template <typename S, typename T> ostream& operator<<(ostream& s, const pair<S,T>& p) {
   s << "{" << p.first << "," << p.second << "}";
   return s;
 }
@@ -30,25 +34,55 @@ container_output(vector);
 
 
 template <typename T>
-std::string to_string_with_precision(const T a_value, const int n = 3)
-{
-  std::ostringstream out;
-  out << std::setprecision(n) << a_value;
-  return out.str();
+std::string to_string_with_precision(const T val, const int p=4) {
+  std::stringstream ss;
+  ss << std::setprecision(p) << val;
+  return ss.str();
 }
 
 template <typename T>
-std::string to_string_fixedwidth(const T a_value, const int n = 3)
-{
-  std::ostringstream out;
-  int num_digits = to_string(a_value).length();
-  if(num_digits<n){
-    for(int i=0; i<n-num_digits; i++){
-      out << "0";
-    }
-  }
-  out << to_string(a_value);
-  return out.str();
+Glib::ustring to_ustring_with_precision(const T val, const int p=4) {
+  std::stringstream ss;
+  ss.precision(p);
+  Glib::ustring result;
+  ss << val;
+  ss >> result;
+  return result;
 }
 
-#endif
+template <typename T>
+std::string to_string_fixedwidth(const T val, const int n=3) {
+  std::stringstream ss;
+  ss << std::setw(n) << std::setfill('0') << val;
+  return ss.str();
+}
+
+template <typename T>
+Glib::ustring to_ustring_fixedwidth(const T val, const int n=3) {
+  std::stringstream ss;
+  Glib::ustring result;
+  ss << std::setw(n) << std::setfill('0') << val;
+  ss >> result;
+  return result;
+}
+
+template <typename T>
+double to_double(const T& s) {
+  std::stringstream ss;
+  double result;
+  ss << s;
+  ss >> result;
+  return result;
+}
+
+template <typename T>
+int to_int(const T& s) {
+  std::stringstream ss;
+  int result;
+  ss << s.raw();
+  ss >> result;
+  return result;
+}
+
+
+#endif // auxiliary

@@ -3,6 +3,7 @@
 #include <vector>
 #include <math.h>
 #include <iostream>
+#include <string>
 #include <iomanip> //required for setfill()
 //#include <boost/regex.hpp>
 //#include <boost/program_options.hpp>
@@ -10,7 +11,7 @@
 
 // #include "track.h"
 // #include "tracksegment.h"
-// #include "conversions.h"
+#include "auxiliary.hh"
 
 using namespace std;
 
@@ -30,6 +31,29 @@ struct linear_feature{
   bool closed;
 };
 
+// read plain xml
+vector<point_feature> read_peaks_osm(string filename){
+
+  try {
+    xmlpp::DomParser parser;
+    parser.parse_file(filename);
+    if(parser)
+    {
+      //find root node
+      const xmlpp::Node* pNode = parser.get_document()->get_root_node();
+      //print recursively
+      parse_gpx(pNode, track_name, split_dist_cutoff, split_time_cutoff);
+    }
+  }
+  catch(const std::exception& ex) {
+    std::cout << "Exception caught: " << ex.what() << std::endl;
+    abort();
+  }
+ 
+ 
+  std::cout << std::endl << "Processing data (optional) ..." << std::endl;
+
+}
 
 //parst das ganze xml-objekt, hängt punkte an das *letzte* tracksegment an und beginnt gegebenenfalls vorher ein neues tracksegment
 void parse_gpx(const xmlpp::Node *node, track &track, float lateral_cutoff, float time_cutoff)
@@ -68,7 +92,7 @@ void parse_gpx(const xmlpp::Node *node, track &track, float lateral_cutoff, floa
 			{
     			xmlpp::Node::NodeList time_list = (*iter)->get_children();
 				xmlpp::TextNode* myNode = dynamic_cast<xmlpp::TextNode*>(*time_list.begin()); // es gibt nur ein element; cast von Node nach TextNode
-				time = ustring_to_sec(myNode->get_content());
+				//time = ustring_to_sec(myNode->get_content());
 				//std::cout << "time: " << time << std::endl;
 			}
 		}
@@ -102,49 +126,49 @@ void parse_gpx(const xmlpp::Node *node, track &track, float lateral_cutoff, floa
 }
 
 
-void write_gpx(track &track, std::string out_filename)
-{
-	xmlpp::Document out_document_object; //the root object
-	xmlpp::Document *out_document = &out_document_object; // link to the root object (macht den code schoener)
-	xmlpp::Element *gpx = out_document->create_root_node("gpx", "", "");
-	xmlpp::Element *trk = gpx->add_child("trk");
-
-	//iterieren ueber die segmente
-	std::vector<tracksegment>::const_iterator trackSegIter = track.begin();
-	while(trackSegIter < track.end())
-	{
-		xmlpp::Element *trkseg = trk->add_child("trkseg");
-		//iterieren ueber die punkte
-		std::vector<double>::const_iterator latIter = trackSegIter->lat_begin();
-		std::vector<double>::const_iterator lonIter = trackSegIter->lon_begin();
-		std::vector<double>::const_iterator eleIter = trackSegIter->ele_begin();
-		std::vector<unsigned long int>::const_iterator tIter = trackSegIter->time_begin();
-		while(latIter < trackSegIter->lat_end())
-		{
-			xmlpp::Element *trkpt = trkseg->add_child("trkpt");
-			trkpt->set_attribute("lat", double_to_ustring(trackSegIter->lat(latIter)), "");
-			trkpt->set_attribute("lon", double_to_ustring(trackSegIter->lon(lonIter)), "");
-			xmlpp::Element *ele = trkpt->add_child("ele");
-			ele->set_child_text(double_to_ustring(trackSegIter->ele(eleIter)));
-			xmlpp::Element *time = trkpt->add_child("time");
-			time->set_child_text(sec_to_ustring(trackSegIter->time(tIter)));
-			++latIter;
-			++lonIter;
-			++eleIter;
-			++tIter;
-		}
-		++trackSegIter;
-	}
-	//rausschreiben
-	out_document->write_to_file_formatted(out_filename);	
-	std::cout << "Written " << track.size() << " tracksegments with a total of ";
-	int total_point_number = 0;
-	for(std::vector<tracksegment>::const_iterator trackSegIter = track.begin(); trackSegIter < track.end(); ++trackSegIter)
-	{
-		total_point_number += trackSegIter->size();
-	}
-	std::cout << total_point_number << " points." << std::endl; 
-}
+// void write_gpx(track &track, std::string out_filename)
+// {
+// 	xmlpp::Document out_document_object; //the root object
+// 	xmlpp::Document *out_document = &out_document_object; // link to the root object (macht den code schoener)
+// 	xmlpp::Element *gpx = out_document->create_root_node("gpx", "", "");
+// 	xmlpp::Element *trk = gpx->add_child("trk");
+// 
+// 	//iterieren ueber die segmente
+// 	std::vector<tracksegment>::const_iterator trackSegIter = track.begin();
+// 	while(trackSegIter < track.end())
+// 	{
+// 		xmlpp::Element *trkseg = trk->add_child("trkseg");
+// 		//iterieren ueber die punkte
+// 		std::vector<double>::const_iterator latIter = trackSegIter->lat_begin();
+// 		std::vector<double>::const_iterator lonIter = trackSegIter->lon_begin();
+// 		std::vector<double>::const_iterator eleIter = trackSegIter->ele_begin();
+// 		std::vector<unsigned long int>::const_iterator tIter = trackSegIter->time_begin();
+// 		while(latIter < trackSegIter->lat_end())
+// 		{
+// 			xmlpp::Element *trkpt = trkseg->add_child("trkpt");
+// 			trkpt->set_attribute("lat", double_to_ustring(trackSegIter->lat(latIter)), "");
+// 			trkpt->set_attribute("lon", double_to_ustring(trackSegIter->lon(lonIter)), "");
+// 			xmlpp::Element *ele = trkpt->add_child("ele");
+// 			ele->set_child_text(double_to_ustring(trackSegIter->ele(eleIter)));
+// 			xmlpp::Element *time = trkpt->add_child("time");
+// 			time->set_child_text(sec_to_ustring(trackSegIter->time(tIter)));
+// 			++latIter;
+// 			++lonIter;
+// 			++eleIter;
+// 			++tIter;
+// 		}
+// 		++trackSegIter;
+// 	}
+// 	//rausschreiben
+// 	out_document->write_to_file_formatted(out_filename);	
+// 	std::cout << "Written " << track.size() << " tracksegments with a total of ";
+// 	int total_point_number = 0;
+// 	for(std::vector<tracksegment>::const_iterator trackSegIter = track.begin(); trackSegIter < track.end(); ++trackSegIter)
+// 	{
+// 		total_point_number += trackSegIter->size();
+// 	}
+// 	std::cout << total_point_number << " points." << std::endl; 
+// }
 
 // // stolen from /usr/share/doc/libboost1.42-doc/examples/libs/program_options/example/real.cpp
 // // Function used to check that 'opt1' and 'opt2' are not specified at the same time.
