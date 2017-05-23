@@ -1,0 +1,8 @@
+.PHONY: all
+all: xml_dom_example
+
+xml_dom_example: xml_dom_example.cpp Makefile
+	g++ xml_dom_example.cpp -o xml_dom_example $(shell pkg-config libxml++-2.6 --cflags --libs)
+
+clean: 
+	rm -f xml_dom_example
