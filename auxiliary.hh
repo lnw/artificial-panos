@@ -8,6 +8,7 @@
 #include <math.h>
 #include <sstream>
 #include <vector>
+#include <set>
 
 #include <libxml++/libxml++.h> //definiert GLib::ustring (das aus dem xml faellt)
 
@@ -31,6 +32,7 @@ template <typename S, typename T> ostream& operator<<(ostream& s, const pair<S,T
 }
 
 container_output(vector);
+container_output(set);
 
 
 template <typename T>

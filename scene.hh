@@ -37,16 +37,17 @@ public:
       }
     }
     const int size=3601;
+    cout << "required tiles: " << required_tiles << endl;
     for(auto it=required_tiles.begin(), to=required_tiles.end(); it!=to; it++){
-      cout << *it<< endl;
-      // get tiles // add them
+      // get tiles, add them
       const int ref_lat = it->first, ref_lon = it->second;
       string fn(string(ref_lat<0?"S":"N") + to_string_fixedwidth(abs(ref_lat),2) +
                 string(ref_lon<0?"W":"E") + to_string_fixedwidth(abs(ref_lon),3) + ".hgt");
-      cout << "trying to read " << fn << endl;
+      cout << "trying to read: " << fn << " ..." << flush;
       char const * FILENAME = fn.c_str();
       tile<int16_t> A (tile<int16_t>(FILENAME, size, ref_lat, ref_lon));
       add_tile(A);
+      cout << " done" << endl;
     } 
     cout << "scene constructed" << endl;
     debug.close();

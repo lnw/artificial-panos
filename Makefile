@@ -12,7 +12,7 @@ pano-debug: Makefile pano.cc canvas.hh scene.hh tile.hh array2D.hh geometry.hh a
 
 .PHONY: test
 test: Makefile test.cc scene.hh tile.hh array2D.hh auxiliary.hh
-	clang++-3.9 -g -O2 -std=c++14 test.cc -o test
+	clang++-3.9 -g -O2 -std=c++14 test.cc $(XML_INCLUDES) -o test
 	./test
 
 .PHONY: clean distclean

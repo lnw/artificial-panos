@@ -119,13 +119,12 @@ inline int intersect( const double e1x1, const double e1y1, const double e1x2, c
 
 // draw a line from a reference point which is known to be outside to the point in question
 // count how many sides intersect with this line
-inline bool point_in_triangle_1(double px, double py,
-                                double refx, double refy,
-                                double x1, double y1, double x2, double y2, double x3, double y3){
-  int num_intersections=0;
-  num_intersections += intersect(refx,refy, px,py, x1,y1,x2,y2);
-  num_intersections += intersect(refx,refy, px,py, x2,y2,x3,y3);
-  num_intersections += intersect(refx,refy, px,py, x3,y3,x1,y1);
+inline bool point_in_triangle_1(const double px, const double py,
+                                const double refx, const double refy,
+                                const double x1, const double y1, const double x2, const double y2, const double x3, const double y3){
+  const int num_intersections= intersect(refx,refy, px,py, x1,y1,x2,y2)
+                         + intersect(refx,refy, px,py, x2,y2,x3,y3)
+                         + intersect(refx,refy, px,py, x3,y3,x1,y1);
   return num_intersections==1;
 }
 
