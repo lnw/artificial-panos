@@ -15,6 +15,7 @@
 
 using namespace std;
 
+const int opaque = 255;
 
 class canvas {
 
@@ -71,6 +72,14 @@ public:
 
     png_destroy_write_struct(&png_ptr, &info_ptr);
     fclose(fp);
+  }
+
+  void write_pixel(const int x, const int y,
+                   int16_t r, int16_t g, int16_t b, int16_t a){
+    row_pointers[y][4*x]   = r;
+    row_pointers[y][4*x+1] = g;
+    row_pointers[y][4*x+2] = b;
+    row_pointers[y][4*x+3] = a;
   }
 
   void write_pixel_zb(const int x, const int y, const double z,
@@ -168,12 +177,11 @@ public:
       debug << "m: " << m << endl;
       debug << "n: " << n << endl;
       debug << (m-1)*(n-1)*2 << " triangles in tile " << t << endl;
-      //for (size_t i=0; i<m-1; i++){
-      //  for (size_t j=0; j<n-1; j++){
       const int inc = 1;
       for (size_t i=0; i<m-inc; i+=inc){
         for (size_t j=0; j<n-inc; j+=inc){
           if(D(i,j) > S.view_dist) continue;
+          if(D(i,j) < 100) continue; // avoid close artifacts
           // first triangle: i/j, i+1/j, i/j+1
           // second triangle: i+1/j, i/j+1, i+1/j+1
           // get horizontal and vertical angles for all four points of the two triangles
@@ -204,14 +212,32 @@ public:
               
           const double dist1 = (D(i,j)+D(i+inc,j)+D(i,j+inc))/3.0;
           // write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, D(i,j)*(255.0/S.view_dist), H(i,j)*(255.0/3500), 150, 255);
-          write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, 5* pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500), 150, 255);
+          write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, 5* pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500), 150, opaque);
           const double dist2 = (D(i+inc,j)+D(i,j+inc)+D(i+inc,j+inc))/3.0;
           // write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, D(i,j)*(255.0/S.view_dist), H(i,j)*(255.0/3500) , 150, 255);
-          write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, 5*pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500) , 150, 255);
+          write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, 5*pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500) , 150, opaque);
         }
       }
     }
     debug.close();
+  }
+
+  void highlight_edges(){
+    for(int x=0; x<width; x++){
+      double z_bak = 1000000;
+      for(int y=0; y<height; y++){
+        const double z = zbuffer(x,y);
+        const double thr1 = 1.15;
+        const double thr2 = 1.05;
+        if(z_bak / z > thr1 && z_bak-z > 200){
+          write_pixel(x,y, 0,0,0, opaque);
+        }
+        else if(z_bak/z > thr2){
+          write_pixel(x,y, 30,30,30, opaque);
+        }
+        z_bak = zbuffer(x,y);
+      }
+    }
   }
 
   void render_test(){
@@ -226,7 +252,7 @@ public:
         ptr[0] = x; // r
         ptr[1] = 0.1*x; // g
         ptr[2] = y; // b
-        ptr[3] = 255; // 0 -> transparent, 255 -> opaque
+        ptr[3] = opaque; // 0 -> transparent, 255 -> opaque
       }
     }
   }

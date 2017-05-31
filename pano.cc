@@ -9,16 +9,11 @@
 #include "tile.hh"
 #include "scene.hh"
 #include "canvas.hh"
-#include "mapitems.hh"
+// #include "mapitems.hh"
 
 using namespace std;
 
 int main(int ac, char **av) {
-
-
-  // find which files are required
-
-  // get those
 
   // read files into vector of 2D arrays, the order does not matter as they can be rendered independently
 
@@ -28,12 +23,13 @@ int main(int ac, char **av) {
   // ... angles on sphere?
 
   // const double pos_lat(59.87*deg2rad), pos_lon(10.67*deg2rad), pos_z(130); // rad, rad, m
-  const double pos_lat(49.4*deg2rad), pos_lon(8.6*deg2rad), pos_z(160); // rad, rad, m
+  const double pos_lat(49.4*deg2rad), pos_lon(8.6*deg2rad), pos_z(360); // rad, rad, m
   // const double pos_lat(47.3664*deg2rad), pos_lon(8.5413*deg2rad), pos_z(408); // rad, rad, m
+  // const double pos_lat(49.08123*deg2rad), pos_lon(19.62642*deg2rad), pos_z(582); // rad, rad, m
   const double view_direction(0*deg2rad); // [rad], east is 0
-  const double view_width(270*deg2rad); // [rad]
+  const double view_width(355*deg2rad); // [rad]
   const double view_height(15*deg2rad); // [rad]
-  const double range(80000); // [m]
+  const double range(70000); // [m]
   scene S(pos_lat, pos_lon, pos_z, view_direction, view_width, view_height, range);
 //  cout << S.tiles[0].first << endl;
 //  cout << S.tiles[0].second << endl;
@@ -56,8 +52,9 @@ int main(int ac, char **av) {
   // V.write_triangle(200,200,     300.3,310.4, 230.5,510.6, 15000, 0,100,255,255);
   // V.write_triangle(600.1,210.2, 300.3,310.4, 230.5,510.6, 15000, 0,200,255,255);
 
-  V.bucket_fill(10,10,10,255);
+  V.bucket_fill(100,100,100,255);
   V.render_scene(S);
+  V.highlight_edges();
 //  cout << V.zbuffer << endl;
 
   // V.write_tick_top(200, 30, 2, 1, 150,50,50,255);
