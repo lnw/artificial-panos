@@ -1,10 +1,14 @@
-automatic filenames
-load all required tiles
 download all required files
 
-queri xapi for mountains in region
+switch from libpng to libgd
+queri overpass-api for mountains in region
+parse xml
 labelling
 
-render triangles taking into account whether they have a very small angle with the line of sight.
- -- what about that fast inverse sqrt?
+draw other features such as rivers, ...
+
+
+less important
+# render triangles taking into account whether they have a very small angle with the line of sight.
+#  -- what about that fast inverse sqrt?
 

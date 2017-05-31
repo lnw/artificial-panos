@@ -6,7 +6,7 @@
 #include <math.h>
 #include <algorithm> // min, max
 
-#include <png.h>
+#include <gd.h>
 
 #include "geometry.hh"
 #include "array2D.hh"
@@ -15,81 +15,43 @@
 
 using namespace std;
 
-const int opaque = 255;
-
 class canvas {
 
 public:
   int width, height; // [pixels]
   array2D<double> zbuffer; // initialised to 1000 km [m]
 private:
-  FILE *fp = nullptr;
-  png_structp png_ptr = nullptr;
-  png_infop info_ptr = nullptr;
-  png_bytep *row_pointers = nullptr;
+  FILE *png_ptr = nullptr;
+  gdImagePtr img_ptr = nullptr;
+  char const * _filename;
 
 public:
-  canvas(char const * filename, int x, int y): width(x), height(y), zbuffer(x,y,1000000){
-    fp = fopen(filename, "wb");
-    if(!fp) abort();
-
-    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    if (!png_ptr) abort();
-
-    info_ptr = png_create_info_struct(png_ptr);
-    if (!info_ptr) abort();
-
-    if (setjmp(png_jmpbuf(png_ptr))) abort();
-
-    png_init_io(png_ptr, fp);
-
-    // Output is 8bit depth, RGBA format.
-    png_set_IHDR(
-      png_ptr,
-      info_ptr,
-      width, height,
-      8,
-      PNG_COLOR_TYPE_RGBA,
-      PNG_INTERLACE_NONE,
-      PNG_COMPRESSION_TYPE_DEFAULT,
-      PNG_FILTER_TYPE_DEFAULT
-    );
-    png_write_info(png_ptr, info_ptr);
-
-    // png_bytep *row_pointers;
-    row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
-    for (size_t yy=0; yy<height; yy++){
-      row_pointers[yy] = (png_byte*) malloc(png_get_rowbytes(png_ptr,info_ptr));
-    }
+  canvas(char const * filename, int x, int y): width(x), height(y), zbuffer(x,y,1000000), _filename(filename){
+    // allocate mem
+    img_ptr = gdImageCreateTrueColor(width, height);
   }
 
   ~canvas(){
-    png_write_image(png_ptr, row_pointers);
-    png_write_end(png_ptr, NULL); // or info_ptr
-
-    for(size_t y=0; y<height; y++) free(row_pointers[y]);
-    free(row_pointers);
-
-    png_destroy_write_struct(&png_ptr, &info_ptr);
-    fclose(fp);
+    // actually the file is only opened here
+    png_ptr = fopen(_filename, "wb");
+    // write to disk
+    gdImagePng(img_ptr, png_ptr);
+    fclose(png_ptr);
+    gdImageDestroy(img_ptr);
   }
 
   void write_pixel(const int x, const int y,
-                   int16_t r, int16_t g, int16_t b, int16_t a){
-    row_pointers[y][4*x]   = r;
-    row_pointers[y][4*x+1] = g;
-    row_pointers[y][4*x+2] = b;
-    row_pointers[y][4*x+3] = a;
+                   int16_t r, int16_t g, int16_t b){
+    const int col = gdImageColorAllocate(img_ptr, r, g, b);
+    gdImageSetPixel(img_ptr, x, y, col);
   }
 
   void write_pixel_zb(const int x, const int y, const double z,
-                      int16_t r, int16_t g, int16_t b, int16_t a){
+                      int16_t r, int16_t g, int16_t b){
     if (z < zbuffer(x,y)){
       zbuffer(x,y) = z;
-      row_pointers[y][4*x]   = r;
-      row_pointers[y][4*x+1] = g;
-      row_pointers[y][4*x+2] = b;
-      row_pointers[y][4*x+3] = a;
+      const int col = gdImageColorAllocate(img_ptr, r, g, b);
+      gdImageSetPixel(img_ptr, x, y, col);
     }
   }
 
@@ -97,7 +59,7 @@ public:
                       const double x2, const double y2, 
                       const double x3, const double y3, 
                       const double z,
-                      int16_t r, int16_t g, int16_t b, int16_t a){
+                      int16_t r, int16_t g, int16_t b){
     // find triangle's bb
     const int xmin = min( {floor(x1), floor(x2), floor(x3)} );
     const int xmax = max( {ceil(x1),  ceil(x2),  ceil(x3)} );
@@ -108,45 +70,45 @@ public:
     for (size_t x=xmin; x<xmax; x++){
       for (size_t y=ymin; y<ymax; y++){
         if(point_in_triangle_2 (x+0.5,y+0.5, x1,y1,x2,y2,x3,y3)){
-          write_pixel_zb(x,y,z, r,g,b,a);
+          write_pixel_zb(x,y,z, r,g,b);
         }
       }
     }
   }
 
-  // only for dx >= dy
-  void write_line(const double x1, const double y1, 
-                  const double x2, const double y2, 
-                  const double z,
-                  int16_t r, int16_t g, int16_t b, int16_t a){
-    const int Dx = x2-x1, Dy = y2-y1;
-    int d = 2*Dy-Dx;
-    const int DE = 2*Dy; // east
-    const int DNE = 2*(Dy-Dx); // north east
-    
-    if(abs(DE) > abs(DNE)) return;
-    int y = y1;
-    write_pixel_zb(x1,y1,z, r,g,b,a);
-    for(int x=x1+1; x<x2; x++){
-      if(d <= 0){
-        d += DE;
-      }else{
-        d += DNE;
-        y++;
-      }
-      write_pixel_zb(x,y,z, r,g,b,a);
-    }
-  }
+//  // only for dx >= dy
+//  void write_line(const double x1, const double y1, 
+//                  const double x2, const double y2, 
+//                  const double z,
+//                  int16_t r, int16_t g, int16_t b, int16_t a){
+//    const int Dx = x2-x1, Dy = y2-y1;
+//    int d = 2*Dy-Dx;
+//    const int DE = 2*Dy; // east
+//    const int DNE = 2*(Dy-Dx); // north east
+//    
+//    if(abs(DE) > abs(DNE)) return;
+//    int y = y1;
+//    write_pixel_zb(x1,y1,z, r,g,b);
+//    for(int x=x1+1; x<x2; x++){
+//      if(d <= 0){
+//        d += DE;
+//      }else{
+//        d += DNE;
+//        y++;
+//      }
+//      write_pixel_zb(x,y,z, r,g,b);
+//    }
+//  }
 
-  void write_tick_top(const double x, const double y, const int lw,
-                      const double z,
-                      int16_t r, int16_t g, int16_t b, int16_t a){
-    for(int i=x-lw/2; i<x+lw/2; i++){
-      for(int j=1; j<y; j++){
-        write_pixel_zb(i,j,z, r,g,b,a);
-      }
-    }
-  }
+//  void write_tick_top(const double x, const double y, const int lw,
+//                      const double z,
+//                      int16_t r, int16_t g, int16_t b, int16_t a){
+//    for(int i=x-lw/2; i<x+lw/2; i++){
+//      for(int j=1; j<y; j++){
+//        write_pixel_zb(i,j,z, r,g,b);
+//      }
+//    }
+//  }
 
 
   void render_scene(const scene& S){
@@ -212,10 +174,10 @@ public:
               
           const double dist1 = (D(i,j)+D(i+inc,j)+D(i,j+inc))/3.0;
           // write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, D(i,j)*(255.0/S.view_dist), H(i,j)*(255.0/3500), 150, 255);
-          write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, 5* pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500), 150, opaque);
+          write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, 5* pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500), 150);
           const double dist2 = (D(i+inc,j)+D(i,j+inc)+D(i+inc,j+inc))/3.0;
           // write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, D(i,j)*(255.0/S.view_dist), H(i,j)*(255.0/3500) , 150, 255);
-          write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, 5*pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500) , 150, opaque);
+          write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, 5*pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500) , 150);
         }
       }
     }
@@ -224,48 +186,35 @@ public:
 
   void highlight_edges(){
     for(int x=0; x<width; x++){
-      double z_bak = 1000000;
+      double z_prev = 1000000;
       for(int y=0; y<height; y++){
-        const double z = zbuffer(x,y);
-        const double thr1 = 1.15;
-        const double thr2 = 1.05;
-        if(z_bak / z > thr1 && z_bak-z > 200){
-          write_pixel(x,y, 0,0,0, opaque);
+        const double z_curr = zbuffer(x,y);
+        const double thr1 = 1.15, thr2 = 1.05;
+        // if(z_prev / z_curr > thr1 && z_prev - z_curr > 200){
+        if(z_prev / z_curr > thr1){
+          write_pixel(x,y, 0,0,0);
         }
-        else if(z_bak/z > thr2){
-          write_pixel(x,y, 30,30,30, opaque);
+        else if(z_prev / z_curr > thr2){
+          write_pixel(x,y, 30,30,30);
         }
-        z_bak = zbuffer(x,y);
+        z_prev = zbuffer(x,y);
       }
     }
   }
 
   void render_test(){
     for (size_t y=0; y<height; y++) {
-      png_byte* row = row_pointers[y];
       for (size_t x=0; x<width; x++) {
-//        cout << x << endl;
-        png_byte* ptr = &(row[x*4]);
-//        printf("Pixel at position [ %d - %d ] has RGBA values: %d - %d - %d - %d\n",
-//               x, y, ptr[0], ptr[1], ptr[2], ptr[3]);
-
-        ptr[0] = x; // r
-        ptr[1] = 0.1*x; // g
-        ptr[2] = y; // b
-        ptr[3] = opaque; // 0 -> transparent, 255 -> opaque
+          write_pixel(x,y, x,0.1*x,y);
       }
     }
   }
 
-  void bucket_fill( const int r, const int g, const int b, const int a ){
+  void bucket_fill( const int r, const int g, const int b){
     for (size_t y=0; y<height; y++) {
-      png_byte* row = row_pointers[y];
       for (size_t x=0; x<width; x++) {
-        png_byte* ptr = &(row[x*4]);
-        ptr[0] = r; // r
-        ptr[1] = g; // g
-        ptr[2] = b; // b
-        ptr[3] = a; // 0 -> transparent, 255 -> opaque
+        const int col = gdImageColorAllocate(img_ptr, r, g, b);
+        gdImageSetPixel(img_ptr, x, y, col);
       }
     }
   }
