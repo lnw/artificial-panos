@@ -1,12 +1,14 @@
 download all required files
 
-switch from libpng to libgd
 queri overpass-api for mountains in region
 parse xml
 labelling
 
 draw other features such as rivers, ...
 
+cmake
+
+command line options
 
 less important
 # render triangles taking into account whether they have a very small angle with the line of sight.

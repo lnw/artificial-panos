@@ -20,10 +20,11 @@ class canvas {
 public:
   int width, height; // [pixels]
   array2D<double> zbuffer; // initialised to 1000 km [m]
+
 private:
+  char const * _filename;
   FILE *png_ptr = nullptr;
   gdImagePtr img_ptr = nullptr;
-  char const * _filename;
 
 public:
   canvas(char const * filename, int x, int y): width(x), height(y), zbuffer(x,y,1000000), _filename(filename){
@@ -184,6 +185,9 @@ public:
     debug.close();
   }
 
+  // for each column, walk from top to bottom and draw a dark pixel if it is
+  // much closer than the previous one.  Works only because mountains are
+  // rarely overhanging
   void highlight_edges(){
     for(int x=0; x<width; x++){
       double z_prev = 1000000;
@@ -205,18 +209,18 @@ public:
   void render_test(){
     for (size_t y=0; y<height; y++) {
       for (size_t x=0; x<width; x++) {
-          write_pixel(x,y, x,0.1*x,y);
+        write_pixel(x,y, x,0.1*x,y);
       }
     }
   }
 
   void bucket_fill( const int r, const int g, const int b){
-    for (size_t y=0; y<height; y++) {
-      for (size_t x=0; x<width; x++) {
-        const int col = gdImageColorAllocate(img_ptr, r, g, b);
-        gdImageSetPixel(img_ptr, x, y, col);
-      }
-    }
+     for (size_t y=0; y<height; y++) {
+       for (size_t x=0; x<width; x++) {
+         const int col = 127 << 24 | r << 16 | g << 8 | b ;
+         img_ptr->tpixels[y][x] = col; // assuming TrueColor
+       }
+     }
   }
 
 };
