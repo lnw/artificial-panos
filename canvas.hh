@@ -12,6 +12,7 @@
 #include "array2D.hh"
 #include "scene.hh"
 #include "colour.hh"
+#include "mapitems.hh"
 
 using namespace std;
 
@@ -22,37 +23,42 @@ public:
   array2D<double> zbuffer; // initialised to 1000 km [m]
 
 private:
-  char const * _filename;
-  FILE *png_ptr = nullptr;
+  char const * filename;
   gdImagePtr img_ptr = nullptr;
 
 public:
-  canvas(char const * filename, int x, int y): width(x), height(y), zbuffer(x,y,1000000), _filename(filename){
+  canvas(char const * fn, int x, int y): width(x), height(y), zbuffer(x,y,1000000), filename(fn){
     // allocate mem
     img_ptr = gdImageCreateTrueColor(width, height);
   }
 
   ~canvas(){
     // actually the file is only opened here
-    png_ptr = fopen(_filename, "wb");
+    FILE *png_ptr = fopen(filename, "wb");
     // write to disk
     gdImagePng(img_ptr, png_ptr);
     fclose(png_ptr);
     gdImageDestroy(img_ptr);
   }
 
+  // just write the pixel
   void write_pixel(const int x, const int y,
                    int16_t r, int16_t g, int16_t b){
-    const int col = gdImageColorAllocate(img_ptr, r, g, b);
-    gdImageSetPixel(img_ptr, x, y, col);
+    const int32_t col = 127 << 24 | r << 16 | g << 8 | b ;
+    img_ptr->tpixels[y][x] = col; // assuming TrueColor
+    // const int col = gdImageColorAllocate(img_ptr, r, g, b);
+    // gdImageSetPixel(img_ptr, x, y, col);
   }
 
+  // just write the pixel taking into account the zbuffer
   void write_pixel_zb(const int x, const int y, const double z,
                       int16_t r, int16_t g, int16_t b){
     if (z < zbuffer(x,y)){
       zbuffer(x,y) = z;
-      const int col = gdImageColorAllocate(img_ptr, r, g, b);
-      gdImageSetPixel(img_ptr, x, y, col);
+      const int32_t col = 127 << 24 | r << 16 | g << 8 | b ;
+      img_ptr->tpixels[y][x] = col; // assuming TrueColor
+      // const int col = gdImageColorAllocate(img_ptr, r, g, b);
+      // gdImageSetPixel(img_ptr, x, y, col);
     }
   }
 
@@ -185,13 +191,13 @@ public:
     debug.close();
   }
 
-  // for each column, walk from top to bottom and draw a dark pixel if it is
+  // for each column, walk from top to bottom and colour a pixel dark if it is
   // much closer than the previous one.  Works only because mountains are
   // rarely overhanging
   void highlight_edges(){
-    for(int x=0; x<width; x++){
+    for(size_t x=0; x<width; x++){
       double z_prev = 1000000;
-      for(int y=0; y<height; y++){
+      for(size_t y=0; y<height; y++){
         const double z_curr = zbuffer(x,y);
         const double thr1 = 1.15, thr2 = 1.05;
         // if(z_prev / z_curr > thr1 && z_prev - z_curr > 200){
@@ -201,7 +207,7 @@ public:
         else if(z_prev / z_curr > thr2){
           write_pixel(x,y, 30,30,30);
         }
-        z_prev = zbuffer(x,y);
+        z_prev = z_curr;
       }
     }
   }
@@ -215,12 +221,25 @@ public:
   }
 
   void bucket_fill( const int r, const int g, const int b){
-     for (size_t y=0; y<height; y++) {
-       for (size_t x=0; x<width; x++) {
-         const int col = 127 << 24 | r << 16 | g << 8 | b ;
-         img_ptr->tpixels[y][x] = col; // assuming TrueColor
-       }
-     }
+    for (size_t y=0; y<height; y++) {
+      for (size_t x=0; x<width; x++) {
+        const int32_t col = 127 << 24 | r << 16 | g << 8 | b ;
+        img_ptr->tpixels[y][x] = col; // assuming TrueColor
+      }
+    }
+  }
+
+  void annotate_peaks(const char * xml_name){
+    vector<point_feature> peaks = read_peaks_osm(xml_name);
+     cout << peaks << endl;
+  
+    for(int p=0; p<peaks.size(); p++){
+      // get position of peak
+      // get a few triangles around the peak
+      // calculate coords and z on the canvas
+      // check if z matches zb, if so, draw
+    }
+  
   }
 
 };

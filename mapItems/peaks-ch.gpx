@@ -1,5 +1,12 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1" creator="overpass-ide"><metadata><copyright>The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.</copyright><desc>Filtered OSM data converted to GPX by overpass turbo</desc><time>2017-05-17T21:20:50Z</time></metadata><wpt lat="47.3709217" lon="8.9418013"><name>Hörnli</name><desc>ele=1133
+<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1" creator="overpass-ide">
+<metadata>
+<copyright>The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.</copyright>
+<desc>Filtered OSM data converted to GPX by overpass turbo</desc>
+<time>2017-05-17T21:20:50Z</time>
+</metadata><wpt lat="47.3709217" lon="8.9418013">
+<name>Hörnli</name>
+<desc>ele=1133
 name=Hörnli
 natural=peak
 place=locality
@@ -26258,3 +26265,4 @@ natural=peak</desc><link href="http://osm.org/browse/node/4847918179"/></wpt><wp
 name=La Colma
 natural=peak</desc><link href="http://osm.org/browse/node/4847935437"/></wpt><wpt lat="46.06392" lon="8.500173"><name>node/4856972937</name><desc>ele=2012
 natural=peak</desc><link href="http://osm.org/browse/node/4856972937"/></wpt></gpx>
+
