@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="Overpass API">
+<note>The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.</note>
+<meta osm_base="2017-06-02T19:45:36Z"/>
+
+  <node id="28200525" lat="49.4026602" lon="8.7297882">
+    <tag k="ele" v="567.8"/>
+    <tag k="layer" v="1"/>
+    <tag k="name" v="Königstuhl"/>
+    <tag k="name:zh" v="王座山丘"/>
+    <tag k="natural" v="peak"/>
+    <tag k="source" v="wikipedia"/>
+    <tag k="wikipedia" v="de:Königstuhl (Odenwald)"/>
+  </node>
+  <node id="309437436" lat="49.4674901" lon="8.6803835">
+    <tag k="ele" v="450"/>
+    <tag k="name" v="Ölberg"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="324741549" lat="49.4709458" lon="8.7121902">
+    <tag k="ele" v="360"/>
+    <tag k="name" v="Wendenkopf"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="414203116" lat="49.4270459" lon="8.7212154">
+    <tag k="ele" v="446"/>
+    <tag k="name" v="Heidenknörzel"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="477261206" lat="49.4458400" lon="8.7075662">
+    <tag k="ele" v="496"/>
+    <tag k="name" v="Hoher Nistler"/>
+    <tag k="natural" v="peak"/>
+    <tag k="wikipedia" v="de:Hoher Nistler"/>
+  </node>
+  <node id="566674023" lat="49.4620984" lon="8.7056169">
+    <tag k="ele" v="473"/>
+    <tag k="name" v="Hartenbühl"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="671953740" lat="49.4035191" lon="8.7047078">
+    <tag k="ele" v="376"/>
+    <tag k="name" v="Gaisberg"/>
+    <tag k="natural" v="peak"/>
+    <tag k="source" v="Wikipedia"/>
+    <tag k="wikipedia" v="de:Gaisberg (Heidelberg)"/>
+  </node>
+  <node id="672138638" lat="49.4198621" lon="8.7043293">
+    <tag k="alt_name" v="Michaelsberg"/>
+    <tag k="ele" v="375.5"/>
+    <tag k="name" v="Michelsberg"/>
+    <tag k="natural" v="peak"/>
+    <tag k="source" v="wikipedia"/>
+  </node>
+  <node id="672138639" lat="49.4261495" lon="8.7062630">
+    <tag k="ele" v="439.9"/>
+    <tag k="name" v="Heiligenberg"/>
+    <tag k="natural" v="peak"/>
+    <tag k="source" v="Wikipedia"/>
+    <tag k="wikipedia" v="de:Heiligenberg (Heidelberg)"/>
+  </node>
+  <node id="672138641" lat="49.4467404" lon="8.7467641">
+    <tag k="ele" v="449"/>
+    <tag k="name" v="Apfelskopf"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="672138642" lat="49.4580313" lon="8.7464236">
+    <tag k="ele" v="539"/>
+    <tag k="name" v="Dossenheimer Kopf"/>
+    <tag k="natural" v="peak"/>
+    <tag k="source" v="wikipedia"/>
+  </node>
+  <node id="800626543" lat="49.4530773" lon="8.7229998">
+    <tag k="ele" v="548"/>
+    <tag k="name" v="Weißer Stein"/>
+    <tag k="natural" v="peak"/>
+    <tag k="wikipedia" v="de:Weißer Stein (Odenwald)"/>
+  </node>
+  <node id="1759494601" lat="49.4637333" lon="8.6806087">
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="2155915176" lat="49.3925405" lon="8.6991164">
+    <tag k="ele" v="296"/>
+    <tag k="name" v="Ameisenbuckel"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="2155915183" lat="49.3828404" lon="8.6974716">
+    <tag k="ele" v="258.7"/>
+    <tag k="name" v="Karlslust"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="3354580889" lat="49.4396455" lon="8.6868291">
+    <tag k="name" v="Auerstein"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="3597120742" lat="49.4540744" lon="8.6905171">
+    <tag k="ele" v="324"/>
+    <tag k="name" v="Kirchberg"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="3672060838" lat="49.4711457" lon="8.6922495">
+    <tag k="ele" v="330"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="4340150651" lat="49.3850934" lon="8.7325352">
+    <tag k="ele" v="495"/>
+    <tag k="name" v="Posseltslust"/>
+    <tag k="natural" v="peak"/>
+  </node>
+
+</osm>

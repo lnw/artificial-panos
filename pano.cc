@@ -22,12 +22,12 @@ int main(int ac, char **av) {
   // ... angles on sphere?
 
   // const double pos_lat(59.87*deg2rad), pos_lon(10.67*deg2rad), pos_z(130); // rad, rad, m   // oslo
-  const double pos_lat(49.4*deg2rad), pos_lon(8.6*deg2rad), pos_z(360); // rad, rad, m   // hd
+  const double pos_lat(49.4*deg2rad), pos_lon(8.6*deg2rad), pos_z(200); // rad, rad, m   // hd
   // const double pos_lat(47.3664*deg2rad), pos_lon(8.5413*deg2rad), pos_z(408); // rad, rad, m // zurich
-  // const double pos_lat(49.08123*deg2rad), pos_lon(19.62642*deg2rad), pos_z(582); // rad, rad, m  // slovakia
-  const double view_direction(280*deg2rad); // [rad], east is 0
-  const double view_width(80*deg2rad); // [rad]
-  const double view_height(10*deg2rad); // [rad]
+  // const double pos_lat(49.08123*deg2rad), pos_lon(19.62642*deg2rad), pos_z(585); // rad, rad, m  // slovakia
+  const double view_direction(0*deg2rad); // [rad], east is 0
+  const double view_width(180*deg2rad); // [rad]
+  const double view_height(12*deg2rad); // [rad]
   const double range(70000); // [m]
   scene S(pos_lat, pos_lon, pos_z, view_direction, view_width, view_height, range);
 //  cout << S.tiles[0].first << endl;
@@ -54,8 +54,7 @@ int main(int ac, char **av) {
   V.bucket_fill(100,100,100);
   V.render_scene(S);
   V.highlight_edges();
-
-  V.annotate_peaks("mapItems/peaks-de.osm");
+  V.annotate_peaks(S, "mapItems/peaks-de.osm");
 
 //  cout << V.zbuffer << endl;
 
