@@ -274,26 +274,26 @@ public:
     const double pixels_per_rad_v = height / view_height; // [px/rad]
 
     for(int p=0; p<peaks.size(); p++){
-      // get a few triangles around the peak, we're interested in 9 squares around the peak, between i/j and i+4/j+4
-      double intpart_i, intpart_j;
-      const double fractpart_i = modf (peaks[p].lat, &intpart_i), fractpart_j = modf (peaks[p].lon, &intpart_j);
-      // ii and jj pont to the NW corner of a 3x3 grid of tiles where the feature is in the middle tile
-      const int ii = 3600 - ceil(abs(fractpart_i)*3600) - 1; // lat
-      const int jj = floor(abs(fractpart_j)*3600) - 1; // lon
-      cout << "ii,jj: " <<  ii << ", " << jj << endl;
-      cout << "coords: " << peaks[p].lat << ", " << peaks[p].lon << endl;
-      cout << "points will be at: " << 1-ii/3600.0 << ", " << 1-(ii+1)/3600.0 << ", " << 1-(ii+2)/3600.0 << ", " << 1-(ii+3)/3600.0 << endl;
-      cout << "points will be at: " << jj/3600.0 << ", " << (jj+1)/3600.0 << ", " << (jj+2)/3600.0 << ", " << (jj+3)/3600.0 << endl;
-
       // distance from the peak
       const double dist_peak = distance_atan(S.lat_standpoint, S.lon_standpoint, peaks[p].lat*deg2rad, peaks[p].lon*deg2rad);
       if(dist_peak > S.view_dist || dist_peak < 1000) continue;
       // TODO add test wrt the horizontal angle, to avoid searching for peaks which are close in the wrong direction
 
+      // get a few triangles around the peak, we're interested in 25 squares around the peak, between i/j and i+6/j+6
+      double intpart_i, intpart_j;
+      const double fractpart_i = modf (peaks[p].lat, &intpart_i), fractpart_j = modf (peaks[p].lon, &intpart_j);
+      // ii and jj pont to the NW corner of a 5x5 grid of tiles where the feature is in the middle tile
+      const int ii = 3600 - ceil(abs(fractpart_i)*3600) - 2; // lat
+      const int jj = floor(abs(fractpart_j)*3600) - 2; // lon
+//      cout << "ii,jj: " <<  ii << ", " << jj << endl;
+//      cout << "coords: " << peaks[p].lat << ", " << peaks[p].lon << endl;
+//      cout << "points will be at: " << 1-ii/3600.0 << ", " << 1-(ii+1)/3600.0 << ", " << 1-(ii+2)/3600.0 << ", " << 1-(ii+3)/3600.0 << endl;
+//      cout << "points will be at: " << jj/3600.0 << ", " << (jj+1)/3600.0 << ", " << (jj+2)/3600.0 << ", " << (jj+3)/3600.0 << endl;
+
       // find the tile in which the peak is located, continue if none
       int tile_index = -1;
       for(int t = 0; t<S.tiles.size(); t++){
-        if(S.tiles[t].first.lat == round(intpart_i) && 
+        if(S.tiles[t].first.lat == round(intpart_i) &&
            S.tiles[t].first.lon == round(intpart_j)){
           tile_index = t;
           break;
@@ -307,20 +307,23 @@ public:
       const tile<double> &D = S.tiles[tile_index].second;
       const int &m = H.m;
       const int &n = H.n;
-      
-      // height of the peak
+
+      // height of the peak, according to elevation data
       const double height_peak = H.interpolate(peaks[p].lat, peaks[p].lon);
       cout << "peak height and dist: " << height_peak << ", " << dist_peak << endl;
- 
+      // if the osm doesn't know the height, take from elevation data
+      if(peaks[p].elev == 0) peaks[p].elev = height_peak;
+
       // get position of peak on canvas
       const double x_peak = fmod(view_direction + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, peaks[p].lat*deg2rad, peaks[p].lon*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
       const double y_peak = (view_height/2.0 - angle_v(S.z_standpoint, height_peak, dist_peak)) * pixels_per_rad_v; // [px]
       cout << "peak x, y " << x_peak << ", " << y_peak << endl;
 
+      // test if peak would be rendered, hence, is visible
       const int inc=1;
       bool peak_visible=false;
-      for(int i=ii; i<=ii+3; i++){
-        for(int j=jj; j<=jj+3; j++){
+      for(int i=ii; i<ii+5; i++){
+        for(int j=jj; j<jj+5; j++){
           const double h_ij = fmod(view_direction + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
           if(h_ij < 0 || h_ij > width) continue;
           const double h_ijj = fmod(view_direction + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
@@ -342,29 +345,62 @@ public:
           //debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << endl;
 
           const double dist1 = (D(i,j)+D(i+inc,j)+D(i,j+inc))/3.0 - 2;
-          if(would_write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1)) peak_visible=true;
-                   write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, 5* pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500), 250);
           const double dist2 = (D(i+inc,j)+D(i,j+inc)+D(i+inc,j+inc))/3.0 - 2;
+          if(would_write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1)) peak_visible=true;
           if(would_write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2)) peak_visible=true;
-                   write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, 5*pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500) , 250);
+#ifdef GRAPHICS_DEBUG
+          write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, 5*pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500), 50);
+          write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, 5*pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500) , 250);
+#endif
         }
       }
       if(peak_visible){
         cout << peaks[p].name << " is visible" << endl;
         cout << "pixel will be written at : " << x_peak << ", " << y_peak << endl;
         write_pixel(x_peak, y_peak, 255,0,0);
+
+        int x_offset=0, y_offset=100;
+
+        int black = gdImageColorResolve(img_ptr, 0, 0, 0);
+        gdImageLine(img_ptr, x_peak, y_peak, x_peak, y_peak-y_offset+5, black);
+
+        string name(peaks[p].name);
+        if(!peaks[p].name.empty()) name += ", ";
+        name += to_string(peaks[p].elev) + "m, " + to_string(int(round(dist_peak/1000))) + "km";
+        char *s = const_cast<char*>(name.c_str());
+        const double fontsize = 12.;
+        char *font = "./palatino-59330a4da3d64.ttf";
+        const double text_orientation=M_PI/2;
+
+        /* obtain bb so that we can size the image */
+        int bb[8];
+        char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
+        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+
+//        cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
+
+        /* render the string, offset origin to center string*/
+        /* note that we use top-left coordinate for adjustment
+         * since gd origin is in top-left with y increasing downwards. */
+        int xxx = 3 - bb[6];
+        int yyy = 3 - bb[7];
+        err = gdImageStringFT(img_ptr, &bb[0],
+                              black, font, fontsize, text_orientation,
+                              x_peak+fontsize/2.0,
+                              y_peak-y_offset,s);
+        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+
       }
+#ifdef GRAPHICS_DEBUG
       else{
         cout << peaks[p].name << " is invisible" << endl;
         cout << "pixel will be written at : " << x_peak << ", " << y_peak << endl;
         write_pixel(x_peak, y_peak, 0,255,0);
       }
-      // calculate coords and z on the canvas
-      // check if z matches zb, if so, draw
+#endif
+
     }
-
   }
-
 };
 
 #endif

@@ -1,8 +1,10 @@
 download all required files
 
 queri overpass-api for mountains in region
-parse xml
-labelling
+
+DEBUG option that rendern debug features in the pic
+
+lines, cleanup strings, better positioning
 
 draw other features such as rivers, ...
 

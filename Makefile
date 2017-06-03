@@ -11,7 +11,7 @@ pano: Makefile pano.cc canvas.hh scene.hh tile.hh array2D.hh geometry.hh auxilia
 	$(CXX) -g -O2 -Wshadow -std=c++14 pano.cc $(GD_INCLUDES) $(XML_INCLUDES) -o pano
 
 pano-debug: Makefile pano.cc canvas.hh scene.hh tile.hh array2D.hh geometry.hh auxiliary.hh colour.hh
-	$(CXX) -g -O0 -Wall -Wpedantic -Wextra -Wshadow -std=c++14 pano.cc $(GD_INCLUDES) $(XML_INCLUDES) -o pano
+	$(CXX) -g -O0 -DGRAPHICS_DEBUG -Wall -Wpedantic -Wextra -Wshadow -std=c++14 pano.cc $(GD_INCLUDES) $(XML_INCLUDES) -o pano
 
 .PHONY: test
 test: Makefile test.cc scene.hh tile.hh array2D.hh auxiliary.hh
