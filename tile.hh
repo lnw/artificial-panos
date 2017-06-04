@@ -33,7 +33,7 @@ public:
   tile<int16_t>(char const * FILENAME, int dim, int _lat, int _lon): array2D<int16_t>(dim,dim), lat(_lat), lon(_lon) {
     const int size = dim*dim;
     int16_t size_test;
-  
+
     ifstream ifs(FILENAME, ios::in | ios::binary);
     ifs.exceptions( ifstream::failbit | ifstream::badbit );
     try {
@@ -43,7 +43,7 @@ public:
       cout << "Exception opening/reading file";
     }
     ifs.close();
-  
+
     for (int i=0; i<dim; i++){
       for (int j=0; j<dim; j++){
         (*this)(i,j) = endian_swap((*this)(i,j));
@@ -87,24 +87,23 @@ public:
 //        |
 // iij--aux2---iijj
   double interpolate(const double lat_p, const double lon_p) const {
-    cout << lat_p <<", "<< lon_p <<", "<<floor(lat_p) << ", "<< lat <<", " << floor(lon_p) <<", "<< lon << endl;
+//    cout << lat_p <<", "<< lon_p <<", "<<floor(lat_p) << ", "<< lat <<", " << floor(lon_p) <<", "<< lon << endl;
     assert(floor(lat_p) == lat && floor(lon_p) == lon);
-    cout << "point coords: " << lat_p << ", "  << lon_p << endl;
+//    cout << "point coords: " << lat_p << ", "  << lon_p << endl;
     const int i = 3600 - floor((lat_p - lat)*3600),
              ii = 3600 - ceil((lat_p - lat)*3600),
               j = floor((lon_p - lon)*3600),
              jj = ceil((lon_p - lon)*3600);
 
-    cout << "i,ii: " << i<< ", " <<ii << endl;
-    cout << "j,jj: " << j<< ", " <<jj << endl;
+//    cout << "i,ii: " << i<< ", " <<ii << endl;
+//    cout << "j,jj: " << j<< ", " <<jj << endl;
 
-
-cout << (*this)(i,j) << ", " <<  abs(3600*lon_p - 3600*floor(lon_p)-jj)   << ", "<< (*this)(i,jj) << ", " << abs(3600*lon_p - 3600*floor(lon_p) - j) << endl;
+// cout << (*this)(i,j) << ", " <<  abs(3600*lon_p - 3600*floor(lon_p)-jj)   << ", "<< (*this)(i,jj) << ", " << abs(3600*lon_p - 3600*floor(lon_p) - j) << endl;
     const double aux1_h = (*this)(i,j) * abs(3600*(lon_p-floor(lon_p))-jj) + (*this)(i,jj) * abs(3600*(lon_p-floor(lon_p))-j);
-cout << "aux1_h: " << aux1_h << endl;
+// cout << "aux1_h: " << aux1_h << endl;
     const double aux2_h = (*this)(ii,j) * abs(3600*(lon_p-floor(lon_p))-jj) + (*this)(ii,jj) * abs(3600*(lon_p-floor(lon_p))-j);
-cout << "aux2_h: " << aux2_h << endl;
-cout << aux1_h <<", "<< abs(3600*(lat_p-floor(lat_p))-(3600-ii)) <<", "<< aux2_h <<", "<< abs(3600*(lat_p-floor(lat_p))-(3600-i)) << endl;
+// cout << "aux2_h: " << aux2_h << endl;
+// cout << aux1_h <<", "<< abs(3600*(lat_p-floor(lat_p))-(3600-ii)) <<", "<< aux2_h <<", "<< abs(3600*(lat_p-floor(lat_p))-(3600-i)) << endl;
     const double p_h = aux1_h * abs(3600*(lat_p-floor(lat_p))-(3600-ii)) + aux2_h * abs(3600*(lat_p-floor(lat_p))-(3600-i));
     return p_h;
   }
