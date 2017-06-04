@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <osm version="0.6" generator="Overpass API">
 <note>The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.</note>
-<meta osm_base="2017-06-04T12:21:15Z"/>
+<meta osm_base="2017-06-04T22:38:09Z"/>
 
   <node id="26862520" lat="49.5731526" lon="19.5294990">
     <tag k="description" v="Najwyższy szczyt Beskidu Żywieckiego"/>
@@ -3157,37 +3157,12 @@
     <tag k="natural" v="peak"/>
     <tag k="source" v="http://ump.waw.pl/ retrieved 01:32:52 09/02/09 (UMP-Przemysl/src/POI-Przemysl.pnt-converted.txt)"/>
   </node>
-  <node id="513454887" lat="49.0879882" lon="22.5657211">
-    <tag k="ele" v="1221"/>
-    <tag k="historic" v="monument"/>
-    <tag k="name" v="Kremenec / Krzemieniec / Кременець"/>
-    <tag k="name:hu" v="Kremenáros"/>
-    <tag k="name:pl" v="Krzemieniec"/>
-    <tag k="name:ru" v="Кременец"/>
-    <tag k="name:sk" v="Kremenec"/>
-    <tag k="name:uk" v="Кременець"/>
-    <tag k="natural" v="peak"/>
-    <tag k="source" v="http://ump.waw.pl/ retrieved 01:32:52 09/02/09 (UMP-Przemysl/src/POI-Przemysl.pnt-converted.txt)"/>
-  </node>
   <node id="513454890" lat="49.0909000" lon="22.5470800">
     <tag k="ele" v="1201"/>
     <tag k="name" v="Kamienna / Kamenná lúka"/>
     <tag k="name:pl" v="Kamienna"/>
     <tag k="name:ru" v="Каменная"/>
     <tag k="name:sk" v="Kamenná lúka"/>
-    <tag k="natural" v="peak"/>
-    <tag k="source" v="http://ump.waw.pl/ retrieved 01:32:52 09/02/09 (UMP-Przemysl/src/POI-Przemysl.pnt-converted.txt)"/>
-  </node>
-  <node id="513454892" lat="49.0999341" lon="22.5758797">
-    <tag k="ele" v="1304"/>
-    <tag k="name" v="Wielka Rawka"/>
-    <tag k="name:uk" v="Велика Равка"/>
-    <tag k="natural" v="peak"/>
-    <tag k="source" v="http://ump.waw.pl/ retrieved 01:32:52 09/02/09 (UMP-Przemysl/src/POI-Przemysl.pnt-converted.txt)"/>
-  </node>
-  <node id="513454895" lat="49.1096595" lon="22.5738439">
-    <tag k="ele" v="1271"/>
-    <tag k="name" v="Mała Rawka"/>
     <tag k="natural" v="peak"/>
     <tag k="source" v="http://ump.waw.pl/ retrieved 01:32:52 09/02/09 (UMP-Przemysl/src/POI-Przemysl.pnt-converted.txt)"/>
   </node>
@@ -3227,30 +3202,6 @@
     <tag k="natural" v="peak"/>
     <tag k="source" v="http://ump.waw.pl/ retrieved 01:32:52 09/02/09 (UMP-Przemysl/src/POI-Przemysl.pnt-converted.txt)"/>
   </node>
-  <node id="513454928" lat="49.1916677" lon="22.5839564">
-    <tag k="ele" v="1004"/>
-    <tag k="historic" v="heritage"/>
-    <tag k="name" v="Dwernik Kamień (Holica)"/>
-    <tag k="natural" v="peak"/>
-    <tag k="protected" v="yes"/>
-    <tag k="source" v="http://ump.waw.pl/ retrieved 01:32:52 09/02/09 (UMP-Przemysl/src/POI-Przemysl.pnt-converted.txt)"/>
-    <tag k="wikidata" v="Q11695346"/>
-    <tag k="wikipedia" v="pl:Dwernik Kamień"/>
-  </node>
-  <node id="513454931" lat="49.1800185" lon="22.5711123">
-    <tag k="ele" v="1047"/>
-    <tag k="name" v="Jawornik"/>
-    <tag k="natural" v="peak"/>
-    <tag k="source" v="http://ump.waw.pl/ retrieved 01:32:52 09/02/09 (UMP-Przemysl/src/POI-Przemysl.pnt-converted.txt)"/>
-    <tag k="wikidata" v="Q11723421"/>
-    <tag k="wikipedia" v="pl:Jawornik (pasmo połonin)"/>
-  </node>
-  <node id="513454956" lat="49.2174586" lon="22.5585708">
-    <tag k="ele" v="693"/>
-    <tag k="name" v="Dziążkowiec"/>
-    <tag k="natural" v="peak"/>
-    <tag k="source" v="http://ump.waw.pl/ retrieved 01:32:52 09/02/09 (UMP-Przemysl/src/POI-Przemysl.pnt-converted.txt)"/>
-  </node>
   <node id="513454962" lat="49.1987500" lon="22.5406000">
     <tag k="ele" v="885"/>
     <tag k="name" v="Jaworniki"/>
@@ -3261,12 +3212,6 @@
     <tag k="ele" v="689"/>
     <tag k="name" v="Pańskie Berdo"/>
     <tag k="natural" v="peak"/>
-  </node>
-  <node id="513455036" lat="49.2259020" lon="22.5612941">
-    <tag k="ele" v="649"/>
-    <tag k="name" v="Kiczera"/>
-    <tag k="natural" v="peak"/>
-    <tag k="source" v="http://ump.waw.pl/ retrieved 01:32:52 09/02/09 (UMP-Przemysl/src/POI-Przemysl.pnt-converted.txt)"/>
   </node>
   <node id="513455040" lat="49.2416200" lon="22.5234300">
     <tag k="ele" v="622"/>
@@ -3355,12 +3300,6 @@
   <node id="513455110" lat="49.3582420" lon="22.5544161">
     <tag k="ele" v="618"/>
     <tag k="name" v="Łabiska"/>
-    <tag k="natural" v="peak"/>
-    <tag k="source" v="http://ump.waw.pl/ retrieved 01:32:52 09/02/09 (UMP-Przemysl/src/POI-Przemysl.pnt-converted.txt)"/>
-  </node>
-  <node id="513455111" lat="49.3672723" lon="22.5723352">
-    <tag k="ele" v="606"/>
-    <tag k="name" v="Gielec"/>
     <tag k="natural" v="peak"/>
     <tag k="source" v="http://ump.waw.pl/ retrieved 01:32:52 09/02/09 (UMP-Przemysl/src/POI-Przemysl.pnt-converted.txt)"/>
   </node>
@@ -8976,13 +8915,6 @@
     <tag k="natural" v="peak"/>
     <tag k="tourism" v="viewpoint"/>
   </node>
-  <node id="1347109114" lat="49.1222127" lon="22.5857375">
-    <tag k="ele" v="913"/>
-    <tag k="name" v="Wyżniański Wierch"/>
-    <tag k="natural" v="peak"/>
-    <tag k="wikidata" v="Q9380683"/>
-    <tag k="wikipedia" v="pl:Wyżniański Wierch"/>
-  </node>
   <node id="1347162003" lat="48.8660568" lon="22.2818205">
     <tag k="ele" v="573"/>
     <tag k="import_ref" v="Záväzné názvoslovie vrchov"/>
@@ -9827,13 +9759,6 @@
     <tag k="name" v="Lipowiec"/>
     <tag k="natural" v="peak"/>
   </node>
-  <node id="1365567917" lat="49.3260289" lon="22.5795302">
-    <tag k="ele" v="675"/>
-    <tag k="name" v="Moklik"/>
-    <tag k="natural" v="peak"/>
-    <tag k="wikidata" v="Q11784790"/>
-    <tag k="wikipedia" v="pl:Moklik"/>
-  </node>
   <node id="1365567926" lat="49.2832683" lon="22.4875510">
     <tag k="ele" v="753"/>
     <tag k="name" v="Szczob"/>
@@ -10214,6 +10139,11 @@
     <tag k="name:hu" v="Medves"/>
     <tag k="natural" v="peak"/>
     <tag k="source" v="kapor2"/>
+  </node>
+  <node id="1426441991" lat="49.0424327" lon="19.6599019">
+    <tag k="ele" v="877"/>
+    <tag k="name" v="Hrádok"/>
+    <tag k="natural" v="peak"/>
   </node>
   <node id="1427348010" lat="48.8770630" lon="18.1466227">
     <tag k="ele" v="670"/>
@@ -12601,14 +12531,6 @@
     <tag k="source" v="kapor2"/>
     <tag k="source:name" v="skgeodesy.sk"/>
   </node>
-  <node id="1883623124" lat="49.2012692" lon="22.5798692">
-    <tag k="ele" v="887"/>
-    <tag k="name" v="Magurka"/>
-    <tag k="natural" v="peak"/>
-  </node>
-  <node id="1885899314" lat="49.1942577" lon="22.5842428">
-    <tag k="natural" v="peak"/>
-  </node>
   <node id="1890684659" lat="47.7502538" lon="18.7424756">
     <tag k="ele" v="233.1"/>
     <tag k="name" v="Kis-Strázsa-hegy"/>
@@ -13894,14 +13816,6 @@
     <tag k="name" v="Łysica"/>
     <tag k="natural" v="peak"/>
   </node>
-  <node id="2261714897" lat="48.9030042" lon="22.5593967">
-    <tag k="ele" v="1017"/>
-    <tag k="name" v="Явірник"/>
-    <tag k="name:ru" v="Яворник"/>
-    <tag k="name:uk" v="Явірник"/>
-    <tag k="natural" v="peak"/>
-    <tag k="wikipedia" v="uk:Явірник (гора)"/>
-  </node>
   <node id="2270323842" lat="47.8683914" lon="19.0386416">
     <tag k="ele" v="337"/>
     <tag k="name" v="Magas-hegy"/>
@@ -14065,13 +13979,6 @@
     <tag k="name" v="Stolečný"/>
     <tag k="natural" v="peak"/>
     <tag k="source:name" v="skgeodesy.sk"/>
-  </node>
-  <node id="2329768646" lat="49.5347956" lon="16.8412712">
-    <tag k="name" v="Vrabčák"/>
-    <tag k="natural" v="peak"/>
-  </node>
-  <node id="2329768937" lat="49.5348777" lon="16.8338348">
-    <tag k="natural" v="peak"/>
   </node>
   <node id="2332778423" lat="49.6080678" lon="19.0078513">
     <tag k="ele" v="1192"/>
@@ -33805,14 +33712,6 @@
   </node>
   <node id="3264406914" lat="48.9357318" lon="19.3911802">
     <tag k="name" v="Turánske"/>
-    <tag k="natural" v="peak"/>
-  </node>
-  <node id="3265374224" lat="49.4445113" lon="22.5790969">
-    <tag k="name" v="Laworta"/>
-    <tag k="natural" v="peak"/>
-  </node>
-  <node id="3265374225" lat="49.4324756" lon="22.5664236">
-    <tag k="name" v="Mały Król"/>
     <tag k="natural" v="peak"/>
   </node>
   <node id="3267311792" lat="49.1034854" lon="19.2877795">
@@ -54413,15 +54312,6 @@
     <tag k="name" v="1210"/>
     <tag k="natural" v="peak"/>
   </node>
-  <node id="4377188826" lat="49.3149625" lon="22.5742741">
-    <tag k="ele" v="601"/>
-    <tag k="name" v="Rosoliniec"/>
-    <tag k="natural" v="peak"/>
-  </node>
-  <node id="4377188827" lat="49.3221203" lon="22.5742937">
-    <tag k="ele" v="604"/>
-    <tag k="natural" v="peak"/>
-  </node>
   <node id="4379731317" lat="47.8707044" lon="19.7373402">
     <tag k="ele" v="595"/>
     <tag k="name" v="Kis-Koncsúr"/>
@@ -55545,11 +55435,6 @@
     <tag k="ele" v="532"/>
     <tag k="natural" v="peak"/>
   </node>
-  <node id="4728491779" lat="49.2513047" lon="16.8395439">
-    <tag k="ele" v="535"/>
-    <tag k="name" v="Černý vrch"/>
-    <tag k="natural" v="peak"/>
-  </node>
   <node id="4728550269" lat="49.2735555" lon="16.8760728">
     <tag k="ele" v="426"/>
     <tag k="name" v="Krchovský kopec"/>
@@ -55570,10 +55455,6 @@
   </node>
   <node id="4728882845" lat="49.3017897" lon="16.8675880">
     <tag k="ele" v="473"/>
-    <tag k="natural" v="peak"/>
-  </node>
-  <node id="4730363814" lat="49.3137586" lon="16.8311874">
-    <tag k="ele" v="554"/>
     <tag k="natural" v="peak"/>
   </node>
   <node id="4730363815" lat="49.3112755" lon="16.8421577">
@@ -55602,10 +55483,6 @@
   </node>
   <node id="4738884229" lat="48.9931343" lon="19.3327299">
     <tag k="ele" v="940"/>
-    <tag k="natural" v="peak"/>
-  </node>
-  <node id="4742185187" lat="49.4336392" lon="16.8388680">
-    <tag k="ele" v="628"/>
     <tag k="natural" v="peak"/>
   </node>
   <node id="4742185188" lat="49.4298606" lon="16.8450853">
@@ -55796,10 +55673,6 @@
     <tag k="ele" v="579"/>
     <tag k="natural" v="peak"/>
   </node>
-  <node id="4780049690" lat="49.3958134" lon="16.8337060">
-    <tag k="ele" v="577"/>
-    <tag k="natural" v="peak"/>
-  </node>
   <node id="4780049692" lat="49.3896926" lon="16.8425345">
     <tag k="ele" v="575"/>
     <tag k="name" v="U křížku"/>
@@ -55919,9 +55792,10 @@
     <tag k="natural" v="peak"/>
     <tag k="source" v="survey, GPS"/>
   </node>
-  <node id="4792313850" lat="49.1397547" lon="19.2635071">
+  <node id="4792313850" lat="49.1396757" lon="19.2634964">
     <tag k="ele" v="860"/>
     <tag k="natural" v="peak"/>
+    <tag k="source" v="survey, GPS"/>
   </node>
   <node id="4792726623" lat="49.3431851" lon="17.6639034">
     <tag k="ele" v="630"/>
@@ -56455,12 +56329,6 @@
     <tag k="natural" v="peak"/>
     <tag k="place" v="locality"/>
   </node>
-  <node id="4876317361" lat="48.9810516" lon="22.5776853">
-    <tag k="ele" v="987"/>
-    <tag k="name" v="Домашинський верх"/>
-    <tag k="name:hu" v="Domafalvi csúcs"/>
-    <tag k="natural" v="peak"/>
-  </node>
   <node id="4877795730" lat="48.9130920" lon="22.5439672">
     <tag k="ele" v="972"/>
     <tag k="name" v="Юда Верх"/>
@@ -56485,6 +56353,45 @@
   <node id="4893685518" lat="47.9290032" lon="18.9746868">
     <tag k="ele" v="630"/>
     <tag k="name" v="Saj-kút bérc"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="4895466000" lat="49.0014031" lon="19.6522526">
+    <tag k="ele" v="1420"/>
+    <tag k="name" v="Kopa"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="4895466001" lat="49.0294157" lon="19.6214789">
+    <tag k="ele" v="1390"/>
+    <tag k="name" v="Končitý vrch"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="4896047172" lat="49.0362015" lon="19.6104441">
+    <tag k="ele" v="955"/>
+    <tag k="name" v="Bodová"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="4896047173" lat="49.0253248" lon="19.6322186">
+    <tag k="name" v="Predná Poludnica"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="4896100113" lat="49.0696988" lon="19.6849160">
+    <tag k="ele" v="664"/>
+    <tag k="name" v="Vlčnenec"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="4896100114" lat="49.0591992" lon="19.7014141">
+    <tag k="ele" v="722"/>
+    <tag k="name" v="Veling"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="4896100115" lat="49.0660234" lon="19.6993312">
+    <tag k="ele" v="724"/>
+    <tag k="name" v="Trhová"/>
+    <tag k="natural" v="peak"/>
+  </node>
+  <node id="4896100116" lat="49.0800683" lon="19.6671182">
+    <tag k="ele" v="711"/>
+    <tag k="name" v="Vrch Hrádok"/>
     <tag k="natural" v="peak"/>
   </node>
 

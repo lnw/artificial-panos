@@ -372,7 +372,7 @@ public:
         const int x_offset=0, y_offset=100;
 
         const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
-        gdImageLine(img_ptr, x_peak, y_peak, x_peak, y_peak-y_offset+5, black);
+        gdImageLine(img_ptr, x_peak, y_peak-2, x_peak, y_peak-y_offset+5, black);
 
         string name(peaks[p].name);
         if(!peaks[p].name.empty()) name += ", ";
@@ -380,7 +380,7 @@ public:
         char *s = const_cast<char*>(name.c_str());
         const double fontsize = 12.;
         //char *font = "./palatino-59330a4da3d64.ttf";
-        char *font = "./vera.ttf";
+        char *font = "./fonts/vera.ttf";
         const double text_orientation=M_PI/2;
 
         /* obtain bb so that we can size the image */
