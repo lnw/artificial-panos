@@ -18,10 +18,11 @@ using namespace std;
 class scene {
 public:
   double lat_standpoint, lon_standpoint, z_standpoint; // [rad], [rad], [m]
-  double view_dir, view_width, view_height, view_dist; // [rad], [rad], [rad], [m]
+  double view_dir_h, view_width, view_dir_v, view_height; // [rad], [rad], [rad], [rad]
+  double view_dist; // [m]
   vector<pair<tile<double>,tile<double>>> tiles; // heights, distances
 
-  scene(double lat, double lon, double z, double vdir, double vw, double vh, double vdist): lat_standpoint(lat), lon_standpoint(lon), z_standpoint(z), view_dir(vdir), view_width(vw), view_height(vh), view_dist(vdist) {
+  scene(double lat, double lon, double z, double vdirh, double vw, double vdirv, double vh, double vdist): lat_standpoint(lat), lon_standpoint(lon), z_standpoint(z), view_dir_h(vdirh), view_width(vw), view_dir_v(vdirv), view_height(vh), view_dist(vdist) {
     ofstream debug("debug-render_scene", ofstream::out | ofstream::app);
     debug << "standpoint: " << lat_standpoint*rad2deg << ", " << lon_standpoint*rad2deg << endl;
 
@@ -31,7 +32,7 @@ public:
     for(int i=0; i<10; i++){
       const double dist = i* view_dist/9;
       for(int j=0; j<10; j++){
-        const double bearing = fmod(-view_dir - view_width/2 + M_PI/2 + j*view_width/9 + 3*M_PI, 2*M_PI) - M_PI;
+        const double bearing = fmod(-view_dir_h - view_width/2 + M_PI/2 + j*view_width/9 + 3*M_PI, 2*M_PI) - M_PI;
         pair<double,double> dest = destination(lat_standpoint, lon_standpoint, dist, bearing);
         required_tiles.insert(make_pair(floor(dest.first*rad2deg), floor(dest.second*rad2deg)));
       }

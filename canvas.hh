@@ -155,13 +155,15 @@ public:
   void render_scene(const scene& S){
     ofstream debug("debug-render_scene", ofstream::out | ofstream::app);
     // determine the dimensions, especially pixels/deg
-    const double& view_direction = S.view_dir; // [rad]
+    const double& view_direction_h = S.view_dir_h; // [rad]
     const double& view_width = S.view_width; // [rad]
     const double pixels_per_rad_h = width / view_width; // [px/rad]
+    const double& view_direction_v = S.view_dir_v; // [rad]
     const double& view_height = S.view_height; // [rad]
     const double pixels_per_rad_v = height / view_height; // [px/rad]
-    debug << "view direction [rad]: " << view_direction << endl;
+    debug << "view direction_h [rad]: " << view_direction_h << endl;
     debug << "view width [rad]: " << view_width << endl;
+    debug << "view direction_v [rad]: " << view_direction_v << endl;
     debug << "view height [rad]: " << view_height << endl;
     debug << "canvas width: " << width << endl;
     debug << "canvas height: " << height << endl;
@@ -189,26 +191,26 @@ public:
           // second triangle: i+1/j, i/j+1, i+1/j+1
           // get horizontal and vertical angles for all four points of the two triangles
           // translate to image coordinates
-          const double h_ij = fmod(view_direction + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
+          const double h_ij = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
           if(h_ij < 0 || h_ij > width) continue;
-          const double h_ijj = fmod(view_direction + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
+          const double h_ijj = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
           if(h_ijj < 0 || h_ijj > width) continue;
-          const double h_iij = fmod(view_direction + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - (i+inc)/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI ,2*M_PI) * pixels_per_rad_h;
+          const double h_iij = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - (i+inc)/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI ,2*M_PI) * pixels_per_rad_h;
           if(h_iij < 0 || h_iij > width) continue;
-          const double h_iijj = fmod(view_direction + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - (i+inc)/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2.0*M_PI) * pixels_per_rad_h;
+          const double h_iijj = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - (i+inc)/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2.0*M_PI) * pixels_per_rad_h;
           if(h_iijj < 0 || h_iijj > width) continue;
           //debug << "("<<i<<","<<j<< ") h: " << h_ij << ", " << h_ijj << ", " << h_iij << ", " << h_iijj << endl;
 
           // there should be a check here to avoid triangles to wrap around
 
           //cout << S.z_standpoint << ", " << H(i,j) << ", " <<  D(i,j) << endl;
-          const double v_ij   = (view_height/2.0 - angle_v(S.z_standpoint, H(i,j), D(i,j))) * pixels_per_rad_v; // [px]
+          const double v_ij   = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i,j), D(i,j))) * pixels_per_rad_v; // [px]
           if(v_ij < 0 || v_ij > height) continue;
-          const double v_ijj  = (view_height/2.0 - angle_v(S.z_standpoint, H(i,j+inc), D(i,j+inc))) * pixels_per_rad_v; //[px]
+          const double v_ijj  = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i,j+inc), D(i,j+inc))) * pixels_per_rad_v; //[px]
           if(v_ijj < 0 || v_ijj > height) continue;
-          const double v_iij  = (view_height/2.0 - angle_v(S.z_standpoint, H(i+inc,j), D(i+inc,j))) * pixels_per_rad_v; // [px]
+          const double v_iij  = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i+inc,j), D(i+inc,j))) * pixels_per_rad_v; // [px]
           if(v_iij < 0 || v_iij > height) continue;
-          const double v_iijj = (view_height/2.0 - angle_v(S.z_standpoint, H(i+inc,j+inc), D(i+inc,j+inc))) * pixels_per_rad_v; // [px]
+          const double v_iijj = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i+inc,j+inc), D(i+inc,j+inc))) * pixels_per_rad_v; // [px]
           if(v_iijj < 0 || v_iijj > height) continue;
           //debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << endl;
           //cout << v_ij << endl;
@@ -268,9 +270,10 @@ public:
     vector<point_feature> peaks = read_peaks_osm(xml_name);
     cout << "peaks in db: " << peaks.size() << endl;
 
-    const double& view_direction = S.view_dir; // [rad]
+    const double& view_direction_h = S.view_dir_h; // [rad]
     const double& view_width = S.view_width; // [rad]
     const double pixels_per_rad_h = width / view_width; // [px/rad]
+    const double& view_direction_v = S.view_dir_v; // [rad]
     const double& view_height = S.view_height; // [rad]
     const double pixels_per_rad_v = height / view_height; // [px/rad]
 
@@ -320,8 +323,8 @@ public:
       if(peaks[p].elev == 0) peaks[p].elev = height_peak;
 
       // get position of peak on canvas, continue if outside
-      const double x_peak = fmod(view_direction + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, peaks[p].lat*deg2rad, peaks[p].lon*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
-      const double y_peak = (view_height/2.0 - angle_v(S.z_standpoint, height_peak, dist_peak)) * pixels_per_rad_v; // [px]
+      const double x_peak = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, peaks[p].lat*deg2rad, peaks[p].lon*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
+      const double y_peak = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, height_peak, dist_peak)) * pixels_per_rad_v; // [px]
       cout << "peak x, y " << x_peak << ", " << y_peak << endl;
       if(x_peak < 0 || x_peak > width ) continue;
       if(y_peak < 0 || y_peak > height ) continue;
@@ -331,23 +334,23 @@ public:
       bool peak_visible=false;
       for(int i=ii; i<ii+diameter; i++){
         for(int j=jj; j<jj+diameter; j++){
-          const double h_ij = fmod(view_direction + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
+          const double h_ij = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
           if(h_ij < 0 || h_ij > width) continue;
-          const double h_ijj = fmod(view_direction + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
+          const double h_ijj = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
           if(h_ijj < 0 || h_ijj > width) continue;
-          const double h_iij = fmod(view_direction + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - (i+inc)/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI ,2*M_PI) * pixels_per_rad_h;
+          const double h_iij = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - (i+inc)/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI ,2*M_PI) * pixels_per_rad_h;
           if(h_iij < 0 || h_iij > width) continue;
-          const double h_iijj = fmod(view_direction + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - (i+inc)/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2.0*M_PI) * pixels_per_rad_h;
+          const double h_iijj = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - (i+inc)/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2.0*M_PI) * pixels_per_rad_h;
           if(h_iijj < 0 || h_iijj > width) continue;
 
           //cout << S.z_standpoint << ", " << H(i,j) << ", " <<  D(i,j) << endl;
-          const double v_ij   = (view_height/2.0 - angle_v(S.z_standpoint, H(i,j), D(i,j))) * pixels_per_rad_v; // [px]
+          const double v_ij   = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i,j), D(i,j))) * pixels_per_rad_v; // [px]
           if(v_ij < 0 || v_ij > height) continue;
-          const double v_ijj  = (view_height/2.0 - angle_v(S.z_standpoint, H(i,j+inc), D(i,j+inc))) * pixels_per_rad_v; //[px]
+          const double v_ijj  = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i,j+inc), D(i,j+inc))) * pixels_per_rad_v; //[px]
           if(v_ijj < 0 || v_ijj > height) continue;
-          const double v_iij  = (view_height/2.0 - angle_v(S.z_standpoint, H(i+inc,j), D(i+inc,j))) * pixels_per_rad_v; // [px]
+          const double v_iij  = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i+inc,j), D(i+inc,j))) * pixels_per_rad_v; // [px]
           if(v_iij < 0 || v_iij > height) continue;
-          const double v_iijj = (view_height/2.0 - angle_v(S.z_standpoint, H(i+inc,j+inc), D(i+inc,j+inc))) * pixels_per_rad_v; // [px]
+          const double v_iijj = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i+inc,j+inc), D(i+inc,j+inc))) * pixels_per_rad_v; // [px]
           if(v_iijj < 0 || v_iijj > height) continue;
           //debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << endl;
 

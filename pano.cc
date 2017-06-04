@@ -24,12 +24,12 @@ int main(int ac, char **av) {
   // const double pos_lat(59.87*deg2rad), pos_lon(10.67*deg2rad), pos_z(130); // rad, rad, m   // oslo
   // const double pos_lat(49.4*deg2rad), pos_lon(8.6*deg2rad), pos_z(200); // rad, rad, m   // hd
   // const double pos_lat(47.3664*deg2rad), pos_lon(8.5413*deg2rad), pos_z(408), view_direction(290*deg2rad), view_width(60*deg2rad), view_height(12*deg2rad), range(100000); // rad, rad, m // zurich
-  const double pos_lat(49.08123*deg2rad), pos_lon(19.62642*deg2rad), pos_z(585), view_direction(230*deg2rad), view_width(290*deg2rad), view_height(30*deg2rad), range(100000); // rad, rad, m  // slovakia
+  const double pos_lat(49.08123*deg2rad), pos_lon(19.62642*deg2rad), pos_z(585), view_direction_h(230*deg2rad), view_width(290*deg2rad), view_direction_v(7*deg2rad), view_height(20*deg2rad), range(70000); // rad, rad, m  // slovakia
   // const double view_direction(290*deg2rad); // [rad], east is 0
   // const double view_width(60*deg2rad); // [rad]
   // const double view_height(12*deg2rad); // [rad]
   // const double range(100000); // [m]
-  scene S(pos_lat, pos_lon, pos_z, view_direction, view_width, view_height, range);
+  scene S(pos_lat, pos_lon, pos_z, view_direction_h, view_width, view_direction_v, view_height, range);
 //  cout << S.tiles[0].first << endl;
 //  cout << S.tiles[0].second << endl;
 //  cout << S.tiles[1].first << endl;
