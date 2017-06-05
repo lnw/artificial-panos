@@ -283,7 +283,7 @@ public:
       if(dist_peak > S.view_dist || dist_peak < 1000) continue;
 
       // the test-patch should be larger for large distances because there are less pixels per ground area
-      const int radius = 2 + dist_peak/20000;
+      const int radius = 1 + dist_peak/20000;
       const int diameter = 2*radius+1;
       cout << dist_peak << ", " << radius << ", " << diameter << endl;
 
@@ -320,7 +320,8 @@ public:
       const double height_peak = H.interpolate(peaks[p].lat, peaks[p].lon);
       cout << "peak height and dist: " << height_peak << ", " << dist_peak << endl;
       // if the osm doesn't know the height, take from elevation data
-      if(peaks[p].elev == 0) peaks[p].elev = height_peak;
+      const double coeff = 0.065444 / 1000000.0; // = 0.1695 / 1.609^2  // m
+      if(peaks[p].elev == 0) peaks[p].elev = height_peak + coeff*pow(dist_peak,2); // revert earth's curvature
 
       // get position of peak on canvas, continue if outside
       const double x_peak = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, peaks[p].lat*deg2rad, peaks[p].lon*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
@@ -383,7 +384,7 @@ public:
         char *font = "./fonts/vera.ttf";
         const double text_orientation=M_PI/2;
 
-        /* obtain bb so that we can size the image */
+        // get bb of blank string
         int bb[8];
         char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
         if (err) {fprintf(stderr,err); cout << "not good" << endl;}
