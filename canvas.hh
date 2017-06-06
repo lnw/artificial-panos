@@ -117,39 +117,140 @@ public:
     return pixel_drawn;
   }
 
-//  // only for dx >= dy
-//  void write_line(const double x1, const double y1,
-//                  const double x2, const double y2,
-//                  const double z,
-//                  int16_t r, int16_t g, int16_t b, int16_t a){
-//    const int Dx = x2-x1, Dy = y2-y1;
-//    int d = 2*Dy-Dx;
-//    const int DE = 2*Dy; // east
-//    const int DNE = 2*(Dy-Dx); // north east
-//
-//    if(abs(DE) > abs(DNE)) return;
-//    int y = y1;
-//    write_pixel_zb(x1,y1,z, r,g,b);
-//    for(int x=x1+1; x<x2; x++){
-//      if(d <= 0){
-//        d += DE;
-//      }else{
-//        d += DNE;
-//        y++;
-//      }
-//      write_pixel_zb(x,y,z, r,g,b);
-//    }
-//  }
 
-//  void write_tick_top(const double x, const double y, const int lw,
-//                      const double z,
-//                      int16_t r, int16_t g, int16_t b, int16_t a){
-//    for(int i=x-lw/2; i<x+lw/2; i++){
-//      for(int j=1; j<y; j++){
-//        write_pixel_zb(i,j,z, r,g,b);
-//      }
-//    }
-//  }
+  // always do N, E, S, W
+  // every 10 deg (always)
+  // every 5 deg if there are less than 45 deg
+  // every deg if there are less than 10 deg
+  void label_axis(const scene& S){
+    const double& view_width = S.view_width; // [rad]
+    const double pixels_per_deg_h = width / (view_width * rad2deg); // [px/deg]
+    const double& view_direction_h = S.view_dir_h; // [rad]
+    const double left_border = fmod((view_direction_h+view_width/2),2*M_PI)*rad2deg; // [deg]
+    const double right_border = fmod((view_direction_h-view_width/2)+2*M_PI,2*M_PI)*rad2deg; // [deg]
+    // cout << left_border << ", " << right_border << endl;
+
+    const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
+    const double fontsize = 20.;
+    char *font = "./fonts/vera.ttf";
+    const double text_orientation = 0;
+
+    for (int deg=floor(left_border); deg!=(lround(ceil(right_border))-1 + 360)%360; deg--){
+      if(deg==-1) deg+=360;
+      const int x_tick = fmod(((left_border-deg)+360),360)*pixels_per_deg_h;
+      if(deg%90 == 0) {
+        // cout << "deg90: " << deg << endl;
+        gdImageLine(img_ptr, x_tick-1, 0, x_tick-1, 70, black);
+        gdImageLine(img_ptr, x_tick,   0, x_tick,   70, black);
+        gdImageLine(img_ptr, x_tick+1, 0, x_tick+1, 70, black);
+ 
+        string name = to_string(deg);
+        char *s = const_cast<char*>(name.c_str());
+ 
+        // get bb of blank string
+        int bb[8]; // NW - NE - SE - SW // NW is 0,0
+        char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
+        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+        //cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
+ 
+        int xxx = x_tick - bb[2]/2;
+        int yyy = 70 + 10 - bb[5];
+        err = gdImageStringFT(img_ptr, &bb[0],
+                              black, font, fontsize, text_orientation,
+                              xxx,
+                              yyy, s);
+        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+ 
+        if(deg==0) name = "(E)"; else if (deg==90) name = "(N)"; else if (deg==180) name = "(W)"; else name = "(S)";
+        s = const_cast<char*>(name.c_str());
+        err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
+        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+        xxx = x_tick - bb[2]/2;
+        yyy = 90 + 10 + 10 - bb[5];
+        err = gdImageStringFT(img_ptr, &bb[0],
+                              black, font, fontsize, text_orientation,
+                              xxx,
+                              yyy, s);
+        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+      }
+      else if(deg%10 == 0){
+        // cout << "deg10: " << deg << endl;
+        gdImageLine(img_ptr, x_tick-1, 0, x_tick-1, 70, black);
+        gdImageLine(img_ptr, x_tick, 0, x_tick, 70, black);
+        gdImageLine(img_ptr, x_tick+1, 0, x_tick+1, 70, black);
+
+        string name = to_string(deg);
+        char *s = const_cast<char*>(name.c_str());
+
+        // get bb of blank string
+        int bb[8]; // NW - NE - SE - SW // NW is 0,0
+        char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
+        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+        // cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
+
+        int xxx = x_tick - bb[2]/2;
+        int yyy = 70 + 10 - bb[5];
+        err = gdImageStringFT(img_ptr, &bb[0],
+                              black, font, fontsize, text_orientation,
+                              xxx,
+                              yyy, s);
+        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+
+      }
+      else if(deg%5 == 0){
+        // cout << "deg5: " << deg << endl;
+        gdImageLine(img_ptr, x_tick-1, 0, x_tick-1, 50, black);
+        gdImageLine(img_ptr, x_tick, 0, x_tick, 50, black);
+        gdImageLine(img_ptr, x_tick+1, 0, x_tick+1, 50, black);
+
+        if(view_width < 45*deg2rad){
+          string name = to_string(deg);
+          char *s = const_cast<char*>(name.c_str());
+
+          // get bb of blank string
+          int bb[8]; // NW - NE - SE - SW // NW is 0,0
+          char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
+          if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+          // cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
+
+          int xxx = x_tick - bb[2]/2;
+          int yyy = 50 + 10 - bb[5];
+          err = gdImageStringFT(img_ptr, &bb[0],
+                                black, font, fontsize, text_orientation,
+                                xxx,
+                                yyy, s);
+          if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+        }
+      }
+      else {
+        // cout << "deg1: " << deg << " at " << x_tick << endl;
+        if(view_width < 45*deg2rad){
+          gdImageLine(img_ptr, x_tick-1, 0, x_tick-1, 50, black);
+          gdImageLine(img_ptr, x_tick, 0, x_tick, 50, black);
+          gdImageLine(img_ptr, x_tick+1, 0, x_tick+1, 50, black);
+        }
+
+        if(view_width < 10*deg2rad){
+          string name = to_string(deg);
+          char *s = const_cast<char*>(name.c_str());
+
+          // get bb of blank string
+          int bb[8]; // NW - NE - SE - SW // NW is 0,0
+          char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
+          if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+          // cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
+
+          int xxx = x_tick - bb[2]/2;
+          int yyy = 50 + 10 - bb[5];
+          err = gdImageStringFT(img_ptr, &bb[0],
+                                black, font, fontsize, text_orientation,
+                                xxx,
+                                yyy, s);
+          if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+       }
+      }
+    }
+  }
 
 
   void render_scene(const scene& S){
@@ -283,9 +384,9 @@ public:
       if(dist_peak > S.view_dist || dist_peak < 1000) continue;
 
       // the test-patch should be larger for large distances because there are less pixels per ground area
-      const int radius = 1 + dist_peak/20000;
-      const int diameter = 2*radius+1;
-      cout << dist_peak << ", " << radius << ", " << diameter << endl;
+      const int radius = 1 + dist_peak/15000;
+      const int diameter = 2*radius + 1;
+      // cout << dist_peak << ", " << radius << ", " << diameter << endl;
 
       // get a few triangles around the peak, we're interested in 25 squares around the peak, between i/j and i+6/j+6
       double intpart_i, intpart_j;
@@ -318,7 +419,7 @@ public:
 
       // height of the peak, according to elevation data
       const double height_peak = H.interpolate(peaks[p].lat, peaks[p].lon);
-      cout << "peak height and dist: " << height_peak << ", " << dist_peak << endl;
+      // cout << "peak height and dist: " << height_peak << ", " << dist_peak << endl;
       // if the osm doesn't know the height, take from elevation data
       const double coeff = 0.065444 / 1000000.0; // = 0.1695 / 1.609^2  // m
       if(peaks[p].elev == 0) peaks[p].elev = height_peak + coeff*pow(dist_peak,2); // revert earth's curvature
@@ -326,7 +427,7 @@ public:
       // get position of peak on canvas, continue if outside
       const double x_peak = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, peaks[p].lat*deg2rad, peaks[p].lon*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
       const double y_peak = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, height_peak, dist_peak)) * pixels_per_rad_v; // [px]
-      cout << "peak x, y " << x_peak << ", " << y_peak << endl;
+      // cout << "peak x, y " << x_peak << ", " << y_peak << endl;
       if(x_peak < 0 || x_peak > width ) continue;
       if(y_peak < 0 || y_peak > height ) continue;
 
@@ -366,8 +467,8 @@ public:
         }
       }
       if(peak_visible){
-        cout << peaks[p].name << " is visible" << endl;
-        cout << "pixel will be written at : " << x_peak << ", " << y_peak << endl;
+        // cout << peaks[p].name << " is visible" << endl;
+        // cout << "pixel will be written at : " << x_peak << ", " << y_peak << endl;
         write_pixel(x_peak, y_peak, 255,0,0);
 
         const int x_offset=0, y_offset=100;

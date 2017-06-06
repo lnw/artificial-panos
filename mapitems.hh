@@ -1,12 +1,10 @@
+#ifndef MAPITEMS_HH
+#define MAPITEMS_HH
 
-#include <cstdlib>
 #include <vector>
-#include <math.h>
 #include <iostream>
 #include <string>
 #include <iomanip> //required for setfill()
-//#include <boost/regex.hpp>
-//#include <boost/program_options.hpp>
 #include <libxml++/libxml++.h>
 
 #include "auxiliary.hh"
@@ -116,4 +114,6 @@ vector<point_feature> read_peaks_osm(string filename){
   cout << " done" << endl;
   return peaks;
 }
+
+#endif
 
