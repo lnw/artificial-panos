@@ -131,6 +131,47 @@ public:
     return pixel_drawn;
   }
 
+  void draw_tick(int x_tick, int tick_length, string str1, string str2=""){
+    const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
+    const double fontsize = 20.;
+    char *font = "./fonts/vera.ttf";
+    const double text_orientation = 0;
+
+    // cout << "deg90: " << deg << endl;
+    gdImageLine(img_ptr, x_tick-1, 0, x_tick-1, tick_length, black);
+    gdImageLine(img_ptr, x_tick,   0, x_tick,   tick_length, black);
+    gdImageLine(img_ptr, x_tick+1, 0, x_tick+1, tick_length, black);
+
+    if(!str1.empty()){
+      // get bb of blank string
+      int bb[8]; // NW - NE - SE - SW // NW is 0,0
+      char *s1 = const_cast<char*>(str1.c_str());
+      char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s1);
+      if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
+      //cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
+
+      int xxx = x_tick - bb[2]/2;
+      int yyy = tick_length + 10 - bb[5];
+      err = gdImageStringFT(img_ptr, &bb[0],
+                            black, font, fontsize, text_orientation,
+                            xxx,
+                            yyy, s1);
+      if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
+
+      if(!str2.empty()){
+        char *s2 = const_cast<char*>(str2.c_str());
+        err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s2);
+        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
+        xxx = x_tick - bb[2]/2;
+        yyy = tick_length + 10 + 20 + 10 - bb[5];
+        err = gdImageStringFT(img_ptr, &bb[0],
+                              black, font, fontsize, text_orientation,
+                              xxx,
+                              yyy, s2);
+        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
+      }
+    }
+  }
 
   // always do N, E, S, W
   // every 10 deg (always)
@@ -144,128 +185,41 @@ public:
     const double right_border = fmod((view_direction_h-view_width/2)+2*M_PI,2*M_PI)*rad2deg; // [deg]
     // cout << left_border << ", " << right_border << endl;
 
-    const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
-    const double fontsize = 20.;
-    char *font = "./fonts/vera.ttf";
-    const double text_orientation = 0;
-
     for (int deg=floor(left_border); deg!=(lround(ceil(right_border))-1 + 360)%360; deg--){
       if(deg==-1) deg+=360;
       const int x_tick = fmod(((left_border-deg)+360),360)*pixels_per_deg_h;
       if(deg%90 == 0) {
         // cout << "deg90: " << deg << endl;
-        gdImageLine(img_ptr, x_tick-1, 0, x_tick-1, 70, black);
-        gdImageLine(img_ptr, x_tick,   0, x_tick,   70, black);
-        gdImageLine(img_ptr, x_tick+1, 0, x_tick+1, 70, black);
- 
-        string name = to_string(deg);
-        char *s = const_cast<char*>(name.c_str());
- 
-        // get bb of blank string
-        int bb[8]; // NW - NE - SE - SW // NW is 0,0
-        char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
-        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
-        //cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
- 
-        int xxx = x_tick - bb[2]/2;
-        int yyy = 70 + 10 - bb[5];
-        err = gdImageStringFT(img_ptr, &bb[0],
-                              black, font, fontsize, text_orientation,
-                              xxx,
-                              yyy, s);
-        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
- 
-        if(deg==0) name = "(E)"; else if (deg==90) name = "(N)"; else if (deg==180) name = "(W)"; else name = "(S)";
-        s = const_cast<char*>(name.c_str());
-        err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
-        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
-        xxx = x_tick - bb[2]/2;
-        yyy = 90 + 10 + 10 - bb[5];
-        err = gdImageStringFT(img_ptr, &bb[0],
-                              black, font, fontsize, text_orientation,
-                              xxx,
-                              yyy, s);
-        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
+        string str1 = to_string(deg);
+        string str2;
+        if(deg==0) str2 = "(E)"; else if (deg==90) str2 = "(N)"; else if (deg==180) str2 = "(W)"; else str2 = "(S)";
+        draw_tick(x_tick, 70, str1, str2);
       }
       else if(deg%10 == 0){
         // cout << "deg10: " << deg << endl;
-        gdImageLine(img_ptr, x_tick-1, 0, x_tick-1, 70, black);
-        gdImageLine(img_ptr, x_tick, 0, x_tick, 70, black);
-        gdImageLine(img_ptr, x_tick+1, 0, x_tick+1, 70, black);
-
-        string name = to_string(deg);
-        char *s = const_cast<char*>(name.c_str());
-
-        // get bb of blank string
-        int bb[8]; // NW - NE - SE - SW // NW is 0,0
-        char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
-        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
-        // cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
-
-        int xxx = x_tick - bb[2]/2;
-        int yyy = 70 + 10 - bb[5];
-        err = gdImageStringFT(img_ptr, &bb[0],
-                              black, font, fontsize, text_orientation,
-                              xxx,
-                              yyy, s);
-        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
-
+        string str1 = to_string(deg);
+        draw_tick(x_tick, 70, str1);
       }
       else if(deg%5 == 0){
         // cout << "deg5: " << deg << endl;
-        gdImageLine(img_ptr, x_tick-1, 0, x_tick-1, 50, black);
-        gdImageLine(img_ptr, x_tick, 0, x_tick, 50, black);
-        gdImageLine(img_ptr, x_tick+1, 0, x_tick+1, 50, black);
-
+        string str1 = "";
         if(view_width < 45*deg2rad){
-          string name = to_string(deg);
-          char *s = const_cast<char*>(name.c_str());
-
-          // get bb of blank string
-          int bb[8]; // NW - NE - SE - SW // NW is 0,0
-          char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
-          if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
-          // cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
-
-          int xxx = x_tick - bb[2]/2;
-          int yyy = 50 + 10 - bb[5];
-          err = gdImageStringFT(img_ptr, &bb[0],
-                                black, font, fontsize, text_orientation,
-                                xxx,
-                                yyy, s);
-          if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
+          str1 = to_string(deg);
         }
+        draw_tick(x_tick, 50, str1);
       }
       else {
         // cout << "deg1: " << deg << " at " << x_tick << endl;
         if(view_width < 45*deg2rad){
-          gdImageLine(img_ptr, x_tick-1, 0, x_tick-1, 50, black);
-          gdImageLine(img_ptr, x_tick, 0, x_tick, 50, black);
-          gdImageLine(img_ptr, x_tick+1, 0, x_tick+1, 50, black);
+          string str1 = "";
+          if(view_width < 10*deg2rad){
+            str1 = to_string(deg);
+          }
+          draw_tick(x_tick, 50, str1);
         }
-
-        if(view_width < 10*deg2rad){
-          string name = to_string(deg);
-          char *s = const_cast<char*>(name.c_str());
-
-          // get bb of blank string
-          int bb[8]; // NW - NE - SE - SW // NW is 0,0
-          char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
-          if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
-          // cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
-
-          int xxx = x_tick - bb[2]/2;
-          int yyy = 50 + 10 - bb[5];
-          err = gdImageStringFT(img_ptr, &bb[0],
-                                black, font, fontsize, text_orientation,
-                                xxx,
-                                yyy, s);
-          if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
-       }
       }
     }
   }
-
 
   void render_scene(const scene& S){
     ofstream debug("debug-render_scene", ofstream::out | ofstream::app);
@@ -384,12 +338,15 @@ public:
     // get list of peaks
     vector<point_feature> peaks = read_peaks_osm(xml_name);
     cout << "peaks in db: " << peaks.size() << endl;
-
+    // visible
     vector<point_feature_on_canvas> visible_peaks, obscured_peaks, omitted_peaks;
     tie(visible_peaks, obscured_peaks) = get_visible_peaks(peaks, S); // x, y, point-feature from peaks
+    // label
     omitted_peaks = draw_visible_peaks(visible_peaks);
+#ifdef GRAPHICS_DEBUG
     draw_invisible_peaks(obscured_peaks, 0,255,0);
     draw_invisible_peaks(omitted_peaks, 0,255,255);
+#endif
   }
 
   tuple<vector<point_feature_on_canvas>, vector<point_feature_on_canvas>> get_visible_peaks(vector<point_feature>& peaks, const scene& S){
@@ -399,7 +356,7 @@ public:
     const double& view_direction_v = S.view_dir_v; // [rad]
     const double& view_height = S.view_height; // [rad]
     const double pixels_per_rad_v = height / view_height; // [px/rad]
-  
+
     vector<point_feature_on_canvas> visible_peaks;
     vector<point_feature_on_canvas> obscured_peaks;
     for(size_t p=0; p<peaks.size(); p++){
@@ -491,12 +448,19 @@ public:
         }
       }
       if(peak_visible) visible_peaks.push_back(point_feature_on_canvas(peaks[p], x_peak, y_peak, dist_peak));
+      else obscured_peaks.push_back(point_feature_on_canvas(peaks[p], x_peak, y_peak, dist_peak));
     }
     return make_tuple(visible_peaks, obscured_peaks);
   }
 
   vector<point_feature_on_canvas> draw_visible_peaks(const vector<point_feature_on_canvas>& peaks_vis){
     cout << "number of visible peaks: " << peaks_vis.size() << endl;
+
+// sort by x from left to right
+// assign x_offset relative to peak as max(x,x_prev+bb) // which is not symmetric
+// shift groups left, such that for each group the sum of all offsets is zero
+// prune ... if the offsets in one group get too large, some of the lower peaks should be omitted
+
     for(size_t p=0; p<peaks_vis.size(); p++){
       const int &x_peak = peaks_vis[p].x;
       const int &y_peak = peaks_vis[p].y;
@@ -539,20 +503,17 @@ public:
     }
 // print number drawn and number omitted
 
-
    vector<point_feature_on_canvas> omitted_peaks;
    return omitted_peaks;
   }
 
 
   void draw_invisible_peaks(const vector<point_feature_on_canvas>& peaks_invis, int16_t r, int16_t g, int16_t b){
-#ifdef GRAPHICS_DEBUG
     for(size_t p=0; p<peaks_invis.size(); p++){
       cout << peaks_invis[p].pf.name << " is invisible" << endl;
       cout << "pixel will be written at : " << peaks_invis[p].x << ", " << peaks_invis[p].y << endl;
       write_pixel(peaks_invis[p].x, peaks_invis[p].y, r,g,b);
     }
-#endif
   }
 
 };
