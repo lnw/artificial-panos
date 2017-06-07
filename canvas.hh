@@ -2,6 +2,7 @@
 #define CANVAS_HH
 
 #include <vector>
+#include <tuple>
 #include <iostream>
 #include <math.h>
 #include <algorithm> // min, max
@@ -18,8 +19,21 @@
 
 using namespace std;
 
-class canvas {
+struct point_feature_on_canvas{
+  point_feature pf;
+  int x, y, dist;
 
+  point_feature_on_canvas(point_feature _pf, int _x, int _y, int _dist): pf(_pf), x(_x), y(_y), dist(_dist) {}
+
+  friend ostream& operator<<(ostream& S, const point_feature_on_canvas& pfc)
+  {
+    S << pfc.pf << " at (" << pfc.x << ", " << pfc.y << ", " << pfc.dist << ")";
+    return S;
+  }
+};
+
+
+class canvas {
 public:
   int width, height; // [pixels]
   array2D<double> zbuffer; // initialised to 1000 km [m]
@@ -150,7 +164,7 @@ public:
         // get bb of blank string
         int bb[8]; // NW - NE - SE - SW // NW is 0,0
         char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
-        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
         //cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
  
         int xxx = x_tick - bb[2]/2;
@@ -159,19 +173,19 @@ public:
                               black, font, fontsize, text_orientation,
                               xxx,
                               yyy, s);
-        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
  
         if(deg==0) name = "(E)"; else if (deg==90) name = "(N)"; else if (deg==180) name = "(W)"; else name = "(S)";
         s = const_cast<char*>(name.c_str());
         err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
-        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
         xxx = x_tick - bb[2]/2;
         yyy = 90 + 10 + 10 - bb[5];
         err = gdImageStringFT(img_ptr, &bb[0],
                               black, font, fontsize, text_orientation,
                               xxx,
                               yyy, s);
-        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
       }
       else if(deg%10 == 0){
         // cout << "deg10: " << deg << endl;
@@ -185,7 +199,7 @@ public:
         // get bb of blank string
         int bb[8]; // NW - NE - SE - SW // NW is 0,0
         char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
-        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
         // cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
 
         int xxx = x_tick - bb[2]/2;
@@ -194,7 +208,7 @@ public:
                               black, font, fontsize, text_orientation,
                               xxx,
                               yyy, s);
-        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
 
       }
       else if(deg%5 == 0){
@@ -210,7 +224,7 @@ public:
           // get bb of blank string
           int bb[8]; // NW - NE - SE - SW // NW is 0,0
           char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
-          if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+          if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
           // cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
 
           int xxx = x_tick - bb[2]/2;
@@ -219,7 +233,7 @@ public:
                                 black, font, fontsize, text_orientation,
                                 xxx,
                                 yyy, s);
-          if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+          if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
         }
       }
       else {
@@ -237,7 +251,7 @@ public:
           // get bb of blank string
           int bb[8]; // NW - NE - SE - SW // NW is 0,0
           char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
-          if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+          if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
           // cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
 
           int xxx = x_tick - bb[2]/2;
@@ -246,7 +260,7 @@ public:
                                 black, font, fontsize, text_orientation,
                                 xxx,
                                 yyy, s);
-          if (err) {fprintf(stderr,err); cout << "not good" << endl;}
+          if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
        }
       }
     }
@@ -317,11 +331,12 @@ public:
           //cout << v_ij << endl;
 
           const double dist1 = (D(i,j)+D(i+inc,j)+D(i,j+inc))/3.0;
-          // write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, D(i,j)*(255.0/S.view_dist), H(i,j)*(255.0/3500), 150, 255);
           write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, 5* pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500), 150);
+          // write_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, 5* pow(dist1, 1.0/3.0), 20, 150);
+// maybe add an array with real heights?
           const double dist2 = (D(i+inc,j)+D(i,j+inc)+D(i+inc,j+inc))/3.0;
-          // write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, D(i,j)*(255.0/S.view_dist), H(i,j)*(255.0/3500) , 150, 255);
           write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, 5*pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500) , 150);
+          // write_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, 5*pow(dist1, 1.0/3.0), 20 , 150);
         }
       }
     }
@@ -338,7 +353,6 @@ public:
         const double z_curr = zbuffer(x,y);
         const double thr1 = 1.15, thr2 = 1.05;
         if(z_prev / z_curr > thr1 && z_prev - z_curr > 500){
-        // if(z_prev / z_curr > thr1){
           write_pixel(x,y, 0,0,0);
         }
         else if(z_prev / z_curr > thr2 && z_prev - z_curr > 300){
@@ -371,20 +385,30 @@ public:
     vector<point_feature> peaks = read_peaks_osm(xml_name);
     cout << "peaks in db: " << peaks.size() << endl;
 
+    vector<point_feature_on_canvas> visible_peaks, obscured_peaks, omitted_peaks;
+    tie(visible_peaks, obscured_peaks) = get_visible_peaks(peaks, S); // x, y, point-feature from peaks
+    omitted_peaks = draw_visible_peaks(visible_peaks);
+    draw_invisible_peaks(obscured_peaks, 0,255,0);
+    draw_invisible_peaks(omitted_peaks, 0,255,255);
+  }
+
+  tuple<vector<point_feature_on_canvas>, vector<point_feature_on_canvas>> get_visible_peaks(vector<point_feature>& peaks, const scene& S){
     const double& view_direction_h = S.view_dir_h; // [rad]
     const double& view_width = S.view_width; // [rad]
     const double pixels_per_rad_h = width / view_width; // [px/rad]
     const double& view_direction_v = S.view_dir_v; // [rad]
     const double& view_height = S.view_height; // [rad]
     const double pixels_per_rad_v = height / view_height; // [px/rad]
-
+  
+    vector<point_feature_on_canvas> visible_peaks;
+    vector<point_feature_on_canvas> obscured_peaks;
     for(size_t p=0; p<peaks.size(); p++){
       // distance from the peak
       const double dist_peak = distance_atan(S.lat_standpoint, S.lon_standpoint, peaks[p].lat*deg2rad, peaks[p].lon*deg2rad);
       if(dist_peak > S.view_dist || dist_peak < 1000) continue;
 
       // the test-patch should be larger for large distances because there are less pixels per ground area
-      const int radius = 1 + dist_peak/15000;
+      const int radius = 2 + dist_peak/15000;
       const int diameter = 2*radius + 1;
       // cout << dist_peak << ", " << radius << ", " << diameter << endl;
 
@@ -466,54 +490,71 @@ public:
 #endif
         }
       }
-      if(peak_visible){
-        // cout << peaks[p].name << " is visible" << endl;
-        // cout << "pixel will be written at : " << x_peak << ", " << y_peak << endl;
-        write_pixel(x_peak, y_peak, 255,0,0);
-
-        const int x_offset=0, y_offset=100;
-
-        const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
-        gdImageLine(img_ptr, x_peak, y_peak-2, x_peak, y_peak-y_offset+5, black);
-
-        string name(peaks[p].name);
-        if(!peaks[p].name.empty()) name += ", ";
-        name += to_string(peaks[p].elev) + "m, " + to_string(int(round(dist_peak/1000))) + "km";
-        char *s = const_cast<char*>(name.c_str());
-        const double fontsize = 12.;
-        //char *font = "./palatino-59330a4da3d64.ttf";
-        char *font = "./fonts/vera.ttf";
-        const double text_orientation=M_PI/2;
-
-        // get bb of blank string
-        int bb[8];
-        char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
-        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
-
-//        cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
-
-        /* render the string, offset origin to center string*/
-        /* note that we use top-left coordinate for adjustment
-         * since gd origin is in top-left with y increasing downwards. */
-        int xxx = 3 - bb[6];
-        int yyy = 3 - bb[7];
-        err = gdImageStringFT(img_ptr, &bb[0],
-                              black, font, fontsize, text_orientation,
-                              x_peak+fontsize/2.0,
-                              y_peak-y_offset,s);
-        if (err) {fprintf(stderr,err); cout << "not good" << endl;}
-
-      }
-#ifdef GRAPHICS_DEBUG
-      else{
-        cout << peaks[p].name << " is invisible" << endl;
-        cout << "pixel will be written at : " << x_peak << ", " << y_peak << endl;
-        write_pixel(x_peak, y_peak, 0,255,0);
-      }
-#endif
-
+      if(peak_visible) visible_peaks.push_back(point_feature_on_canvas(peaks[p], x_peak, y_peak, dist_peak));
     }
+    return make_tuple(visible_peaks, obscured_peaks);
   }
+
+  vector<point_feature_on_canvas> draw_visible_peaks(const vector<point_feature_on_canvas>& peaks_vis){
+    cout << "number of visible peaks: " << peaks_vis.size() << endl;
+    for(size_t p=0; p<peaks_vis.size(); p++){
+      const int &x_peak = peaks_vis[p].x;
+      const int &y_peak = peaks_vis[p].y;
+      const int &dist_peak = peaks_vis[p].dist;
+      // cout << peaks[p].name << " is visible" << endl;
+      // cout << "pixel will be written at : " << x_peak << ", " << y_peak << endl;
+      write_pixel(x_peak, y_peak, 255,0,0);
+
+      const int x_offset=0, y_offset=100;
+
+      const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
+      gdImageLine(img_ptr, x_peak, y_peak-2, x_peak, y_peak-y_offset+5, black);
+
+      string name(peaks_vis[p].pf.name);
+      if(!peaks_vis[p].pf.name.empty()) name += ", ";
+      name += to_string(peaks_vis[p].pf.elev) + "m, " + to_string(int(round(dist_peak/1000))) + "km";
+      char *s = const_cast<char*>(name.c_str());
+      const double fontsize = 12.;
+      //char *font = "./palatino-59330a4da3d64.ttf";
+      char *font = "./fonts/vera.ttf";
+      const double text_orientation=M_PI/2;
+
+      // get bb of blank string
+      int bb[8];
+      char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
+      if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
+
+//      cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
+
+      /* render the string, offset origin to center string*/
+      /* note that we use top-left coordinate for adjustment
+       * since gd origin is in top-left with y increasing downwards. */
+      int xxx = 3 - bb[6];
+      int yyy = 3 - bb[7];
+      err = gdImageStringFT(img_ptr, &bb[0],
+                            black, font, fontsize, text_orientation,
+                            x_peak+fontsize/2.0,
+                            y_peak-y_offset,s);
+      if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
+    }
+// print number drawn and number omitted
+
+
+   vector<point_feature_on_canvas> omitted_peaks;
+   return omitted_peaks;
+  }
+
+
+  void draw_invisible_peaks(const vector<point_feature_on_canvas>& peaks_invis, int16_t r, int16_t g, int16_t b){
+#ifdef GRAPHICS_DEBUG
+    for(size_t p=0; p<peaks_invis.size(); p++){
+      cout << peaks_invis[p].pf.name << " is invisible" << endl;
+      cout << "pixel will be written at : " << peaks_invis[p].x << ", " << peaks_invis[p].y << endl;
+      write_pixel(peaks_invis[p].x, peaks_invis[p].y, r,g,b);
+    }
+#endif
+  }
+
 };
 
 #endif

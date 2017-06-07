@@ -13,10 +13,14 @@ pano: Makefile pano.cc canvas.hh scene.hh tile.hh array2D.hh geometry.hh auxilia
 pano-debug: Makefile pano.cc canvas.hh scene.hh tile.hh array2D.hh geometry.hh auxiliary.hh colour.hh
 	$(CXX) -g -O0 -DGRAPHICS_DEBUG -Wall -Wpedantic -Wextra -Wshadow -std=c++14 pano.cc $(GD_INCLUDES) $(XML_INCLUDES) -o pano-debug
 
-.PHONY: test
+.PHONY: test test-circ
 test: Makefile test.cc scene.hh tile.hh array2D.hh auxiliary.hh
 	clang++-3.9 -g -O2 -std=c++14 test.cc $(XML_INCLUDES) -o test
 	./test
+
+test-circ: Makefile test-circ.cc circ_360.hh
+	clang++-3.9 -g -O2 -std=c++14 test-circ.cc -o test-circ
+	./test-circ
 
 .PHONY: clean distclean
 clean:
