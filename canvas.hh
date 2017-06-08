@@ -453,10 +453,15 @@ public:
     return make_tuple(visible_peaks, obscured_peaks);
   }
 
-  vector<point_feature_on_canvas> draw_visible_peaks(const vector<point_feature_on_canvas>& peaks_vis){
+
+  vector<point_feature_on_canvas> draw_visible_peaks(vector<point_feature_on_canvas>& peaks_vis){
     cout << "number of visible peaks: " << peaks_vis.size() << endl;
 
-// sort by x from left to right
+    // sort by x from left to right
+    sort(peaks_vis.begin(), peaks_vis.end(),
+         [](const point_feature_on_canvas& p1, const point_feature_on_canvas& p2) {return p1.x < p2.x;});
+    //cout << peaks_vis << endl;
+
 // assign x_offset relative to peak as max(x,x_prev+bb) // which is not symmetric
 // shift groups left, such that for each group the sum of all offsets is zero
 // prune ... if the offsets in one group get too large, some of the lower peaks should be omitted
