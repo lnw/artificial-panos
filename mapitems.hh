@@ -29,6 +29,20 @@ struct point_feature{
   }
 };
 
+struct point_feature_on_canvas{
+  point_feature pf;
+  int x, y, dist;
+  int xshift;
+
+  point_feature_on_canvas(point_feature _pf, int _x, int _y, int _dist): pf(_pf), x(_x), y(_y), dist(_dist), xshift(0) {}
+
+  friend ostream& operator<<(ostream& S, const point_feature_on_canvas& pfc)
+  {
+    S << pfc.pf << " at (" << pfc.x << ", " << pfc.y << ", " << pfc.dist << ")";
+    return S;
+  }
+};
+
 struct linear_feature{
   vector<pair<double, double>> coords; // lat, lon
   string name;

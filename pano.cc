@@ -10,6 +10,8 @@
 #include "scene.hh"
 #include "canvas.hh"
 
+#include "circ_360.hh"
+
 using namespace std;
 
 int main(int ac, char **av) {
@@ -21,11 +23,11 @@ int main(int ac, char **av) {
   // ... distance between two coordinates/z?
   // ... angles on sphere?
 
-  // const double pos_lat(59.87*deg2rad), pos_lon(10.67*deg2rad), pos_z(130); // rad, rad, m   // oslo
-  // const double pos_lat(49.4*deg2rad), pos_lon(8.6*deg2rad), pos_z(200); // rad, rad, m   // hd
+  const double pos_lat(59.9374*deg2rad), pos_lon(10.7168*deg2rad), pos_z(100), view_direction_h(270*deg2rad), view_width(355*deg2rad), view_height(20*deg2rad), view_direction_v(0*deg2rad), range(20000); // rad, rad, m   // oslo
+  // const double pos_lat(49.4*deg2rad), pos_lon(8.6*deg2rad), pos_z(200), view_direction_h(100*deg2rad), view_width(355*deg2rad), view_height(15*deg2rad), view_direction_v(0*deg2rad), range(70000); // rad, rad, m   // hd
   // const double pos_lat(47.3664*deg2rad), pos_lon(8.5413*deg2rad), pos_z(408), view_direction(290*deg2rad), view_width(60*deg2rad), view_height(12*deg2rad), range(100000); // rad, rad, m // zurich
   // const double pos_lat(49.08123*deg2rad), pos_lon(19.62642*deg2rad), pos_z(585), view_direction_h(230*deg2rad), view_width(290*deg2rad), view_direction_v(7*deg2rad), view_height(20*deg2rad), range(40000); // rad, rad, m  // slovakia
-  const double pos_lat(59.9180*deg2rad), pos_lon(10.5154*deg2rad), pos_z(400), view_direction_h(180*deg2rad), view_width(355*deg2rad), view_direction_v(0*deg2rad), view_height(12*deg2rad), range(10000); // rad, rad, m
+  // const double pos_lat(59.9180*deg2rad), pos_lon(10.5154*deg2rad), pos_z(400), view_direction_h(180*deg2rad), view_width(355*deg2rad), view_direction_v(0*deg2rad), view_height(12*deg2rad), range(10000); // rad, rad, m
   // const double view_direction(290*deg2rad); // [rad], east is 0
   // const double view_width(60*deg2rad); // [rad]
   // const double view_height(12*deg2rad); // [rad]
@@ -42,16 +44,6 @@ int main(int ac, char **av) {
   char const * filename = "out.png";
   const int view_x(10000), view_y(1000); // pixels
   canvas V(filename, view_x, view_y);
-  //V.render_test();
-
-  // V.write_pixel_zb(5,5,500,   0,255,0,255);
-  // V.write_pixel_zb(15,5,500,  0,255,0,255);
-  // V.write_pixel_zb(5,15,500,  0,255,0,255);
-  // V.write_pixel_zb(15,15,500, 0,255,0,255);
-
-  // V.write_triangle(200,200,     300.3,310.4, 600.1,210.2, 15000, 0,255,100);
-  // V.write_triangle(200,200,     300.3,310.4, 230.5,510.6, 15000, 0,100,255);
-  // V.write_triangle(600.1,210.2, 300.3,310.4, 230.5,510.6, 15000, 0,200,255);
 
   V.bucket_fill(100,100,100);
   V.render_scene(S);

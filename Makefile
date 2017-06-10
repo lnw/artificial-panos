@@ -7,10 +7,10 @@ BOOST_INCLUDES=-lboost_regex -lboost_program_options
 XML_INCLUDES=$(shell pkg-config libxml++-2.6 --cflags --libs)
 
 
-pano: Makefile pano.cc canvas.hh scene.hh tile.hh array2D.hh geometry.hh auxiliary.hh colour.hh mapitems.hh
+pano: Makefile pano.cc array2D.hh  auxiliary.hh  canvas.hh  circ_360.hh  colour.hh  geometry.hh  labelgroup.hh  mapitems.hh  scene.hh  tile.hh
 	$(CXX) -g -O2 -Wshadow -std=c++14 pano.cc $(GD_INCLUDES) $(XML_INCLUDES) -o pano
 
-pano-debug: Makefile pano.cc canvas.hh scene.hh tile.hh array2D.hh geometry.hh auxiliary.hh colour.hh
+pano-debug: Makefile pano.cc array2D.hh  auxiliary.hh  canvas.hh  circ_360.hh  colour.hh  geometry.hh  labelgroup.hh  mapitems.hh  scene.hh  tile.hh
 	$(CXX) -g -O0 -DGRAPHICS_DEBUG -Wall -Wpedantic -Wextra -Wshadow -std=c++14 pano.cc $(GD_INCLUDES) $(XML_INCLUDES) -o pano-debug
 
 .PHONY: test test-circ
