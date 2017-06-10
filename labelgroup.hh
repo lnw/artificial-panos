@@ -16,87 +16,79 @@
 
 using namespace std;
 
+const int label_width=20;
 
-class LabelGroup{
-  vector<point_feature_on_canvas> g;
+struct group {
+  int start_index, end_index;
+  int centre, width;
 
-public:
-  LabelGroup(point_feature_on_canvas pfoc): g({pfoc}) {}
-
-  LabelGroup& push_back(point_feature_on_canvas pfoc){g.push_back(pfoc); return *this;}
-  size_t size(){return g.size();}
-  
-
-  point_feature_on_canvas& operator[](unsigned int i){ return g[i]; }
-  point_feature_on_canvas  operator[](unsigned int i) const { return g[i]; }
-
-  friend ostream& operator<<(ostream& S, const LabelGroup& lg) {
-    S << lg.g;
+  friend ostream& operator<<(ostream& S, const group& g) {
+    S << "{" << g.start_index << "--" << g.end_index << ", " << g.centre << ", " << g.width << "}";
     return S;
   }
-
 };
 
-
 class LabelGroups{
-  vector<LabelGroup> gg;
+  vector<point_feature_on_canvas> pfocs;
+  vector<group> g;
 
 public:
-  LabelGroups(const vector<point_feature_on_canvas> &vpfoc){
-    // build
-    for(size_t i=0; i<vpfoc.size(); i++){
-      append_as_new_group(vpfoc[i]);
-    }
-
+  LabelGroups(vector<point_feature_on_canvas> _pfocs): pfocs(_pfocs) {
     // sort by x from left to right
-    sort(gg.begin(), gg.end(),
-         [](const LabelGroup& lg1, const LabelGroup& lg2) {return lg1[0].x < lg2[0].x;});
-
-    // assign x_offset relative to peak as max(x,x_prev+bb),  which is not symmetric
-    for (size_t i=1; i<gg.size(); i++){ // don't shift the first one
-      gg[i][0].xshift = max(0, gg[i-1][0].x + gg[i-1][0].xshift - gg[i][0].x + 22); // 15 being the space required for one label
+    sort(pfocs.begin(), pfocs.end(),
+         [](const point_feature_on_canvas& pfoc1, const point_feature_on_canvas& pfoc2) {return pfoc1.x < pfoc2.x;});
+    // stupid groups
+    g.resize(pfocs.size());
+    for(int i=0; i< g.size(); i++){
+      g[i].start_index=i;
+      g[i].end_index=i;
+      g[i].centre=pfocs[i].x;
+      g[i].width=label_width; // that's one label
     }
-
-    // initial groups
-    for (auto it=gg.begin(); it!=gg.end();){
-      if((*it)[0].xshift != 0){
-        it=merge(it-1, it);
-      }else{ it++; }
-    }
-
-    // shift groups left, such that for each group the sum of all offsets is zero
-    for (size_t i=0; i<gg.size(); i++){
-      int group_sum_shift=0;
-      for (size_t j=0; j<gg[i].size(); j++){
-        group_sum_shift += gg[i][j].xshift;
+cout << pfocs << endl;
+    // assign groups
+    bool converged=false;
+    while(!converged){
+      converged=true;
+      for(vector<group>::iterator it=g.begin(); ;){
+        if(it->centre + it->width/2 > (it+1)->centre - (it+1)->width/2){ // do this and the next group intersect?
+          // merge
+cout << "attempting to merge " << *it << " and " << *(it+1) << endl;
+          it->end_index=(it+1)->end_index;
+          it->width += (it+1)->width;
+          it->centre = (pfocs[it->start_index].x + pfocs[(it+1)->end_index].x) / 2;
+          //delete the next one
+          it = g.erase(it+1) - 1;
+cout << "next is " << *it << endl;
+          // do at least one more cycle
+          converged=false;
+          if(it+1==g.end()) break;
+        }else{
+          it++;
+          if(it+1==g.end()) break;
+cout << "next is " << *it << endl;
+        }
       }
-      for (size_t j=0; j<gg[i].size(); j++){
-        gg[i][j].xshift -= group_sum_shift/gg[i].size();
+    }
+    // assign xshifts
+    for(int i=0; i< g.size(); i++){ // groups
+      for(int j=g[i].start_index; j<=g[i].end_index; j++){ // indices of pfocs
+        pfocs[j].xshift = g[i].centre - pfocs[j].x + (j-g[i].start_index)*label_width - (g[i].width-label_width)/2;
+cout << "setting xshift to " << pfocs[j].xshift << endl;
       }
     }
-
   }
 
+  // subscript for the point feature, ignores groups etc
+  point_feature_on_canvas& operator[](unsigned int i)       { return pfocs[i]; }
+  point_feature_on_canvas  operator[](unsigned int i) const { return pfocs[i]; }
+  size_t size(){return pfocs.size();}
 
-  LabelGroup& operator[](unsigned int i){ return gg[i]; }
-  LabelGroup  operator[](unsigned int i) const { return gg[i]; }
-
-
-  LabelGroups& append_as_new_group(point_feature_on_canvas pfoc){gg.push_back(LabelGroup(pfoc)); return *this;}
-  size_t size(){return gg.size();}
-
-  vector<LabelGroup>::iterator merge(vector<LabelGroup>::iterator it1, vector<LabelGroup>::iterator it2){
-    for(size_t i=0; i<it2->size(); i++){
-      it1->push_back((*it2)[i]);
-    }
-    return gg.erase(it2);
-  }
-
-
-  friend ostream& operator<<(ostream& S, const LabelGroups& lgs) {
-    S << lgs.gg;
+  friend ostream& operator<<(ostream& S, const LabelGroups& lg) {
+    S << "[" << lg.pfocs << ", " << lg.g << "]";
     return S;
   }
+
 };
 
 #endif

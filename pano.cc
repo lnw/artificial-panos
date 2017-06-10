@@ -16,15 +16,10 @@ using namespace std;
 
 int main(int ac, char **av) {
 
-  // read files into vector of 2D arrays, the order does not matter as they can be rendered independently
-
-  // transform (lower at larger distance) and afterwards elevations are treated to be relative to a plane
-  // viewfinder uses drop/m = 0.1695 m * (dist / miles)^2 to account for curvature and refraction
-  // ... distance between two coordinates/z?
-  // ... angles on sphere?
-
-  const double pos_lat(59.9374*deg2rad), pos_lon(10.7168*deg2rad), pos_z(100), view_direction_h(270*deg2rad), view_width(355*deg2rad), view_height(20*deg2rad), view_direction_v(0*deg2rad), range(20000); // rad, rad, m   // oslo
-  // const double pos_lat(49.4*deg2rad), pos_lon(8.6*deg2rad), pos_z(200), view_direction_h(100*deg2rad), view_width(355*deg2rad), view_height(15*deg2rad), view_direction_v(0*deg2rad), range(70000); // rad, rad, m   // hd
+  // oslo, uni
+  // const double pos_lat(59.9374*deg2rad), pos_lon(10.7168*deg2rad), pos_z(100), view_direction_h(270*deg2rad), view_width(355*deg2rad), view_height(20*deg2rad), view_direction_v(0*deg2rad), range(20000);
+  // hd
+  const double pos_lat(49.4*deg2rad), pos_lon(8.6*deg2rad), pos_z(200), view_direction_h(100*deg2rad), view_width(355*deg2rad), view_height(15*deg2rad), view_direction_v(0*deg2rad), range(80000);
   // const double pos_lat(47.3664*deg2rad), pos_lon(8.5413*deg2rad), pos_z(408), view_direction(290*deg2rad), view_width(60*deg2rad), view_height(12*deg2rad), range(100000); // rad, rad, m // zurich
   // const double pos_lat(49.08123*deg2rad), pos_lon(19.62642*deg2rad), pos_z(585), view_direction_h(230*deg2rad), view_width(290*deg2rad), view_direction_v(7*deg2rad), view_height(20*deg2rad), range(40000); // rad, rad, m  // slovakia
   // const double pos_lat(59.9180*deg2rad), pos_lon(10.5154*deg2rad), pos_z(400), view_direction_h(180*deg2rad), view_width(355*deg2rad), view_direction_v(0*deg2rad), view_height(12*deg2rad), range(10000); // rad, rad, m
@@ -48,7 +43,8 @@ int main(int ac, char **av) {
   V.bucket_fill(100,100,100);
   V.render_scene(S);
   V.highlight_edges();
-  V.annotate_peaks(S, "mapItems/peaks-no_S.osm");
+  // V.annotate_peaks(S, "mapItems/peaks-no_S.osm");
+  V.annotate_peaks(S, "mapItems/peaks-bw.osm");
   V.label_axis(S);
 
 //  cout << V.zbuffer << endl;

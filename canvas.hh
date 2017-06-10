@@ -451,46 +451,44 @@ public:
     // prune ... if the offsets in one group get too large, some of the lower peaks should be omitted
 
     for(size_t p=0; p<lgs.size(); p++){
-      for(size_t q=0; q<lgs[p].size(); q++){
-        const int &x_peak = lgs[p][q].x;
-        const int &y_peak = lgs[p][q].y;
-        const int &dist_peak = lgs[p][q].dist;
-        // cout << peaks[p].name << " is visible" << endl;
-        // cout << "pixel will be written at : " << x_peak << ", " << y_peak << endl;
-        write_pixel(x_peak, y_peak, 255,0,0);
+      const int &x_peak = lgs[p].x;
+      const int &y_peak = lgs[p].y;
+      const int &dist_peak = lgs[p].dist;
+      // cout << peaks[p].name << " is visible" << endl;
+      // cout << "pixel will be written at : " << x_peak << ", " << y_peak << endl;
+      write_pixel(x_peak, y_peak, 255,0,0);
 
-        const int x_offset=0, y_offset=100;
+      const int x_offset=0, y_offset=100;
 
-        const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
-        gdImageLine(img_ptr, x_peak, y_peak-2, x_peak+lgs[p][q].xshift, y_peak-y_offset+5, black);
+      const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
+      gdImageLine(img_ptr, x_peak, y_peak-2, x_peak+lgs[p].xshift, y_peak-y_offset+5, black);
 
-        string name(lgs[p][q].pf.name);
-        if(!lgs[p][q].pf.name.empty()) name += ", ";
-        name += to_string(lgs[p][q].pf.elev) + "m, " + to_string(int(round(dist_peak/1000))) + "km";
-        char *s = const_cast<char*>(name.c_str());
-        const double fontsize = 12.;
-        //char *font = "./palatino-59330a4da3d64.ttf";
-        char *font = "./fonts/vera.ttf";
-        const double text_orientation=M_PI/2;
+      string name(lgs[p].pf.name);
+      if(!lgs[p].pf.name.empty()) name += ", ";
+      name += to_string(lgs[p].pf.elev) + "m, " + to_string(int(round(dist_peak/1000))) + "km";
+      char *s = const_cast<char*>(name.c_str());
+      const double fontsize = 12.;
+      //char *font = "./palatino-59330a4da3d64.ttf";
+      char *font = "./fonts/vera.ttf";
+      const double text_orientation=M_PI/2;
 
-        // get bb of blank string
-        int bb[8];
-        char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
-        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
+      // get bb of blank string
+      int bb[8];
+      char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
+      if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
 
-//        cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
+//      cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
 
-        /* render the string, offset origin to center string*/
-        /* note that we use top-left coordinate for adjustment
-         * since gd origin is in top-left with y increasing downwards. */
-        int xxx = 3 - bb[6];
-        int yyy = 3 - bb[7];
-        err = gdImageStringFT(img_ptr, &bb[0],
-                              black, font, fontsize, text_orientation,
-                              x_peak+lgs[p][q].xshift+fontsize/2.0,
-                              y_peak-y_offset,s);
-        if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
-      }
+      /* render the string, offset origin to center string*/
+      /* note that we use top-left coordinate for adjustment
+       * since gd origin is in top-left with y increasing downwards. */
+      int xxx = 3 - bb[6];
+      int yyy = 3 - bb[7];
+      err = gdImageStringFT(img_ptr, &bb[0],
+                            black, font, fontsize, text_orientation,
+                            x_peak+lgs[p].xshift+fontsize/2.0,
+                            y_peak-y_offset,s);
+      if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
     }
 // print number drawn and number omitted
 
