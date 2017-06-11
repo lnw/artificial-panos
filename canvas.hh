@@ -4,9 +4,8 @@
 #include <vector>
 #include <tuple>
 #include <iostream>
-#include <math.h>
+#include <math.h> // modf
 #include <algorithm> // min, max
-#include <cmath> // modf
 
 #include <gd.h>
 
@@ -23,7 +22,7 @@ using namespace std;
 
 class canvas {
 public:
-  int width, height; // [pixels]
+  size_t width, height; // [pixels]
   array2D<double> zbuffer; // initialised to 1000 km [m]
 
 private:
@@ -87,8 +86,8 @@ public:
     const int ymax = max( {ceil(y1),  ceil(y2),  ceil(y3)} );
 
     // iterate over grid points in bb, draw the ones in the triangle
-    for (size_t x=xmin; x<xmax; x++){
-      for (size_t y=ymin; y<ymax; y++){
+    for (int x=xmin; x<xmax; x++){
+      for (int y=ymin; y<ymax; y++){
         if(point_in_triangle_2 (x+0.5,y+0.5, x1,y1,x2,y2,x3,y3)){
           write_pixel_zb(x,y,z, r,g,b);
         }
@@ -109,8 +108,8 @@ public:
 
     bool pixel_drawn=false;
     // iterate over grid points in bb, draw the ones in the triangle
-    for (size_t x=xmin; x<xmax; x++){
-      for (size_t y=ymin; y<ymax; y++){
+    for (int x=xmin; x<xmax; x++){
+      for (int y=ymin; y<ymax; y++){
         if(point_in_triangle_2 (x+0.5,y+0.5, x1,y1,x2,y2,x3,y3)){
           if(would_write_pixel_zb(x,y,z)) pixel_drawn = true;
         }
@@ -240,8 +239,8 @@ public:
       debug << "n: " << n << endl;
       debug << (m-1)*(n-1)*2 << " triangles in tile " << t << endl;
       const int inc = 1;
-      for (size_t i=0; i<m-inc; i+=inc){
-        for (size_t j=0; j<n-inc; j+=inc){
+      for (int i=0; i<m-inc; i+=inc){
+        for (int j=0; j<n-inc; j+=inc){
           if(D(i,j) > S.view_dist) continue;
           if(D(i,j) < 100) continue; // avoid close artifacts
           // first triangle: i/j, i+1/j, i/j+1
@@ -446,9 +445,10 @@ public:
     cout << "number of visible peaks: " << peaks_vis.size() << endl;
     int n_labels = peaks_vis.size();
 
-    LabelGroups lgs(peaks_vis);
+    LabelGroups lgs(peaks_vis, width);
 
     // prune ... if the offsets in one group get too large, some of the lower peaks should be omitted
+    vector<point_feature_on_canvas> omitted_peaks = lgs.prune();
 
     for(size_t p=0; p<lgs.size(); p++){
       const int &x_peak = lgs[p].x;
@@ -492,7 +492,6 @@ public:
     }
 // print number drawn and number omitted
 
-   vector<point_feature_on_canvas> omitted_peaks;
    return omitted_peaks;
   }
 

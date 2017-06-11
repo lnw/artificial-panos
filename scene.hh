@@ -29,10 +29,11 @@ public:
     // determine which tiles to add
     // sample a bunch of points, include the respective tiles
     set<pair<int,int>> required_tiles;
+    const int n_ray=20;
     for(int i=0; i<10; i++){
       const double dist = i* view_dist/9;
-      for(int j=0; j<10; j++){
-        const double bearing = fmod(-view_dir_h - view_width/2 + M_PI/2 + j*view_width/9 + 3*M_PI, 2*M_PI) - M_PI;
+      for(int j=0; j<n_ray; j++){
+        const double bearing = fmod(-view_dir_h - view_width/2 + M_PI/2 + j*view_width/(n_ray-1) + 3*M_PI, 2*M_PI) - M_PI;
         pair<double,double> dest = destination(lat_standpoint, lon_standpoint, dist, bearing);
         required_tiles.insert(make_pair(floor(dest.first*rad2deg), floor(dest.second*rad2deg)));
       }
