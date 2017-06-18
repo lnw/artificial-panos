@@ -343,6 +343,7 @@ public:
     const double& view_direction_v = S.view_dir_v; // [rad]
     const double& view_height = S.view_height; // [rad]
     const double pixels_per_rad_v = height / view_height; // [px/rad]
+    // cout << "pprh: " << pixels_per_rad_h << endl;
 
     vector<point_feature_on_canvas> visible_peaks;
     vector<point_feature_on_canvas> obscured_peaks;
@@ -352,7 +353,7 @@ public:
       if(dist_peak > S.view_dist || dist_peak < 1000) continue;
 
       // the test-patch should be larger for large distances because there are less pixels per ground area
-      const int radius = 2 + dist_peak/15000;
+      const int radius = 2 + dist_peak*pixels_per_rad_h/(2*10000000); // the numbers are chosen because they sort-of work
       const int diameter = 2*radius + 1;
       // cout << dist_peak << ", " << radius << ", " << diameter << endl;
 
@@ -496,7 +497,8 @@ public:
   }
 
 
-  void draw_invisible_peaks(const vector<point_feature_on_canvas>& peaks_invis, int16_t r, int16_t g, int16_t b){
+  void draw_invisible_peaks(const vector<point_feature_on_canvas>& peaks_invis, 
+                            const int16_t r, const int16_t g, const int16_t b){
     for(size_t p=0; p<peaks_invis.size(); p++){
       cout << peaks_invis[p].pf.name << " is invisible" << endl;
       cout << "pixel will be written at : " << peaks_invis[p].x << ", " << peaks_invis[p].y << endl;

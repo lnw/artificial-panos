@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <iomanip> //required for setfill()
+
 #include <libxml++/libxml++.h>
 
 #include "auxiliary.hh"
@@ -22,8 +23,7 @@ struct point_feature{
   point_feature(double la, double lo, int e): lat(la), lon(lo), name(""), elev(e) {}
   point_feature(double la, double lo, string n): lat(la), lon(lo), name(n), elev() {}
 
-  friend ostream& operator<<(ostream& S, const point_feature& pf)
-  {
+  friend ostream& operator<<(ostream& S, const point_feature& pf) {
     S << "{(" << pf.lat << ", " << pf.lon << "), " << pf.name << ", " << pf.elev << "}";
     return S;
   }
@@ -36,8 +36,7 @@ struct point_feature_on_canvas{
 
   point_feature_on_canvas(point_feature _pf, int _x, int _y, int _dist): pf(_pf), x(_x), y(_y), dist(_dist), xshift(0) {}
 
-  friend ostream& operator<<(ostream& S, const point_feature_on_canvas& pfc)
-  {
+  friend ostream& operator<<(ostream& S, const point_feature_on_canvas& pfc) {
     S << pfc.pf << " at (" << pfc.x << ", " << pfc.y << ", " << pfc.dist << ")";
     return S;
   }
@@ -48,8 +47,7 @@ struct linear_feature{
   string name;
   bool closed;
 
-  friend ostream& operator<<(ostream& S, const linear_feature& lf)
-  {
+  friend ostream& operator<<(ostream& S, const linear_feature& lf) {
     S << "{" << lf.coords << ", " << lf.name << ", " << lf.closed << "}";
     return S;
   }

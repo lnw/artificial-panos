@@ -15,7 +15,7 @@ using namespace std;
 
 const int label_width=18;
 
-struct group {
+struct group{
   int start_index, end_index;
   int centre, width;
 
