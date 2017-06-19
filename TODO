@@ -2,8 +2,6 @@ download all required files
 
 queri overpass-api for mountains in region
 
-lines, cleanup strings, better positioning
-
 remove yellow artifacts, caused by height < 0
 
 draw other features such as rivers, islands! ...

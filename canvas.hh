@@ -23,9 +23,9 @@ using namespace std;
 class canvas {
 public:
   size_t width, height; // [pixels]
-  array2D<double> zbuffer; // initialised to 1000 km [m]
 
 private:
+  array2D<double> zbuffer; // initialised to 1000 km [m]
   char const * filename;
   gdImagePtr img_ptr = nullptr;
 
@@ -49,8 +49,6 @@ public:
                    int16_t r, int16_t g, int16_t b){
     const int32_t col = 127 << 24 | r << 16 | g << 8 | b ;
     img_ptr->tpixels[y][x] = col; // assuming TrueColor
-    // const int col = gdImageColorAllocate(img_ptr, r, g, b);
-    // gdImageSetPixel(img_ptr, x, y, col);
   }
 
   // just write the pixel taking into account the zbuffer
@@ -61,8 +59,6 @@ public:
       zbuffer(x,y) = z;
       const int32_t col = 127 << 24 | r << 16 | g << 8 | b ;
       img_ptr->tpixels[y][x] = col; // assuming TrueColor
-      // const int col = gdImageColorAllocate(img_ptr, r, g, b);
-      // gdImageSetPixel(img_ptr, x, y, col);
     }
   }
 
@@ -480,11 +476,6 @@ public:
 
 //      cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
 
-      /* render the string, offset origin to center string*/
-      /* note that we use top-left coordinate for adjustment
-       * since gd origin is in top-left with y increasing downwards. */
-      int xxx = 3 - bb[6];
-      int yyy = 3 - bb[7];
       err = gdImageStringFT(img_ptr, &bb[0],
                             black, font, fontsize, text_orientation,
                             x_peak+lgs[p].xshift+fontsize/2.0,

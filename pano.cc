@@ -44,7 +44,6 @@ int main(int ac, char **av) {
   // V.annotate_peaks(S, "mapItems/peaks-sw_S.osm");
   V.label_axis(S);
 
-//  cout << V.zbuffer << endl;
 
   return 0;
 }
