@@ -6,9 +6,6 @@
 // #include <math.h>
 #include <vector>
 
-//#include "geometry.hh"
-//#include "array2D.hh"
-//#include "tile.hh"
 #include "mapitems.hh"
 
 using namespace std;

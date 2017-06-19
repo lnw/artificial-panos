@@ -353,7 +353,7 @@ public:
       if(dist_peak > S.view_dist || dist_peak < 1000) continue;
 
       // the test-patch should be larger for large distances because there are less pixels per ground area
-      const int radius = 2 + dist_peak*pixels_per_rad_h/(2*10000000); // the numbers are chosen because they sort-of work
+      const int radius = 2 + dist_peak*pixels_per_rad_h/(1.5*10000000); // the numbers are chosen because they sort-of work
       const int diameter = 2*radius + 1;
       // cout << dist_peak << ", " << radius << ", " << diameter << endl;
 
