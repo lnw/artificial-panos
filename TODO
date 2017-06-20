@@ -1,14 +1,16 @@
-download all required files
+-- better visibility criterion
 
-queri overpass-api for mountains in region
+-- weed out minor peaks, as a function of the distance
 
-remove yellow artifacts, caused by height < 0
+-- automatically download elevation tiles
 
-draw other features such as rivers, islands! ...
+-- queri overpass-api for mountains in region
 
-cmake
+-- draw other features such as rivers, islands! ...
 
-command line options
+-- cmake
+
+-- command line options
 
 less important
 # render triangles taking into account whether they have a very small angle with the line of sight.

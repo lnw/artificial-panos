@@ -161,6 +161,7 @@ public:
   // every 5 deg if there are less than 45 deg
   // every deg if there are less than 10 deg
   void label_axis(const scene& S){
+    cout << "labelling axis ..." << flush;
     const double& view_width = S.view_width; // [rad]
     const double pixels_per_deg_h = width / (view_width * rad2deg); // [px/deg]
     const double& view_direction_h = S.view_dir_h; // [rad]
@@ -202,6 +203,7 @@ public:
         }
       }
     }
+    cout << " done" << endl;
   }
 
   void render_scene(const scene& S){
@@ -282,7 +284,7 @@ public:
 
   // for each column, walk from top to bottom and colour a pixel dark if it is
   // much closer than the previous one.  Works only because mountains are
-  // rarely overhanging
+  // rarely overhanging or floating in mid-air
   void highlight_edges(){
     for(size_t x=0; x<width; x++){
       double z_prev = 1000000;
@@ -321,9 +323,9 @@ public:
     // get list of peaks
     vector<point_feature> peaks = read_peaks_osm(xml_name);
     cout << "peaks in db: " << peaks.size() << endl;
-    // visible
+    // which of those are visible?
     vector<point_feature_on_canvas> visible_peaks, obscured_peaks, omitted_peaks;
-    tie(visible_peaks, obscured_peaks) = get_visible_peaks(peaks, S); // x, y, point-feature from peaks
+    tie(visible_peaks, obscured_peaks) = get_visible_peaks(peaks, S);
     // label
     omitted_peaks = draw_visible_peaks(visible_peaks);
 #ifdef GRAPHICS_DEBUG
@@ -332,6 +334,8 @@ public:
 #endif
   }
 
+  // test if a peak is visible by attempting to draw a few triangles around it,
+  // if the zbuffer admits any pixel to be drawn, the peak is visible
   tuple<vector<point_feature_on_canvas>, vector<point_feature_on_canvas>> get_visible_peaks(vector<point_feature>& peaks, const scene& S){
     const double& view_direction_h = S.view_dir_h; // [rad]
     const double& view_width = S.view_width; // [rad]
@@ -473,7 +477,6 @@ public:
       int bb[8];
       char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s);
       if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
-
 //      cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
 
       err = gdImageStringFT(img_ptr, &bb[0],
@@ -488,7 +491,7 @@ public:
   }
 
 
-  void draw_invisible_peaks(const vector<point_feature_on_canvas>& peaks_invis, 
+  void draw_invisible_peaks(const vector<point_feature_on_canvas>& peaks_invis,
                             const int16_t r, const int16_t g, const int16_t b){
     for(size_t p=0; p<peaks_invis.size(); p++){
       cout << peaks_invis[p].pf.name << " is invisible" << endl;
