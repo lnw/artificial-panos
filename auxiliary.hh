@@ -3,7 +3,7 @@
 #define AUXILIARY_HH
 
 #include <cstdlib>
-#include <iomanip> //required for setfill()
+#include <iomanip> // required for setfill()
 #include <iostream>
 #include <math.h>
 #include <sstream>
@@ -85,6 +85,5 @@ int to_int(const T& s) {
   ss >> result;
   return result;
 }
-
 
 #endif // auxiliary

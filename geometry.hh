@@ -122,9 +122,9 @@ inline int intersect( const double e1x1, const double e1y1, const double e1x2, c
 inline bool point_in_triangle_1(const double px, const double py,
                                 const double refx, const double refy,
                                 const double x1, const double y1, const double x2, const double y2, const double x3, const double y3){
-  const int num_intersections= intersect(refx,refy, px,py, x1,y1,x2,y2)
-                         + intersect(refx,refy, px,py, x2,y2,x3,y3)
-                         + intersect(refx,refy, px,py, x3,y3,x1,y1);
+  const int num_intersections = intersect(refx,refy, px,py, x1,y1,x2,y2)
+                              + intersect(refx,refy, px,py, x2,y2,x3,y3)
+                              + intersect(refx,refy, px,py, x3,y3,x1,y1);
   return num_intersections==1;
 }
 
@@ -136,10 +136,9 @@ inline double signed_area( double x1, double y1, double x2, double y2, double x3
 // is point (px/py) inside a triangle?
 inline bool point_in_triangle_2(double px, double py,
                                 double x1, double y1, double x2, double y2, double x3, double y3){
-  bool b1, b2, b3;
-  b1 = signed_area(px, py, x1, y1, x2, y2) < 0;
-  b2 = signed_area(px, py, x2, y2, x3, y3) < 0;
-  b3 = signed_area(px, py, x3, y3, x1, y1) < 0;
+  bool b1 = signed_area(px, py, x1, y1, x2, y2) < 0;
+  bool b2 = signed_area(px, py, x2, y2, x3, y3) < 0;
+  bool b3 = signed_area(px, py, x3, y3, x1, y1) < 0;
   // and we ignore the case of points lying *on* the boundary
   return ((b1 == b2) && (b2 == b3));
 }
