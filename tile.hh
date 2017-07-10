@@ -1,16 +1,13 @@
 #ifndef TILE_HH
 #define TILE_HH
 
-#include <assert.h>
-#include <iostream>
-#include <fstream> // ifstream
-#include <stdint.h>
-#include <string.h>
-#include <vector>
+#include <assert.h>    // for assert
+#include <stdint.h>    // for int16_t
+#include <string.h>    // for memcpy
+#include <cmath>       // for floor, abs, ceil
+#include <fstream>     // for ostream, ifstream
 
-#include "auxiliary.hh"
-#include "geometry.hh"
-#include "array2D.hh"
+#include "array2D.hh"  // for array2D
 
 using namespace std;
 

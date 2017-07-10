@@ -1,16 +1,11 @@
 #ifndef SCENE_HH
 #define SCENE_HH
 
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
-#include <set>
+#include <math.h>   // for M_PI, fmod
+#include <fstream>  // for ofstream
+#include <utility>  // for pair
 
-#include "auxiliary.hh"
-#include "geometry.hh"
-#include "array2D.hh"
-#include "tile.hh"
+#include "tile.hh"  // for tile
 
 using namespace std;
 
@@ -52,7 +47,15 @@ public:
       tile<int16_t> A (tile<int16_t>(FILENAME, size, ref_lat, ref_lon));
       add_tile(A);
       cout << " done" << endl;
-    } 
+    }
+    if(z_standpoint == -1){
+       auto it = find_if(tiles.begin(), tiles.end(),
+                         [&](const pair<tile<double>,tile<double>> & p) {
+                         return (p.first.lat == floor(lat_standpoint*rad2deg)) && (p.first.lon == floor(lon_standpoint*rad2deg));}
+                 );
+       z_standpoint = (it->first).interpolate(lat_standpoint*rad2deg, lon_standpoint*rad2deg) + 10;
+       cout << "overwriting the elevation: " << z_standpoint << endl;
+    }
     cout << "scene constructed" << endl;
     debug.close();
   }
