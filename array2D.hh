@@ -18,8 +18,8 @@ public:
   // n: number of columns (j->n)
   int m, n; 
 
-  array2D(int m, int n, const vector<T>& A) : vector<T>(A.begin(), A.end()), m(m), n(n) { assert(A.size()==m*n); }
-  array2D(int m, int n, const T& zero = 0) : vector<T>(m*n,zero), m(m), n(n) {}
+  array2D(int _m, int _n, const vector<T>& A) : vector<T>(A.begin(), A.end()), m(_m), n(_n) { assert(A.size()==_m*_n); }
+  array2D(int _m, int _n, const T& zero = 0) : vector<T>(_m*_n,zero), m(_m), n(_n) {}
 
   template <typename S> array2D(const array2D<S>& A) : vector<T>(A.begin(),A.end()), m(A.m), n(A.n) {}
 
