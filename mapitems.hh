@@ -17,7 +17,7 @@ struct point_feature{
   double lat;
   double lon;
   string name;
-  int elev;
+  int elev; // provided by osm data, otherwise interpolated from elevation data
 
   point_feature(double la, double lo, string n, int e): lat(la), lon(lo), name(n), elev(e) {}
   point_feature(double la, double lo, int e): lat(la), lon(lo), name(""), elev(e) {}

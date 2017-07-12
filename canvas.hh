@@ -404,7 +404,9 @@ public:
       const int inc=1;
       bool peak_visible=false;
       for(int i=ii; i<ii+diameter; i++){
+        if(i<0 || i>3600) continue; // FIXME
         for(int j=jj; j<jj+diameter; j++){
+          if(j<0 || j>3600) continue; // FIXME
           const double h_ij = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
           if(h_ij < 0 || h_ij > width) continue;
           const double h_ijj = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
