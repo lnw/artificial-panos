@@ -326,8 +326,13 @@ public:
     // which of those are visible?
     vector<point_feature_on_canvas> visible_peaks, obscured_peaks, omitted_peaks;
     tie(visible_peaks, obscured_peaks) = get_visible_peaks(peaks, S);
+    cout << "number of visible peaks: " << visible_peaks.size() << endl;
+    cout << "number of obscured peaks: " << obscured_peaks.size() << endl;
+    cout << "number of out-of-range/wrong direction peaks: " << peaks.size() - visible_peaks.size() - obscured_peaks.size() << endl;
     // label
     omitted_peaks = draw_visible_peaks(visible_peaks);
+    cout << "number of visible+drawn peaks: " << visible_peaks.size() - omitted_peaks.size() << endl;
+    cout << "number of visible+omitted peaks: " << omitted_peaks.size() << endl;
 #ifdef GRAPHICS_DEBUG
     draw_invisible_peaks(obscured_peaks, 0,255,0);
     draw_invisible_peaks(omitted_peaks, 0,255,255);
@@ -445,7 +450,6 @@ public:
 
 
   vector<point_feature_on_canvas> draw_visible_peaks(const vector<point_feature_on_canvas>& peaks_vis){
-    cout << "number of visible peaks: " << peaks_vis.size() << endl;
     int n_labels = peaks_vis.size();
 
     LabelGroups lgs(peaks_vis, width);

@@ -47,13 +47,18 @@ public:
 
     gather_groups(0, g.size()-1);
     assign_xshifts(0, g.size()-1);
+    // cout << "after init: " << pfocs << endl;
+    // cout << "after init: " << g << endl;
   }
 
 
   // gather groups from indices 'first' through 'last', in a selfconsistent way
   // first and last are indices of groups (not pfocs)
-  void gather_groups(int first, int last){
-    if(last - first < 1) return;
+  // return number of resulting groups
+  int gather_groups(int first, int last){
+    assert(last<g.size());
+    assert(first <= last);
+    if(last == first) return 1; // one element
     //cout << "gather " << first << " to " << last << " (from " << g.size()<< ")" << endl;
     bool converged=false;
     while(!converged){
@@ -74,6 +79,7 @@ public:
           if(g[ind].centre - g[ind].width/2 < 0) g[ind].centre = g[ind].width/2;
           if(g[ind].centre + g[ind].width/2 > canvas_width) g[ind].centre = canvas_width - g[ind].width/2;
           // delete i+1, erase returns an it that points to the element after the removed one
+  // cout << "going to erase element " << ind+1 << " (there are " << g.size() << ")" << endl;
           g.erase(g.begin()+ind+1);
           // do at least one more cycle
           converged=false;
@@ -83,17 +89,22 @@ public:
         }
       }
     }
+    // cout << "end of gather: " << first << ", " << last << endl;
+    return last - first + 1;
   }
 
 
   // assign xshifts to labels in one or more groups
+  // first and last are indices of groups
   void assign_xshifts(int first, int last){
-    if(last - first < 1) return;
+    assert(last<g.size());
+    assert(first <= last);
     // cout << "assign XS " << first << " to " << last << " (from " << g.size()<< ")" << endl;
     for(int i=first; i<=last; i++){ // groups
+      // cout << "pfocs from " << g[i].first_index << " to " << g[i].last_index << endl;
       for(int j=g[i].first_index; j<=g[i].last_index; j++){ // indices of pfocs
         pfocs[j].xshift = g[i].centre - pfocs[j].x + (j-g[i].first_index)*label_width - (g[i].width-label_width)/2;
-        // cout << "setting xshift to " << pfocs[j].xshift << endl;
+        // cout << i << "," << j << " setting xshift to " << pfocs[j].xshift << endl;
       }
     }
   }
@@ -118,7 +129,7 @@ public:
 
   // removes labels and returns them such that we have a list of which are omitted
   vector<point_feature_on_canvas> prune(){
-    cout << "starting prune" << endl;
+    // cout << "starting prune" << endl;
     vector<point_feature_on_canvas> removed_labels;
 
     // iterate over labelgroups by index (because iterators will be invalidated)
@@ -135,7 +146,7 @@ public:
           // cout << "group " << lg << " is fine" << endl;
           break;
         }else{
-          cout << "one or more labels should be removed from group " << lg << endl;
+          //cout << "one or more labels should be removed from group " << lg << endl;
         }
 
         if(delete_something){
@@ -161,18 +172,20 @@ public:
               }
             }
           }
-          cout << "deleting " << pfocs[ind_lower] << endl;
+          // cout << "deleting " << pfocs[ind_lower] << endl;
           removed_labels.push_back(pfocs[ind_lower]);
           remove_label(ind_lower,lg);
         }
 
-        const int first_g=lg, last_g=lg + g[lg].last_index - g[lg].first_index;
+        const int first_g=lg, last_g=lg + g[lg].last_index - g[lg].first_index; // because after dissociate, every pfoc has its own group
         dissociate_group(lg);
-        gather_groups(first_g, last_g);
-        assign_xshifts(first_g, last_g);
+        const int n_new_groups = gather_groups(first_g, last_g);
+        assign_xshifts(first_g, first_g + n_new_groups - 1);
       }
     }
 
+    // cout << "end of prune " << pfocs << endl;
+    // cout << "end of prune " << g << endl;
     return removed_labels;
   }
 
@@ -186,7 +199,7 @@ public:
       g[i].first_index--;
       g[i].last_index--;
     }
-    cout << " done" << endl;
+    // cout << " done" << endl;
   }
 
   // subscript for the point feature, ignores groups etc
