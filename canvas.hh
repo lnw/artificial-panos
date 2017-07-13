@@ -13,7 +13,6 @@
 #include "array2D.hh"
 #include "tile.hh"
 #include "scene.hh"
-#include "colour.hh"
 #include "mapitems.hh"
 #include "labelgroup.hh"
 
