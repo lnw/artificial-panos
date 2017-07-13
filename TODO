@@ -1,11 +1,12 @@
--- better visibility criterion for peaks and other features
--- weed out minor peaks, as a function of the distance
+solve the follwing by making this a lib with python bindings and doing the annoying parts in python?
+-- command line options
 -- automatically download elevation tiles
 -- query overpass-api for mountains in region, and dowload as deg x deg tiles.
+
 -- draw other features such as rivers, islands! ...
 -- mark lakes and the sea in some way
 -- cmake
--- command line options
+-- better visibility criterion for peaks and other features
 
 less important
 # render triangles taking into account whether they have a very small angle with the line of sight.
