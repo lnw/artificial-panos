@@ -4,6 +4,7 @@
 #include <math.h>   // for M_PI, fmod
 #include <fstream>  // for ofstream
 #include <utility>  // for pair
+#include <algorithm>
 
 #include "tile.hh"  // for tile
 
