@@ -15,27 +15,17 @@ class scene {
 public:
   double lat_standpoint, lon_standpoint, z_standpoint; // [rad], [rad], [m]
   double view_dir_h, view_width, view_dir_v, view_height; // [rad], [rad], [rad], [rad]
-  double view_dist; // [m]
+  double view_range; // [m]
   vector<pair<tile<double>,tile<double>>> tiles; // heights, distances
 
-  scene(double lat, double lon, double z, double vdirh, double vw, double vdirv, double vh, double vdist): lat_standpoint(lat), lon_standpoint(lon), z_standpoint(z), view_dir_h(vdirh), view_width(vw), view_dir_v(vdirv), view_height(vh), view_dist(vdist) {
+  scene(double lat, double lon, double z, double vdirh, double vw, double vdirv, double vh, double vdist): lat_standpoint(lat), lon_standpoint(lon), z_standpoint(z), view_dir_h(vdirh), view_width(vw), view_dir_v(vdirv), view_height(vh), view_range(vdist) {
     ofstream debug("debug-render_scene", ofstream::out | ofstream::app);
     debug << "standpoint: " << lat_standpoint*rad2deg << ", " << lon_standpoint*rad2deg << endl;
 
     // determine which tiles to add
     // sample a bunch of points, include the respective tiles
-    set<pair<int,int>> required_tiles;
-    const int n_ray=20;
-    for(int i=0; i<10; i++){
-      const double dist = i* view_dist/9;
-      for(int j=0; j<n_ray; j++){
-        const double bearing = fmod(-view_dir_h - view_width/2 + M_PI/2 + j*view_width/(n_ray-1) + 3*M_PI, 2*M_PI) - M_PI;
-        pair<double,double> dest = destination(lat_standpoint, lon_standpoint, dist, bearing);
-        required_tiles.insert(make_pair(floor(dest.first*rad2deg), floor(dest.second*rad2deg)));
-      }
-    }
+    set<pair<int,int>> required_tiles = determine_required_tiles(view_width, view_range, view_dir_h, lat_standpoint, lon_standpoint);
     const int size=3601;
-    cout << "required tiles: " << required_tiles << endl;
     for(auto it=required_tiles.begin(), to=required_tiles.end(); it!=to; it++){
       // get tiles, add them
       const int ref_lat = it->first, ref_lon = it->second;
@@ -59,6 +49,21 @@ public:
     }
     cout << "scene constructed" << endl;
     debug.close();
+  }
+
+  static set<pair<int,int>> determine_required_tiles(const double view_width, const double view_range, const double view_dir_h, const double lat_standpoint, const double lon_standpoint){
+    set<pair<int,int>> rt;
+    for(int i=0; i<10; i++){
+      const int n_ray=20;
+      const double dist = i* view_range/9;
+      for(int j=0; j<n_ray; j++){
+        const double bearing = fmod(-view_dir_h - view_width/2 + M_PI/2 + j*view_width/(n_ray-1) + 3*M_PI, 2*M_PI) - M_PI;
+        pair<double,double> dest = destination(lat_standpoint, lon_standpoint, dist, bearing);
+        rt.insert(make_pair(floor(dest.first*rad2deg), floor(dest.second*rad2deg)));
+      }
+    }
+    cout << "required tiles: " << rt << endl;
+    return rt;
   }
 
   template <typename T> void add_tile(const tile<T>& Tile){

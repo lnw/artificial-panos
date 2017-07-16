@@ -238,7 +238,7 @@ public:
       const int inc = 1;
       for (int i=0; i<m-inc; i+=inc){
         for (int j=0; j<n-inc; j+=inc){
-          if(D(i,j) > S.view_dist) continue;
+          if(D(i,j) > S.view_range) continue;
           if(D(i,j) < 100) continue; // avoid close artifacts
           // first triangle: i/j, i+1/j, i/j+1
           // second triangle: i+1/j, i/j+1, i+1/j+1
@@ -354,7 +354,7 @@ public:
     for(size_t p=0; p<peaks.size(); p++){
       // distance from the peak
       const double dist_peak = distance_atan(S.lat_standpoint, S.lon_standpoint, peaks[p].lat*deg2rad, peaks[p].lon*deg2rad);
-      if(dist_peak > S.view_dist || dist_peak < 1000) continue;
+      if(dist_peak > S.view_range || dist_peak < 1000) continue;
 
       // the test-patch should be larger for large distances because there are less pixels per ground area
       const int radius = 2 + dist_peak*pixels_per_rad_h/(1.5*10000000); // the numbers are chosen because they sort-of work
