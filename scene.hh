@@ -40,6 +40,7 @@ public:
       cout << " done" << endl;
     }
     if(z_standpoint == -1){
+       // FIXME the case when points from neighbouring tiles are required
        auto it = find_if(tiles.begin(), tiles.end(),
                          [&](const pair<tile<double>,tile<double>> & p) {
                          return (p.first.lat == floor(lat_standpoint*rad2deg)) && (p.first.lon == floor(lon_standpoint*rad2deg));}

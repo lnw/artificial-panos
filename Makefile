@@ -30,4 +30,4 @@ clean:
 	rm -f out.png debug*
 
 distclean: clean
-	rm -f pano pano-debug test a.out
+	rm -f pano pano-debug test a.out libartpano.so

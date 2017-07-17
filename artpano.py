@@ -20,9 +20,9 @@ def parseCommandline():
     parser.add_argument("--view-width", help=" ", dest="view_width", action="store", type=float, default=100.0)
     parser.add_argument("--view-height", help=" ", dest="view_height", action="store", type=float, default=20.0)
     parser.add_argument("--range", help=" ", dest="range", action="store", type=float, default=10000.0)
-    parser.add_argument("--canvas-width", help=" ", dest="canvas_width", action="store", type=int, default="5000")
+    parser.add_argument("--canvas-width", help=" ", dest="canvas_width", action="store", type=int, default="10000")
     parser.add_argument("--canvas-height", help=" ", dest="canvas_height", action="store", type=int, default="1000")
-    parser.add_argument("--output", "-o", help=" ", dest="out_filename", action="store", default="out.png")
+    parser.add_argument("--output", "-o", help=" ", dest="out_filename", action="store", type=str, default="out.png")
     ap = parser.parse_args()
     ap.pos_lat *= deg2rad
     ap.pos_lon *= deg2rad
@@ -36,25 +36,35 @@ def parseCommandline():
 #def getElevationTiles(required_tiles):
 
 
-#def getOSMTiles(required_tiles):
+def getOSMTiles(requiredTiles):
+    print(requiredTiles)
+    for W,S in requiredTiles:
+        print(W, S)
+        import overpass
+        api = overpass.API()
+        result = api.Get('node[natural=peak]({},{},{},{})'.format(W,S,W+1,S+1),responseformat='xml')
+        # print(result)
+        with open('osm/N{:02}E{:03}.osm'.format(W,S), 'w') as f:
+            f.write(result)
+            f.write('\n')
 
 
 def main():
     args = parseCommandline()
     print(args)
     print('py: required tiles?')
-    required_tiles = ap.scene.determine_required_tiles(args.view_width, args.range, args.view_dir_h, args.pos_lat, args.pos_lon)
-    print(required_tiles)
+    requiredTiles = ap.scene.determine_required_tiles(args.view_width, args.range, args.view_dir_h, args.pos_lat, args.pos_lon)
+    print(requiredTiles)
     #getElevationTiles(required_tiles)
-    #getOSMTiles(required_tiles)
+    getOSMTiles(requiredTiles)
     print('init S:')
     S = ap.scene(args.pos_lat, args.pos_lon, args.pos_ele, args.view_dir_h, args.view_width, args.view_dir_v, args.view_height, args.range)
-    print(S)
+#    print(S)
     C = ap.canvas(args.out_filename, args.canvas_width, args.canvas_height)
     C.bucket_fill(100,100,100)
     C.render_scene(S)
     C.highlight_edges()
-    C.annotate_peaks(S)
+#    C.annotate_peaks(S)
     C.label_axis(S)
 
 if __name__ == "__main__":

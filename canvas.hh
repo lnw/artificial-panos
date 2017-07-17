@@ -25,18 +25,19 @@ public:
 
 private:
   array2D<double> zbuffer; // initialised to 1000 km [m]
-  char const * filename;
+  string filename;
   gdImagePtr img_ptr = nullptr;
 
 public:
-  canvas(char const * fn, int x, int y): width(x), height(y), zbuffer(x,y,1000000), filename(fn){
+  canvas(string fn, int x, int y): width(x), height(y), zbuffer(x,y,1000000), filename(fn){
     // allocate mem
     img_ptr = gdImageCreateTrueColor(width, height);
+    cout << "cpp filename: " << filename << endl;
   }
 
   ~canvas(){
     // actually the file is only opened here
-    FILE *png_ptr = fopen(filename, "wb");
+    FILE *png_ptr = fopen(filename.c_str(), "wb");
     // write to disk
     gdImagePng(img_ptr, png_ptr);
     fclose(png_ptr);

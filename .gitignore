@@ -7,4 +7,5 @@ out.png
 debug*
 libartpano.so
 *pdf
-*hgt
+hgt/*
+osm/*

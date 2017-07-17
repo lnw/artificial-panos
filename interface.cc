@@ -1,3 +1,4 @@
+#include <string>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -17,7 +18,7 @@ PYBIND11_PLUGIN(libartpano) {
 
 // class canvas
   py::class_<canvas>(m, "canvas")
-    .def(py::init<char const * , int , int>())
+    .def(py::init<const string , int , int>())
     .def("bucket_fill", &canvas::bucket_fill) // int, int, int
     .def("render_scene", &canvas::render_scene) // scene
     .def("highlight_edges", &canvas::highlight_edges)
