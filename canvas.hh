@@ -319,9 +319,17 @@ public:
     }
   }
 
-  void annotate_peaks(const scene& S, const char * xml_name){
-    // get list of peaks
-    vector<point_feature> peaks = read_peaks_osm(xml_name);
+  void annotate_peaks(const scene& S){
+    // read all peaks from all tiles in S
+    vector<point_feature> peaks;
+    for (auto it=S.tiles.begin(), to=S.tiles.end(); it!=to; it++){
+      string path("osm");
+      string xml_name(string(it->first.lat<0?"S":"N") + to_string_fixedwidth(abs(it->first.lat),2) +
+                      string(it->first.lon<0?"W":"E") + to_string_fixedwidth(abs(it->first.lon),3) + ".osm");
+      xml_name = path + "/" + xml_name;
+      vector<point_feature> tmp = read_peaks_osm(xml_name);
+      peaks.insert(std::end(peaks), std::begin(tmp), std::end(tmp));
+    }
     cout << "peaks in db: " << peaks.size() << endl;
     // which of those are visible?
     vector<point_feature_on_canvas> visible_peaks, obscured_peaks, omitted_peaks;

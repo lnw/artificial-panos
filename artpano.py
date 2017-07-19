@@ -37,16 +37,14 @@ def parseCommandline():
 
 
 def getOSMTiles(requiredTiles):
-    print(requiredTiles)
-    for W,S in requiredTiles:
-        print(W, S)
-        import overpass
+    import overpass
+    for west,south in requiredTiles:
+        # print(west, south)
         api = overpass.API()
-        result = api.Get('node[natural=peak]({},{},{},{})'.format(W,S,W+1,S+1),responseformat='xml')
-        # print(result)
-        with open('osm/N{:02}E{:03}.osm'.format(W,S), 'w') as f:
+        result = api.Get('node[natural=peak]({},{},{},{})'.format(west,south,west+1,south+1),responseformat='xml')
+        print(result)
+        with open('osm/N{:02}E{:03}.osm'.format(west,south), 'w') as f:
             f.write(result)
-            f.write('\n')
 
 
 def main():
@@ -64,7 +62,7 @@ def main():
     C.bucket_fill(100,100,100)
     C.render_scene(S)
     C.highlight_edges()
-#    C.annotate_peaks(S)
+    C.annotate_peaks(S)
     C.label_axis(S)
 
 if __name__ == "__main__":

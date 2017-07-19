@@ -27,11 +27,7 @@ int main(int ac, char **av) {
   V.bucket_fill(100,100,100);
   V.render_scene(S);
   V.highlight_edges();
-  V.annotate_peaks(S, "mapItems/peaks-bw.osm");
-  // V.annotate_peaks(S, "mapItems/peaks-sk.osm");
-  // V.annotate_peaks(S, "mapItems/peaks-no_N.osm");
-  // V.annotate_peaks(S, "mapItems/peaks-no_S.osm");
-  // V.annotate_peaks(S, "mapItems/peaks-sw_S.osm");
+  V.annotate_peaks(S);
   V.label_axis(S);
 
   return 0;

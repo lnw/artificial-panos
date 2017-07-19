@@ -45,8 +45,10 @@ public:
       g[i].width=label_width; // that's one label
     }
 
-    gather_groups(0, g.size()-1);
-    assign_xshifts(0, g.size()-1);
+    if(g.size() != 0){
+      gather_groups(0, g.size()-1);
+      assign_xshifts(0, g.size()-1);
+    }
     // cout << "after init: " << pfocs << endl;
     // cout << "after init: " << g << endl;
   }
