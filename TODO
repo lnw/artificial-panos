@@ -1,7 +1,9 @@
 solve the follwing by making this a lib with python bindings and doing the annoying parts in python?
--- command line options
 -- automatically download elevation tiles
--- query overpass-api for mountains in region, and dowload as deg x deg tiles.
+
+-- both elevation interpolation and vis-patches should include neighbouring tiles
+-- don't reload existing tiles
+-- don't write html errors to file
 
 -- draw other features such as rivers, islands! ...
 -- mark lakes and the sea in some way

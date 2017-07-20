@@ -37,6 +37,7 @@ def parseCommandline():
 
 
 def getOSMTiles(requiredTiles):
+    # from github.com:mvexel/overpass-api-python-wrapper.git
     import overpass
     for west,south in requiredTiles:
         # print(west, south)
@@ -50,7 +51,6 @@ def getOSMTiles(requiredTiles):
 def main():
     args = parseCommandline()
     print(args)
-    print('py: required tiles?')
     requiredTiles = ap.scene.determine_required_tiles(args.view_width, args.range, args.view_dir_h, args.pos_lat, args.pos_lon)
     print(requiredTiles)
     #getElevationTiles(required_tiles)
