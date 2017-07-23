@@ -63,7 +63,6 @@ public:
         rt.insert(make_pair(floor(dest.first*rad2deg), floor(dest.second*rad2deg)));
       }
     }
-    cout << "required tiles: " << rt << endl;
     return rt;
   }
 

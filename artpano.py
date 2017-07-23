@@ -19,10 +19,14 @@ def parseCommandline():
     parser.add_argument("--view-dir-v", help=" ", dest="view_dir_v", action="store", type=float, default=0.0)
     parser.add_argument("--view-width", help=" ", dest="view_width", action="store", type=float, default=100.0)
     parser.add_argument("--view-height", help=" ", dest="view_height", action="store", type=float, default=20.0)
-    parser.add_argument("--range", help=" ", dest="range", action="store", type=float, default=10000.0)
-    parser.add_argument("--canvas-width", help=" ", dest="canvas_width", action="store", type=int, default="10000")
-    parser.add_argument("--canvas-height", help=" ", dest="canvas_height", action="store", type=int, default="1000")
-    parser.add_argument("--output", "-o", help=" ", dest="out_filename", action="store", type=str, default="out.png")
+    parser.add_argument("--range", help="visibility range in meters",
+                        dest="range", action="store", type=float, default=10000.0)
+    parser.add_argument("--canvas-width", help="width of the rendered picture in pixels",
+                        dest="canvas_width", action="store", type=int, default="10000")
+    parser.add_argument("--canvas-height", help="height of the rendered picture in pixels",
+                        dest="canvas_height", action="store", type=int, default="1000")
+    parser.add_argument("--output", "-o", help="output filename",
+                        dest="out_filename", action="store", type=str, default="out.png")
     ap = parser.parse_args()
     ap.pos_lat *= deg2rad
     ap.pos_lon *= deg2rad
@@ -41,21 +45,26 @@ def getOSMTiles(requiredTiles):
     import overpass
     for west,south in requiredTiles:
         # print(west, south)
-        api = overpass.API()
-        result = api.Get('node[natural=peak]({},{},{},{})'.format(west,south,west+1,south+1),responseformat='xml')
-        print(result)
-        with open('osm/N{:02}E{:03}.osm'.format(west,south), 'w') as f:
-            f.write(result)
+        path = 'osm/N{:02}E{:03}.osm'.format(west,south)
+        if (os.path.isfile(path)):
+            print(path + " already exists")
+        else:
+            print("downloading " + path)
+            api = overpass.API()
+            result = api.Get('node[natural=peak]({},{},{},{})'.format(west,south,west+1,south+1),responseformat='xml', verbosity="body")
+            # print(result)
+            with open(path, 'w') as f:
+                f.write(result)
 
 
 def main():
     args = parseCommandline()
     print(args)
     requiredTiles = ap.scene.determine_required_tiles(args.view_width, args.range, args.view_dir_h, args.pos_lat, args.pos_lon)
-    print(requiredTiles)
+    print("required tiles: " + requiredTiles)
     #getElevationTiles(required_tiles)
     getOSMTiles(requiredTiles)
-    print('init S:')
+    # print('init S:')
     S = ap.scene(args.pos_lat, args.pos_lon, args.pos_ele, args.view_dir_h, args.view_width, args.view_dir_v, args.view_height, args.range)
 #    print(S)
     C = ap.canvas(args.out_filename, args.canvas_width, args.canvas_height)

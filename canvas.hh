@@ -32,7 +32,6 @@ public:
   canvas(string fn, int x, int y): width(x), height(y), zbuffer(x,y,1000000), filename(fn){
     // allocate mem
     img_ptr = gdImageCreateTrueColor(width, height);
-    cout << "cpp filename: " << filename << endl;
   }
 
   ~canvas(){
