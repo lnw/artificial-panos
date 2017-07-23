@@ -36,9 +36,14 @@ def parseCommandline():
     ap.view_height *= deg2rad
     return ap
 
-
-#def getElevationTiles(required_tiles):
-
+def getElevationTiles(requiredTiles):
+    for west,south in requiredTiles:
+        # print(west, south)
+        path = 'hgt/N{:02}E{:03}.hgt'.format(west,south)
+        if (os.path.isfile(path)):
+            print(path + " already exists")
+        else:
+            print("should download " + path)
 
 def getOSMTiles(requiredTiles):
     # from github.com:mvexel/overpass-api-python-wrapper.git
@@ -56,17 +61,16 @@ def getOSMTiles(requiredTiles):
             with open(path, 'w') as f:
                 f.write(result)
 
-
 def main():
     args = parseCommandline()
     print(args)
     requiredTiles = ap.scene.determine_required_tiles(args.view_width, args.range, args.view_dir_h, args.pos_lat, args.pos_lon)
-    print("required tiles: " + requiredTiles)
-    #getElevationTiles(required_tiles)
+    print("required tiles: " + str(requiredTiles))
+    getElevationTiles(requiredTiles)
     getOSMTiles(requiredTiles)
     # print('init S:')
     S = ap.scene(args.pos_lat, args.pos_lon, args.pos_ele, args.view_dir_h, args.view_width, args.view_dir_v, args.view_height, args.range)
-#    print(S)
+    # print(S)
     C = ap.canvas(args.out_filename, args.canvas_width, args.canvas_height)
     C.bucket_fill(100,100,100)
     C.render_scene(S)
