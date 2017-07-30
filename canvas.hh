@@ -355,6 +355,7 @@ public:
     const double& view_direction_v = S.view_dir_v; // [rad]
     const double& view_height = S.view_height; // [rad]
     const double pixels_per_rad_v = height / view_height; // [px/rad]
+    const int tile_sizem1 = 3600/S.resolution; // tile size minus 1, its really 3600/r + 1
     // cout << "pprh: " << pixels_per_rad_h << endl;
 
     vector<point_feature_on_canvas> visible_peaks;
@@ -373,8 +374,8 @@ public:
       double intpart_i, intpart_j;
       const double fractpart_i = modf (peaks[p].lat, &intpart_i), fractpart_j = modf (peaks[p].lon, &intpart_j);
       // ii and jj pont to the NW corner of a 5x5 grid of tiles where the feature is in the middle tile
-      const int ii = 3600 - ceil(abs(fractpart_i)*3600) - radius; // lat
-      const int jj = floor(abs(fractpart_j)*3600) - radius; // lon
+      const int ii = tile_sizem1 - ceil(abs(fractpart_i)*(tile_sizem1)) - radius; // lat
+      const int jj = floor(abs(fractpart_j)*tile_sizem1) - radius; // lon
 //      cout << "ii,jj: " <<  ii << ", " << jj << endl;
 //      cout << "coords: " << peaks[p].lat << ", " << peaks[p].lon << endl;
 //      cout << "points will be at: " << 1-ii/3600.0 << ", " << 1-(ii+1)/3600.0 << ", " << 1-(ii+2)/3600.0 << ", " << 1-(ii+3)/3600.0 << endl;
@@ -416,9 +417,9 @@ public:
       const int inc=1;
       bool peak_visible=false;
       for(int i=ii; i<ii+diameter; i++){
-        if(i<0 || i>3600) continue; // FIXME
+        if(i<0 || i>tile_sizem1) continue; // FIXME
         for(int j=jj; j<jj+diameter; j++){
-          if(j<0 || j>3600) continue; // FIXME
+          if(j<0 || j>tile_sizem1) continue; // FIXME
           const double h_ij = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
           if(h_ij < 0 || h_ij > width) continue;
           const double h_ijj = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;

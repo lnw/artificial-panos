@@ -16,16 +16,17 @@ public:
   double lat_standpoint, lon_standpoint, z_standpoint; // [rad], [rad], [m]
   double view_dir_h, view_width, view_dir_v, view_height; // [rad], [rad], [rad], [rad]
   double view_range; // [m]
+  int resolution; // 1" or 3"
   vector<pair<tile<double>,tile<double>>> tiles; // heights, distances
 
-  scene(double lat, double lon, double z, double vdirh, double vw, double vdirv, double vh, double vdist): lat_standpoint(lat), lon_standpoint(lon), z_standpoint(z), view_dir_h(vdirh), view_width(vw), view_dir_v(vdirv), view_height(vh), view_range(vdist) {
+  scene(double lat, double lon, double z, double vdirh, double vw, double vdirv, double vh, double vdist, int res): lat_standpoint(lat), lon_standpoint(lon), z_standpoint(z), view_dir_h(vdirh), view_width(vw), view_dir_v(vdirv), view_height(vh), view_range(vdist), resolution(res) {
     ofstream debug("debug-render_scene", ofstream::out | ofstream::app);
     debug << "standpoint: " << lat_standpoint*rad2deg << ", " << lon_standpoint*rad2deg << endl;
 
     // determine which tiles to add
     // sample a bunch of points, include the respective tiles
     set<pair<int,int>> required_tiles = determine_required_tiles(view_width, view_range, view_dir_h, lat_standpoint, lon_standpoint);
-    const int size=3601;
+    const int tile_size=3600/resolution + 1;
     for(auto it=required_tiles.begin(), to=required_tiles.end(); it!=to; it++){
       // get tiles, add them
       const int ref_lat = it->first, ref_lon = it->second;
@@ -35,7 +36,7 @@ public:
       fn = path + "/" + fn;
       cout << "trying to read: " << fn << " ..." << flush;
       char const * FILENAME = fn.c_str();
-      tile<int16_t> A (tile<int16_t>(FILENAME, size, ref_lat, ref_lon));
+      tile<int16_t> A(tile<int16_t>(FILENAME, tile_size, ref_lat, ref_lon));
       add_tile(A);
       cout << " done" << endl;
     }

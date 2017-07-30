@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-import sys
+# import sys
 import math
 from argparse import ArgumentParser
 
@@ -27,6 +27,10 @@ def parseCommandline():
                         dest="canvas_height", action="store", type=int, default="1000")
     parser.add_argument("--output", "-o", help="output filename",
                         dest="out_filename", action="store", type=str, default="out.png")
+    parser.add_argument("--server", help="server from which elevation tiles are fetched",
+                        dest="server", action="store", type=int, default=0)
+    parser.add_argument("--source", help="source type and resolution",
+                        dest="source", action="store", type=str, default="view1")
     ap = parser.parse_args()
     ap.pos_lat *= deg2rad
     ap.pos_lon *= deg2rad
@@ -65,11 +69,12 @@ def main():
     args = parseCommandline()
     print(args)
     requiredTiles = ap.scene.determine_required_tiles(args.view_width, args.range, args.view_dir_h, args.pos_lat, args.pos_lon)
+    resolution = int(args.source[-1])
     print("required tiles: " + str(requiredTiles))
     getElevationTiles(requiredTiles)
     getOSMTiles(requiredTiles)
     # print('init S:')
-    S = ap.scene(args.pos_lat, args.pos_lon, args.pos_ele, args.view_dir_h, args.view_width, args.view_dir_v, args.view_height, args.range)
+    S = ap.scene(args.pos_lat, args.pos_lon, args.pos_ele, args.view_dir_h, args.view_width, args.view_dir_v, args.view_height, args.range, resolution)
     # print(S)
     C = ap.canvas(args.out_filename, args.canvas_width, args.canvas_height)
     C.bucket_fill(100,100,100)

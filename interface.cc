@@ -9,11 +9,11 @@
 namespace py = pybind11;
 
 PYBIND11_PLUGIN(libartpano) {
-  py::module m("libartpano", "pybind11 example plugin");
+  py::module m("libartpano", "pybind11 ... whatever");
 
 // class scene
   py::class_<scene>(m, "scene")
-    .def(py::init<double , double , double , double , double , double , double , double >())
+    .def(py::init<double , double , double , double , double , double , double , double , int >())
     .def_static("determine_required_tiles", &scene::determine_required_tiles); // double, double, double, double, double
 
 // class canvas

@@ -1,5 +1,9 @@
+-- option for tile resolution
+
 solve the follwing by making this a lib with python bindings and doing the annoying parts in python?
 -- automatically download elevation tiles
+
+-- load picture and superimpose stuff?
 
 -- both elevation interpolation and vis-patches should include neighbouring tiles
 -- don't reload existing tiles
