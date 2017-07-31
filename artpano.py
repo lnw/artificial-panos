@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import os
-# import sys
+import signal
+import sys
 import math
 from argparse import ArgumentParser
 
@@ -30,7 +31,7 @@ def parseCommandline():
     parser.add_argument("--server", help="server from which elevation tiles are fetched",
                         dest="server", action="store", type=int, default=0)
     parser.add_argument("--source", help="source type and resolution",
-                        dest="source", action="store", type=str, default="view1")
+                        dest="source", nargs='+', action="store", default=["srtm1","view1"]) # '+' meaning one or more arguments which end up in a list
     ap = parser.parse_args()
     ap.pos_lat *= deg2rad
     ap.pos_lon *= deg2rad
@@ -47,7 +48,7 @@ def getElevationTiles(requiredTiles):
         if (os.path.isfile(path)):
             print(path + " already exists")
         else:
-            print("should download " + path)
+            print("should download " + path + " (not implemented yet)")
 
 def getOSMTiles(requiredTiles):
     # from github.com:mvexel/overpass-api-python-wrapper.git
@@ -65,16 +66,21 @@ def getOSMTiles(requiredTiles):
             with open(path, 'w') as f:
                 f.write(result)
 
+# def signal_handler(signal, frame):
+#     print('You pressed Ctrl+C!')
+#     sys.exit(0)
+
 def main():
+    # signal.signal(signal.SIGINT, signal_handler)
     args = parseCommandline()
     print(args)
     requiredTiles = ap.scene.determine_required_tiles(args.view_width, args.range, args.view_dir_h, args.pos_lat, args.pos_lon)
-    resolution = int(args.source[-1])
     print("required tiles: " + str(requiredTiles))
     getElevationTiles(requiredTiles)
     getOSMTiles(requiredTiles)
     # print('init S:')
-    S = ap.scene(args.pos_lat, args.pos_lon, args.pos_ele, args.view_dir_h, args.view_width, args.view_dir_v, args.view_height, args.range, resolution)
+    # print(args.source)
+    S = ap.scene(args.pos_lat, args.pos_lon, args.pos_ele, args.view_dir_h, args.view_width, args.view_dir_v, args.view_height, args.range, args.source)
     # print(S)
     C = ap.canvas(args.out_filename, args.canvas_width, args.canvas_height)
     C.bucket_fill(100,100,100)

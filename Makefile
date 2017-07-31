@@ -38,7 +38,7 @@ distclean: clean
 testing-envocation-zh:
 	./artpano.py --lat 47.3664 --lon 8.5413  --view-dir-h 290 --view-width 60 --view-height 12 --view-dir-v 4 --range 100000
 testing-envocation-hd:
-	./artpano.py --lat 49.4 --lon 8.6 --view-dir-h 0 --view-width 355 --range 20000
+	./artpano.py --lat 49.4 --lon 8.6 --view-dir-h 50 --view-width 355 --view-height 15 --source view1 srtm1 view3 srtm3 --range 40000
 
 
 

@@ -13,7 +13,7 @@ PYBIND11_PLUGIN(libartpano) {
 
 // class scene
   py::class_<scene>(m, "scene")
-    .def(py::init<double , double , double , double , double , double , double , double , int >())
+    .def(py::init<double , double , double , double , double , double , double , double , vector<string> >())
     .def_static("determine_required_tiles", &scene::determine_required_tiles); // double, double, double, double, double
 
 // class canvas

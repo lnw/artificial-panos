@@ -24,12 +24,12 @@ public:
   size_t width, height; // [pixels]
 
 private:
-  array2D<double> zbuffer; // initialised to 1000 km [m]
+  array2D<double> zbuffer;
   string filename;
   gdImagePtr img_ptr = nullptr;
 
 public:
-  canvas(string fn, int x, int y): width(x), height(y), zbuffer(x,y,1000000), filename(fn){
+  canvas(string fn, int x, int y): width(x), height(y), zbuffer(x,y,INT_MAX), filename(fn){
     // allocate mem
     img_ptr = gdImageCreateTrueColor(width, height);
   }
@@ -355,7 +355,6 @@ public:
     const double& view_direction_v = S.view_dir_v; // [rad]
     const double& view_height = S.view_height; // [rad]
     const double pixels_per_rad_v = height / view_height; // [px/rad]
-    const int tile_sizem1 = 3600/S.resolution; // tile size minus 1, its really 3600/r + 1
     // cout << "pprh: " << pixels_per_rad_h << endl;
 
     vector<point_feature_on_canvas> visible_peaks;
@@ -365,21 +364,9 @@ public:
       const double dist_peak = distance_atan(S.lat_standpoint, S.lon_standpoint, peaks[p].lat*deg2rad, peaks[p].lon*deg2rad);
       if(dist_peak > S.view_range || dist_peak < 1000) continue;
 
-      // the test-patch should be larger for large distances because there are less pixels per ground area
-      const int radius = 2 + dist_peak*pixels_per_rad_h/(1.5*10000000); // the numbers are chosen because they sort-of work
-      const int diameter = 2*radius + 1;
-      // cout << dist_peak << ", " << radius << ", " << diameter << endl;
-
-      // get a few triangles around the peak, we're interested in 25 squares around the peak, between i/j and i+6/j+6
+      // integral and fractal part of the peak location 
       double intpart_i, intpart_j;
-      const double fractpart_i = modf (peaks[p].lat, &intpart_i), fractpart_j = modf (peaks[p].lon, &intpart_j);
-      // ii and jj pont to the NW corner of a 5x5 grid of tiles where the feature is in the middle tile
-      const int ii = tile_sizem1 - ceil(abs(fractpart_i)*(tile_sizem1)) - radius; // lat
-      const int jj = floor(abs(fractpart_j)*tile_sizem1) - radius; // lon
-//      cout << "ii,jj: " <<  ii << ", " << jj << endl;
-//      cout << "coords: " << peaks[p].lat << ", " << peaks[p].lon << endl;
-//      cout << "points will be at: " << 1-ii/3600.0 << ", " << 1-(ii+1)/3600.0 << ", " << 1-(ii+2)/3600.0 << ", " << 1-(ii+3)/3600.0 << endl;
-//      cout << "points will be at: " << jj/3600.0 << ", " << (jj+1)/3600.0 << ", " << (jj+2)/3600.0 << ", " << (jj+3)/3600.0 << endl;
+      const double fractpart_i = modf(peaks[p].lat, &intpart_i), fractpart_j = modf(peaks[p].lon, &intpart_j);
 
       // find the tile in which the peak is located, continue if none
       int tile_index = -1;
@@ -394,6 +381,23 @@ public:
         cout << "tile " << round(intpart_i) << "/" << round(intpart_j) << " is required but seems to be inavailable.  skipping a peak." << endl;
         continue;
       }
+
+      // get a few triangles around the peak, we're interested in 25 squares around the peak, between i-rad/j-rad and i+rad/j+rad
+      // the test-patch should be larger for large distances because there are less pixels per ground area
+      const int radius = 2 + dist_peak*pixels_per_rad_h/(1.5*10000000); // the numbers are chosen because they sort-of work
+      const int diameter = 2*radius + 1;
+      // cout << dist_peak << ", " << radius << ", " << diameter << endl;
+
+      const int tile_size_m1 = S.tiles[tile_index].first.dim - 1; // because we always need size-1 here
+
+      // ii and jj pont to the NW corner of a 5x5 grid of tiles where the feature is in the middle tile
+      const int ii = tile_size_m1 - ceil(abs(fractpart_i)*(tile_size_m1)) - radius; // lat
+      const int jj = floor(abs(fractpart_j)*tile_size_m1) - radius; // lon
+//      cout << "ii,jj: " <<  ii << ", " << jj << endl;
+//      cout << "coords: " << peaks[p].lat << ", " << peaks[p].lon << endl;
+//      cout << "points will be at: " << 1-ii/3600.0 << ", " << 1-(ii+1)/3600.0 << ", " << 1-(ii+2)/3600.0 << ", " << 1-(ii+3)/3600.0 << endl;
+//      cout << "points will be at: " << jj/3600.0 << ", " << (jj+1)/3600.0 << ", " << (jj+2)/3600.0 << ", " << (jj+3)/3600.0 << endl;
+
       const tile<double> &H = S.tiles[tile_index].first;
       const tile<double> &D = S.tiles[tile_index].second;
       const int &m = H.m;
@@ -417,9 +421,9 @@ public:
       const int inc=1;
       bool peak_visible=false;
       for(int i=ii; i<ii+diameter; i++){
-        if(i<0 || i>tile_sizem1) continue; // FIXME
+        if(i<0 || i>tile_size_m1) continue; // FIXME
         for(int j=jj; j<jj+diameter; j++){
-          if(j<0 || j>tile_sizem1) continue; // FIXME
+          if(j<0 || j>tile_size_m1) continue; // FIXME
           const double h_ij = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
           if(h_ij < 0 || h_ij > width) continue;
           const double h_ijj = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
