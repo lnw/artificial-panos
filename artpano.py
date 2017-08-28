@@ -61,7 +61,14 @@ def getOSMTiles(requiredTiles):
         else:
             print("downloading " + path)
             api = overpass.API()
-            result = api.Get('node[natural=peak]({},{},{},{})'.format(west,south,west+1,south+1),responseformat='xml', verbosity="body")
+            query = ('(' +
+                    'node[natural=peak]({},{},{},{});'.format(west,south,west+1,south+1) +
+                    'way[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                    'way[natural=coastline]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                    'relation[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                    ');')
+            result = api.Get(query, responseformat='xml', verbosity='body')
+            # water bodies
             # print(result)
             with open(path, 'w') as f:
                 f.write(result)
