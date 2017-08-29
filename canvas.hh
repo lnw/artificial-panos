@@ -324,7 +324,7 @@ public:
     for (auto it=S.tiles.begin(), to=S.tiles.end(); it!=to; it++){
       string path("osm");
       string xml_name(string(it->first.lat<0?"S":"N") + to_string_fixedwidth(abs(it->first.lat),2) +
-                      string(it->first.lon<0?"W":"E") + to_string_fixedwidth(abs(it->first.lon),3) + ".osm");
+                      string(it->first.lon<0?"W":"E") + to_string_fixedwidth(abs(it->first.lon),3) + "_peak.osm");
       xml_name = path + "/" + xml_name;
       vector<point_feature> tmp = read_peaks_osm(xml_name);
       peaks.insert(std::end(peaks), std::begin(tmp), std::end(tmp));
@@ -345,6 +345,8 @@ public:
     draw_invisible_peaks(omitted_peaks, 0,255,255);
 #endif
   }
+
+
 
   // test if a peak is visible by attempting to draw a few triangles around it,
   // if the zbuffer admits any pixel to be drawn, the peak is visible
@@ -384,7 +386,7 @@ public:
 
       // get a few triangles around the peak, we're interested in 25 squares around the peak, between i-rad/j-rad and i+rad/j+rad
       // the test-patch should be larger for large distances because there are less pixels per ground area
-      const int radius = 2 + dist_peak*pixels_per_rad_h/(1.5*10000000); // the numbers are chosen because they sort-of work
+      const int radius = 2 + dist_peak*pixels_per_rad_h/(0.7*10000000); // the numbers are chosen because they sort-of work
       const int diameter = 2*radius + 1;
       // cout << dist_peak << ", " << radius << ", " << diameter << endl;
 
@@ -516,6 +518,34 @@ public:
       cout << "pixel will be written at : " << peaks_invis[p].x << ", " << peaks_invis[p].y << endl;
       write_pixel(peaks_invis[p].x, peaks_invis[p].y, r,g,b);
     }
+  }
+
+  void anotate_island(const scene& S){
+    // read all peaks from all tiles in S
+    vector<linear_feature> islands;
+    for (auto it=S.tiles.begin(), to=S.tiles.end(); it!=to; it++){
+      string path("osm");
+      string xml_name(string(it->first.lat<0?"S":"N") + to_string_fixedwidth(abs(it->first.lat),2) +
+                      string(it->first.lon<0?"W":"E") + to_string_fixedwidth(abs(it->first.lon),3) + "_isl.osm");
+      xml_name = path + "/" + xml_name;
+//      vector<point_feature> tmp = read_peaks_osm(xml_name);
+//      peaks.insert(std::end(peaks), std::begin(tmp), std::end(tmp));
+    }
+
+  }
+
+  void draw_coast(const scene& S){
+    // read all peaks from all tiles in S
+    vector<linear_feature> coasts;
+    for (auto it=S.tiles.begin(), to=S.tiles.end(); it!=to; it++){
+      string path("osm");
+      string xml_name(string(it->first.lat<0?"S":"N") + to_string_fixedwidth(abs(it->first.lat),2) +
+                      string(it->first.lon<0?"W":"E") + to_string_fixedwidth(abs(it->first.lon),3) + "_coast.osm");
+      xml_name = path + "/" + xml_name;
+//      vector<point_feature> tmp = read_peaks_osm(xml_name);
+//      peaks.insert(std::end(peaks), std::begin(tmp), std::end(tmp));
+    }
+
   }
 
 };

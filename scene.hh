@@ -32,16 +32,18 @@ public:
     // determine which tiles to add
     // sample a bunch of points, include the respective tiles
     set<pair<int,int>> required_tiles = determine_required_tiles(view_width, view_range, view_dir_h, lat_standpoint, lon_standpoint);
+cout << required_tiles << endl;
     for(auto it=required_tiles.begin(), to=required_tiles.end(); it!=to; it++){
+      const int ref_lat = it->first, ref_lon = it->second;
+      string path("hgt");
+      string fn(string(ref_lat<0?"S":"N") + to_string_fixedwidth(abs(ref_lat),2) +
+                string(ref_lon<0?"W":"E") + to_string_fixedwidth(abs(ref_lon),3) + ".hgt");
+      bool source_found = false;
       for(vector<string>::const_iterator sit=source.begin(), sot=source.end(); sit!=sot; sit++){
-        const int ref_lat = it->first, ref_lon = it->second;
-        string path("hgt");
-        string fn(string(ref_lat<0?"S":"N") + to_string_fixedwidth(abs(ref_lat),2) +
-                  string(ref_lon<0?"W":"E") + to_string_fixedwidth(abs(ref_lon),3) + ".hgt");
-        fn = path + "/" + *sit + "/" + fn;
-        if(file_accessable(fn)){
+        string fn_full = path + "/" + *sit + "/" + fn;
+        if(file_accessable(fn_full)){
           // get tiles, add them
-          int tile_size=0; 
+          int tile_size = 0; 
           try{
             tile_size = 3600/stoi(string(&sit->back())) + 1;
             // tile_size = 3600/int(sit->back()-'0') + 1; // also works ... chars are horrible ...
@@ -50,14 +52,16 @@ public:
             cerr << "Invalid argument: " << ia.what() << endl; }
           catch (const std::out_of_range& oor) {
             std::cerr << "Out of Range error: " << oor.what() << endl; }
-          cout << "trying to read: " << fn << " with dimension " << tile_size << " ..." << flush;
-          char const * FILENAME = fn.c_str();
+          cout << "trying to read: " << fn_full << " with dimension " << tile_size << " ..." << flush;
+          char const * FILENAME = fn_full.c_str();
           tile<int16_t> A(tile<int16_t>(FILENAME, tile_size, ref_lat, ref_lon));
           add_tile(A);
           cout << " done" << endl;
+          source_found = true;
           break; // add only one version of each tile
         }
       }
+      if(!source_found) cerr << " no source for "+fn+" found, ignoring it" << endl;
     }
     if(z_standpoint == -1){
        // FIXME the case when points from neighbouring tiles are required

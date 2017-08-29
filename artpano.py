@@ -41,37 +41,66 @@ def parseCommandline():
     ap.view_height *= deg2rad
     return ap
 
-def getElevationTiles(requiredTiles):
+def getElevationTiles(requiredTiles,sources):
     for west,south in requiredTiles:
-        # print(west, south)
-        path = 'hgt/N{:02}E{:03}.hgt'.format(west,south)
-        if (os.path.isfile(path)):
-            print(path + " already exists")
-        else:
-            print("should download " + path + " (not implemented yet)")
+      for source in sources:
+          # print(west, south)
+          path = 'hgt/'+source+'/N{:02}E{:03}.hgt'.format(west,south)
+          if (os.path.isfile(path)):
+              print(path + " already exists")
+              break
+          else:
+              print("should download " + path + " (not implemented yet)")
+              # break if downloaded successfully
 
 def getOSMTiles(requiredTiles):
     # from github.com:mvexel/overpass-api-python-wrapper.git
     import overpass
     for west,south in requiredTiles:
         # print(west, south)
-        path = 'osm/N{:02}E{:03}.osm'.format(west,south)
-        if (os.path.isfile(path)):
-            print(path + " already exists")
+        path_peak = 'osm/N{:02}E{:03}_peak.osm'.format(west,south)
+        path_coast = 'osm/N{:02}E{:03}_coast.osm'.format(west,south)
+        path_isl = 'osm/N{:02}E{:03}_isl.osm'.format(west,south)
+        if (os.path.isfile(path_peak)):
+            print(path_peak + " already exists")
         else:
-            print("downloading " + path)
+            print("downloading " + path_peak)
             api = overpass.API()
-            query = ('(' +
-                    'node[natural=peak]({},{},{},{});'.format(west,south,west+1,south+1) +
-                    'way[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
-                    'way[natural=coastline]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
-                    'relation[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
-                    ');')
-            result = api.Get(query, responseformat='xml', verbosity='body')
-            # water bodies
+            query_peak = ('(' +
+                          'node[natural=peak]({},{},{},{});'.format(west,south,west+1,south+1) +
+                          ');')
+            result_peak = api.Get(query_peak, responseformat='xml', verbosity='body')
             # print(result)
-            with open(path, 'w') as f:
-                f.write(result)
+            with open(path_peak, 'w') as f:
+                f.write(result_peak)
+        if (os.path.isfile(path_coast)):
+            print(path_coast + " already exists")
+        else:
+            print("downloading " + path_coast)
+            api = overpass.API()
+            query_coast = ('(' +
+                           'way[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                           'way[natural=coastline]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                           'relation[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                           ');')
+            result_coast = api.Get(query_coast, responseformat='xml', verbosity='body')
+            # print(result)
+            with open(path_coast, 'w') as f:
+                f.write(result_coast)
+        if (os.path.isfile(path_isl)):
+            print(path_isl + " already exists")
+        else:
+            print("downloading " + path_isl)
+            api = overpass.API()
+            query_isl = ('(' +
+                         'node[place=island]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                         'node[place=islet]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                         'relation[place=island]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                         ');')
+            result_isl = api.Get(query_isl, responseformat='xml', verbosity='body')
+            # print(result)
+            with open(path_isl, 'w') as f:
+                f.write(result_isl)
 
 # def signal_handler(signal, frame):
 #     print('You pressed Ctrl+C!')
@@ -83,7 +112,7 @@ def main():
     print(args)
     requiredTiles = ap.scene.determine_required_tiles(args.view_width, args.range, args.view_dir_h, args.pos_lat, args.pos_lon)
     print("required tiles: " + str(requiredTiles))
-    getElevationTiles(requiredTiles)
+    getElevationTiles(requiredTiles,args.source)
     getOSMTiles(requiredTiles)
     # print('init S:')
     # print(args.source)
