@@ -6,14 +6,16 @@ BOOST_INCLUDES=-lboost_regex -lboost_program_options
 XML_INCLUDES=$(shell pkg-config libxml++-2.6 --cflags --libs)
 PYTHON_INCLUDES=-I/usr/include/python3.5m
 
-pano: Makefile pano.cc array2D.hh auxiliary.hh canvas.hh geometry.hh labelgroup.hh mapitems.hh scene.hh tile.hh
-	$(CXX) -g -O2 -Wshadow -std=c++14 pano.cc $(GD_INCLUDES) $(XML_INCLUDES) -o pano
+HEADERS=array2D.hh auxiliary.hh canvas.hh geometry.hh labelgroup.hh mapitems.hh scene.hh tile.hh
 
-pano-debug: Makefile pano.cc array2D.hh auxiliary.hh canvas.hh geometry.hh labelgroup.hh mapitems.hh scene.hh tile.hh
-	$(CXX) -g -O0 -DGRAPHICS_DEBUG -Wall -Wpedantic -Wextra -Wshadow -std=c++14 pano.cc $(GD_INCLUDES) $(XML_INCLUDES) -o pano-debug
+pano: Makefile pano.cc mapitems.cc $(HEADERS)
+	$(CXX) -g -O2 -Wshadow -std=c++14 pano.cc mapitems.cc $(GD_INCLUDES) $(XML_INCLUDES) -o pano
 
-libartpano.so: Makefile interface.cc array2D.hh auxiliary.hh canvas.hh geometry.hh labelgroup.hh mapitems.hh scene.hh tile.hh
-	$(CXX) -g -O2 -Wshadow -std=c++14 interface.cc $(PYTHON_INCLUDES) $(GD_INCLUDES) $(XML_INCLUDES) -shared -fpic -o libartpano.so
+pano-debug: Makefile pano.cc mapitems.cc $(HEADERS)
+	$(CXX) -g -O0 -DGRAPHICS_DEBUG -Wall -Wpedantic -Wextra -Wshadow -std=c++14 pano.cc mapitems.cc $(GD_INCLUDES) $(XML_INCLUDES) -o pano-debug
+
+libartpano.so: Makefile interface.cc mapitems.cc $(HEADERS)
+	$(CXX) -g -O2 -Wshadow -std=c++14 interface.cc mapitems.cc $(PYTHON_INCLUDES) $(GD_INCLUDES) $(XML_INCLUDES) -shared -fpic -o libartpano.so
 
 .PHONY: test
 test: Makefile test.cc scene.hh tile.hh array2D.hh auxiliary.hh

@@ -520,7 +520,7 @@ public:
     }
   }
 
-  void anotate_island(const scene& S){
+  void annotate_islands(const scene& S){
     // read all peaks from all tiles in S
     vector<linear_feature> islands;
     for (auto it=S.tiles.begin(), to=S.tiles.end(); it!=to; it++){
@@ -528,8 +528,8 @@ public:
       string xml_name(string(it->first.lat<0?"S":"N") + to_string_fixedwidth(abs(it->first.lat),2) +
                       string(it->first.lon<0?"W":"E") + to_string_fixedwidth(abs(it->first.lon),3) + "_isl.osm");
       xml_name = path + "/" + xml_name;
-//      vector<point_feature> tmp = read_peaks_osm(xml_name);
-//      peaks.insert(std::end(peaks), std::begin(tmp), std::end(tmp));
+      vector<linear_feature> tmp = read_islands_osm(xml_name);
+      islands.insert(std::end(islands), std::begin(tmp), std::end(tmp));
     }
 
   }
@@ -542,10 +542,10 @@ public:
       string xml_name(string(it->first.lat<0?"S":"N") + to_string_fixedwidth(abs(it->first.lat),2) +
                       string(it->first.lon<0?"W":"E") + to_string_fixedwidth(abs(it->first.lon),3) + "_coast.osm");
       xml_name = path + "/" + xml_name;
-//      vector<point_feature> tmp = read_peaks_osm(xml_name);
-//      peaks.insert(std::end(peaks), std::begin(tmp), std::end(tmp));
+      vector<linear_feature> tmp = read_coast_osm(xml_name);
+      coasts.insert(std::end(coasts), std::begin(tmp), std::end(tmp));
     }
-
+    // do the actual drawing 
   }
 
 };

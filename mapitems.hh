@@ -45,7 +45,8 @@ struct point_feature_on_canvas{
 struct linear_feature{
   vector<pair<double, double>> coords; // lat, lon
   string name;
-  bool closed;
+  size_t id; // so we can deduplicate between tiles
+  bool closed; // detect by comparing first and last element
 
   friend ostream& operator<<(ostream& S, const linear_feature& lf) {
     S << "{" << lf.coords << ", " << lf.name << ", " << lf.closed << "}";
@@ -53,79 +54,30 @@ struct linear_feature{
   }
 };
 
+struct linear_feature_on_canvas{
+  linear_feature lf;
+  vector<double> dists;
 
-// parses te xml object, appends peaks
-void parse_gpx(const xmlpp::Node *node, vector<point_feature> &peaks) {
-  const xmlpp::ContentNode* nodeContent = dynamic_cast<const xmlpp::ContentNode*>(node);
-  const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(node);
-  const xmlpp::CommentNode* nodeComment = dynamic_cast<const xmlpp::CommentNode*>(node);
-
-  Glib::ustring nodename = node->get_name();
-  //cout << "name of node: " << nodename << endl;
-
-  if(nodename.compare("node") == 0) {
-    const xmlpp::Element* nodeElement = dynamic_cast<const xmlpp::Element*>(node);
-    // lat und lon are attributes of 'node'
-    const double lat = to_double(nodeElement->get_attribute("lat")->get_value());
-    const double lon = to_double(nodeElement->get_attribute("lon")->get_value());
-// cout << nodeElement->get_attribute("lat")->get_value() << endl;
-// cout << nodeElement->get_attribute("lon")->get_value() << endl;
-// cout << lat << ", " << lon << endl;
-    double ele = 0;
-    string name = "";
-    xmlpp::Node::NodeList list = node->get_children();
-    for(xmlpp::Node::NodeList::iterator iter = list.begin(); iter != list.end(); ++iter)
-    {
-      if( (*iter)->get_name() == "tag" ){
-      const xmlpp::Element* child_el = dynamic_cast<const xmlpp::Element*>(*iter);
-      // cout << "looking at childnodes" << endl;
-        if(child_el->get_attribute("k")->get_value() == "ele") {
-          // cout << "ele found" << endl;
-          ele = to_double(child_el->get_attribute("v")->get_value());
-          // cout << "ele: " << ele << endl;
-        }
-        if(child_el->get_attribute("k")->get_value() == "name") {
-          // cout << "name found" << endl;
-          name = child_el->get_attribute("v")->get_value();
-          // cout << "name: " << name << endl;
-        }
-      }
-    }
-    peaks.push_back(point_feature(lat, lon, name, ele));
+  friend ostream& operator<<(ostream& S, const linear_feature_on_canvas& lfoc) {
+    S << "[" << lfoc.lf << ", " << lfoc.dists << "]";
+    return S;
   }
-  else if(!nodeContent){
-    //Recurse through child nodes:
-    xmlpp::Node::NodeList list = node->get_children();
-    for(xmlpp::Node::NodeList::iterator iter = list.begin(); iter != list.end(); ++iter) {
-      parse_gpx(*iter, peaks);
-    }
-  }
-}
+};
 
+// parses the xml object, appends peaks
+void parse_peaks_gpx(const xmlpp::Node *node, vector<point_feature> &peaks);
+
+// parses the xml object, first gathers all coordinates with IDs, and all
+// ways/realtions with lists of ID; then compiles vectors of points, ie linear
+// features
+void parse_coast_gpx(const xmlpp::Node *node, vector<linear_feature> &coasts);
 
 // read plain xml
-vector<point_feature> read_peaks_osm(string filename){
-  cout << "attempting to parse: " << filename << " ..." << flush;
-  vector<point_feature> peaks;
+vector<point_feature> read_peaks_osm(string filename);
 
-  try {
-    xmlpp::DomParser parser;
-    parser.parse_file(filename);
-    if(parser) {
-      //find root node
-      const xmlpp::Node* pNode = parser.get_document()->get_root_node();
-      //print recursively
-      parse_gpx(pNode, peaks);
-    }
-  }
-  catch(const exception& ex) {
-    cout << "Exception caught: " << ex.what() << endl;
-    abort();
-  }
+vector<linear_feature> read_coast_osm(string filename);
 
-  cout << " done" << endl;
-  return peaks;
-}
+vector<linear_feature> read_islands_osm(string filename);
 
 #endif
 

@@ -86,4 +86,13 @@ int to_int(const T& s) {
   return result;
 }
 
+template <typename T>
+size_t to_st(const T& s) {
+  std::stringstream ss;
+  size_t result;
+  ss << s.raw();
+  ss >> result;
+  return result;
+}
+
 #endif // auxiliary
