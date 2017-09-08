@@ -48,6 +48,14 @@ struct linear_feature{
   size_t id; // so we can deduplicate between tiles
   bool closed; // detect by comparing first and last element
 
+  linear_feature(): coords(), name(""), id(0), closed(false) {};
+  linear_feature(int N): coords(N), name(""), id(0), closed(false) {};
+
+  size_t size() const {return coords.size();}
+  void append(const pair<double,double> &p){
+    coords.push_back(p);
+  }
+
   friend ostream& operator<<(ostream& S, const linear_feature& lf) {
     S << "{" << lf.coords << ", " << lf.name << ", " << lf.closed << "}";
     return S;

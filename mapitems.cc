@@ -18,10 +18,7 @@ void parse_peaks_gpx(const xmlpp::Node *node, vector<point_feature> &peaks) {
   // const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(node);
   // const xmlpp::CommentNode* nodeComment = dynamic_cast<const xmlpp::CommentNode*>(node);
 
-  Glib::ustring nodename = node->get_name();
-  //cout << "name of node: " << nodename << endl;
-
-  if(nodename.compare("node") == 0) {
+  if(node->get_name() == "node") {
     const xmlpp::Element* nodeElement = dynamic_cast<const xmlpp::Element*>(node);
     // lat und lon are attributes of 'node'
     const double lat = to_double(nodeElement->get_attribute("lat")->get_value());
@@ -31,12 +28,10 @@ void parse_peaks_gpx(const xmlpp::Node *node, vector<point_feature> &peaks) {
 // cout << lat << ", " << lon << endl;
     double ele = 0;
     string name = "";
-    xmlpp::Node::NodeList list = node->get_children();
-    for(xmlpp::Node::NodeList::iterator it = list.begin(); it != list.end(); ++it)
-    {
-      if( (*it)->get_name() == "tag" ){
-      const xmlpp::Element* child_el = dynamic_cast<const xmlpp::Element*>(*it);
-      // cout << "looking at childnodes" << endl;
+    for(const xmlpp::Node *child: node->get_children()){
+      if(child->get_name() == "tag" ){
+        const xmlpp::Element* child_el = dynamic_cast<const xmlpp::Element*>(child);
+        // cout << "looking at childnodes" << endl;
         if(child_el->get_attribute("k")->get_value() == "ele") {
           // cout << "ele found" << endl;
           ele = to_double(child_el->get_attribute("v")->get_value());
@@ -53,9 +48,8 @@ void parse_peaks_gpx(const xmlpp::Node *node, vector<point_feature> &peaks) {
   }
   else if(!nodeContent){
     //Recurse through child nodes:
-    xmlpp::Node::NodeList list = node->get_children();
-    for(xmlpp::Node::NodeList::iterator it = list.begin(); it != list.end(); ++it) {
-      parse_peaks_gpx(*it, peaks);
+    for(const xmlpp::Node *child: node->get_children()){
+      parse_peaks_gpx(child, peaks);
     }
   }
 }
@@ -72,7 +66,7 @@ void gather_points(const xmlpp::Node *node, unordered_map<size_t, pair<double,do
   if(node->get_name() == "node") {
     const xmlpp::Element* nodeElement = dynamic_cast<const xmlpp::Element*>(node);
     // id, lat, and lon are attributes of 'node'
-    const size_t id = to_int(nodeElement->get_attribute("id")->get_value());
+    const size_t id =  to_st(nodeElement->get_attribute("id")->get_value());
     const double lat = to_double(nodeElement->get_attribute("lat")->get_value());
     const double lon = to_double(nodeElement->get_attribute("lon")->get_value());
     // cout << id << ", " << lat << ", " << lon << endl;
@@ -169,9 +163,19 @@ vector<linear_feature> read_coast_osm(string filename){
     abort();
   }
 
-  // assemble ways/coordinate
-  vector<linear_feature> coastlines;
-
+  // assemble ways/coordinates
+  vector<linear_feature> coastlines(ways.size());
+  for(int i=0; i<ways.size(); i++){
+    linear_feature lf_tmp;
+    for(int j=0; j<ways[i].first.size(); j++){
+      const size_t id = ways[i].first[j];
+      const pair<double,double> coord(nodes[id]);
+      lf_tmp.append(coord);
+    }
+    lf_tmp.id = ways[i].second;
+    lf_tmp.closed = ways[i].first.front() == ways[i].first.back(); // are the first and the last id identical?
+    if(lf_tmp.size()!=0) coastlines[i] = lf_tmp;
+  }
   cout << " done" << endl;
   return coastlines;
 }

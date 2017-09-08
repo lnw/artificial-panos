@@ -537,14 +537,15 @@ public:
   void draw_coast(const scene& S){
     // read all peaks from all tiles in S
     vector<linear_feature> coasts;
-    for (auto it=S.tiles.begin(), to=S.tiles.end(); it!=to; it++){
+    for (const auto T: S.tiles){
       string path("osm");
-      string xml_name(string(it->first.lat<0?"S":"N") + to_string_fixedwidth(abs(it->first.lat),2) +
-                      string(it->first.lon<0?"W":"E") + to_string_fixedwidth(abs(it->first.lon),3) + "_coast.osm");
+      string xml_name(string(T.first.lat<0?"S":"N") + to_string_fixedwidth(abs(T.first.lat),2) +
+                      string(T.first.lon<0?"W":"E") + to_string_fixedwidth(abs(T.first.lon),3) + "_coast.osm");
       xml_name = path + "/" + xml_name;
       vector<linear_feature> tmp = read_coast_osm(xml_name);
       coasts.insert(std::end(coasts), std::begin(tmp), std::end(tmp));
     }
+    // cout << coasts << endl;
     // do the actual drawing 
   }
 
