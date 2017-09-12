@@ -106,7 +106,7 @@ void gather_ways(const xmlpp::Node *node, vector<pair<vector<size_t>,size_t>> &w
   }
   else if(!nodeContent){
     //Recurse through child nodes:
-    for(const auto& child: node->get_children()) {
+    for(const xmlpp::Node* child: node->get_children()) {
       gather_ways(child, ways);
     }
   }
@@ -132,7 +132,6 @@ vector<point_feature> read_peaks_osm(string filename){
     cout << "Exception caught: " << ex.what() << endl;
     abort();
   }
-
   cout << " done" << endl;
   return peaks;
 }

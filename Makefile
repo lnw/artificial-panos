@@ -1,21 +1,36 @@
+
 #CXX=g++-7
 CXX=clang++-4.0
+AR=ar
 
 GD_INCLUDES=-lgd -lpng -lz -lfreetype -lm 
 BOOST_INCLUDES=-lboost_regex -lboost_program_options
-XML_INCLUDES=$(shell pkg-config libxml++-2.6 --cflags --libs)
-PYTHON_INCLUDES=-I/usr/include/python3.5m
+XML_INCLUDES_L=$(shell pkg-config libxml++-2.6 --libs)
+XML_INCLUDES_C=$(shell pkg-config libxml++-2.6 --cflags)
+PYTHON_INCLUDES_C=-I/usr/include/python3.5m
 
 HEADERS=array2D.hh auxiliary.hh canvas.hh geometry.hh labelgroup.hh mapitems.hh scene.hh tile.hh
 
-pano: Makefile pano.cc mapitems.cc $(HEADERS)
-	$(CXX) -g -O2 -Wshadow -std=c++14 pano.cc mapitems.cc $(GD_INCLUDES) $(XML_INCLUDES) -o pano
+OBJECTS=mapitems.o geometry.o canvas.o tile.o
+OBJECTS_STANDALONE=pano.o
+OBJECTS_LIB=interface.o
 
-pano-debug: Makefile pano.cc mapitems.cc $(HEADERS)
-	$(CXX) -g -O0 -DGRAPHICS_DEBUG -Wall -Wpedantic -Wextra -Wshadow -std=c++14 pano.cc mapitems.cc $(GD_INCLUDES) $(XML_INCLUDES) -o pano-debug
+OBJECTS_P=$(patsubst %.o, build/%.o, $(OBJECTS))
+OBJECTS_STANDALONE_P=$(patsubst %.o, build/%.o, $(OBJECTS_STANDALONE))
+OBJECTS_LIB_P=$(patsubst %.o, build/%.o, $(OBJECTS_LIB))
 
-libartpano.so: Makefile interface.cc mapitems.cc $(HEADERS)
-	$(CXX) -g -O2 -Wshadow -std=c++14 interface.cc mapitems.cc $(PYTHON_INCLUDES) $(GD_INCLUDES) $(XML_INCLUDES) -shared -fpic -o libartpano.so
+build/%.o: %.cc $(HEADERS)
+	$(CXX) -g -O2 -Wshadow -std=c++14 -fpic $(XML_INCLUDES_C) $(PYTHON_INCLUDES_C) -c $< -o $@
+
+pano: Makefile $(OBJECTS_P) $(OBJECTS_STANDALONE_P)
+	c++ $(OBJECTS_P) $(OBJECTS_STANDALONE_P) $(GD_INCLUDES) $(XML_INCLUDES_L) -o $@
+
+# pano-debug: Makefile pano.cc mapitems.cc geometry.cc canvas.cc $(HEADERS)
+# 	$(CXX) -g -O0 -DGRAPHICS_DEBUG -Wall -Wpedantic -Wextra -Wshadow -std=c++14 pano.cc mapitems.cc geometry.cc canvas.cc tile.cc $(GD_INCLUDES) $(XML_INCLUDES) -o pano-debug
+
+libartpano.so: $(OBJECTS_P) $(OBJECTS_LIB_P)
+	c++ -shared $(OBJECTS_P) $(OBJECTS_LIB_P) $(GD_INCLUDES) $(XML_INCLUDES_L) -o $@
+
 
 .PHONY: test
 test: Makefile test.cc scene.hh tile.hh array2D.hh auxiliary.hh
@@ -32,7 +47,7 @@ clean:
 	rm -f out.png debug*
 
 distclean: clean
-	rm -f pano pano-debug test a.out libartpano.so
+	rm -f pano pano-debug test a.out libartpano.so build/*o
 
 
 

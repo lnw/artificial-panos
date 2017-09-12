@@ -9,6 +9,7 @@
 #include <libxml++/libxml++.h>
 
 #include "auxiliary.hh"
+#include "geometry.hh"
 
 using namespace std;
 
@@ -51,6 +52,8 @@ struct linear_feature{
   linear_feature(): coords(), name(""), id(0), closed(false) {};
   linear_feature(int N): coords(N), name(""), id(0), closed(false) {};
 
+  bool operator<(const linear_feature &lf) const {return id < lf.id;};
+
   size_t size() const {return coords.size();}
   void append(const pair<double,double> &p){
     coords.push_back(p);
@@ -65,6 +68,13 @@ struct linear_feature{
 struct linear_feature_on_canvas{
   linear_feature lf;
   vector<double> dists;
+
+  linear_feature_on_canvas(const linear_feature& _lf, double lat, double lon): lf(_lf){
+    for(pair<double, double> point: lf.coords){
+      const double dist = distance_atan(lat, lon, point.first, point.second);
+      dists.push_back(dist);
+    }
+  };
 
   friend ostream& operator<<(ostream& S, const linear_feature_on_canvas& lfoc) {
     S << "[" << lfoc.lf << ", " << lfoc.dists << "]";
