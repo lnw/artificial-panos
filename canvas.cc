@@ -17,13 +17,29 @@
 
 using namespace std;
 
+// input in deg
+int get_tile_index(const scene& S, const double lat, const double lon){
+  // find the tile in which the peak is located, continue if none
+  int tile_index = -1;
+  for(size_t t = 0; t<S.tiles.size(); t++){
+    if(S.tiles[t].first.lat == int(lat) &&
+       S.tiles[t].first.lon == int(lon)){
+      tile_index = t;
+      break;
+    }
+  }
+  if(tile_index == -1){
+    cout << "tile " << int(lat) << "/" << int(lon) << " is required but seems to be inavailable." << endl;
+  }
+  return tile_index;
+}
 
 // true if any pixel was drawn
 void canvas::write_triangle(const double x1, const double y1,
-                    const double x2, const double y2,
-                    const double x3, const double y3,
-                    const double z,
-                    int16_t r, int16_t g, int16_t b){
+                            const double x2, const double y2,
+                            const double x3, const double y3,
+                            const double z,
+                            int16_t r, int16_t g, int16_t b){
   // find triangle's bb
   const int xmin = min( {floor(x1), floor(x2), floor(x3)} );
   const int xmax = max( {ceil(x1),  ceil(x2),  ceil(x3)} );
@@ -42,9 +58,9 @@ void canvas::write_triangle(const double x1, const double y1,
 
 // true if any pixel was drawn
 bool canvas::would_write_triangle(const double x1, const double y1,
-                          const double x2, const double y2,
-                          const double x3, const double y3,
-                          const double z){
+                                  const double x2, const double y2,
+                                  const double x3, const double y3,
+                                  const double z){
   // find triangle's bb
   const int xmin = min( {floor(x1), floor(x2), floor(x3)} );
   const int xmax = max( {ceil(x1),  ceil(x2),  ceil(x3)} );
@@ -62,6 +78,21 @@ bool canvas::would_write_triangle(const double x1, const double y1,
   }
   return pixel_drawn;
 }
+
+// draw line if both endpoints are visible,
+// return true if drawn
+bool canvas::draw_line(const double x1, const double y1,
+                       const double x2, const double y2,
+                       const double z,
+                       int16_t r, int16_t g, int16_t b){
+  const int color = gdImageColorResolve(img_ptr, r, g, b);
+  if(z - 30 < zbuffer(x1,y1) && z - 30 < zbuffer(x2,y2)){
+    gdImageLine(img_ptr, x1, y1, x2, y2, color);
+    return true;
+  }
+  return false;
+}
+
 
 void canvas::draw_tick(int x_tick, int tick_length, string str1, string str2){
   const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
@@ -316,21 +347,15 @@ tuple<vector<point_feature_on_canvas>, vector<point_feature_on_canvas>> canvas::
     const double dist_peak = distance_atan(S.lat_standpoint, S.lon_standpoint, peaks[p].lat*deg2rad, peaks[p].lon*deg2rad);
     if(dist_peak > S.view_range || dist_peak < 1000) continue;
 
-    // integral and fractal part of the peak location 
+    // integral and fractal part of the point
     double intpart_i, intpart_j;
-    const double fractpart_i = modf(peaks[p].lat, &intpart_i), fractpart_j = modf(peaks[p].lon, &intpart_j);
+    const double
+      fractpart_i = modf(peaks[p].lat, &intpart_i),
+      fractpart_j = modf(peaks[p].lon, &intpart_j);
 
-    // find the tile in which the peak is located, continue if none
-    int tile_index = -1;
-    for(size_t t = 0; t<S.tiles.size(); t++){
-      if(S.tiles[t].first.lat == round(intpart_i) &&
-         S.tiles[t].first.lon == round(intpart_j)){
-        tile_index = t;
-        break;
-      }
-    }
+    const int tile_index = get_tile_index(S, peaks[p].lat, peaks[p].lon);
     if(tile_index == -1){
-      cout << "tile " << round(intpart_i) << "/" << round(intpart_j) << " is required but seems to be inavailable.  skipping a peak." << endl;
+      cout << "skip" << endl;
       continue;
     }
 
@@ -496,18 +521,49 @@ void canvas::draw_coast(const scene& S){
     coasts.insert(std::end(coasts), std::begin(tmp), std::end(tmp));
   }
 
-  // remove duplicated
+cout << "coasts" << endl;
+cout << coasts << endl;
+
+  // remove duplicates
   // FIXME, switch to set from the start
-  cout << "size1" << coasts.size() << endl;
+cout << "size1: " << coasts.size() << endl;
   set<linear_feature> tmp( coasts.begin(), coasts.end() );
   coasts.assign( tmp.begin(), tmp.end() );
-  cout << "size2" << coasts.size() << endl;
+cout << "size2: " << coasts.size() << endl;
   for(auto lf: coasts){
     cout << "coast ids: " << lf.id << endl;
   }
 
-  // get linear feature on cavas
+  // get linear feature on canvas
+  set<linear_feature_on_canvas> coasts_oc;
+  for(const linear_feature coast: coasts) {
 
-  // do the actual drawing 
+    linear_feature_on_canvas lfoc_tmp(coast, *this, S);
+cout << lfoc_tmp.lf.id << endl;
+cout << "a" << endl;
+    coasts_oc.insert(lfoc_tmp);
+cout << "b" << endl;
+  }
+
+
+  // do the actual drawing
+  for(const linear_feature_on_canvas& coast_oc: coasts_oc){
+cout << "new line feature" << endl;
+    for(int p=0; p<coast_oc.size()-1; p++){
+      const int
+        x1 = coast_oc.xs[p], y1 = coast_oc.ys[p], z = coast_oc.dists[p],
+        x2 = coast_oc.xs[p+1], y2 = coast_oc.ys[p+1];// z2 = coast.dists[p+1];
+cout << x1 << ", " << y1 << ", " <<  x2 << ", " << y2 << endl;
+//      cout << x1 << ", " << y1 << ", " << x2 << ", " << y2 << ", " << z << endl;
+      if(x1 < 0 || x1 > width) continue;
+      if(x2 < 0 || x2 > width) continue;
+      if(y1 < 0 || y1 > height) continue;
+      if(y2 < 0 || y2 > height) continue;
+      const int r(0), g(255), b(0);
+cout << " drawing line" << endl;
+      draw_line(x1, y1, x2, y2, z, r, g, b);
+    }
+  }
+
 }
 

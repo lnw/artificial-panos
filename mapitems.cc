@@ -9,8 +9,58 @@
 
 #include "auxiliary.hh"
 #include "mapitems.hh"
+#include "tile.hh"
+#include "scene.hh"
+#include "canvas.hh"
+
 
 using namespace std;
+
+linear_feature_on_canvas::linear_feature_on_canvas(const linear_feature &_lf, const canvas &C, const scene &S): lf(_lf){
+  const double
+    lat_ref = S.lat_standpoint,
+    lon_ref = S.lon_standpoint,
+    z_ref = S.z_standpoint,
+    view_dir_h = S.view_dir_h,
+    view_dir_v = S.view_dir_v,
+    view_width = S.view_width,
+    view_height = S.view_height,
+    pixels_per_rad_h = C.width / view_width, // [px/rad]
+    pixels_per_rad_v = C.height / view_height; // [px/rad]
+    
+  // iterate over points in linear feature
+  for(pair<double, double> point: lf.coords){
+    const double lat_d = point.first, lon_d = point.second;
+    const double lat_r = lat_d * deg2rad, lon_r = lon_d * deg2rad;
+    const int tile_index = get_tile_index(S, lat_d, lon_d);
+    if(tile_index < 0) {
+      xs.push_back(-1);
+      ys.push_back(-1);
+      dists.push_back(INT_MAX);
+      cout << "nope" << endl;
+      continue;
+    }
+    const tile<double>& H = S.tiles[tile_index].first;
+cout << "H " << flush;
+    const double z = H.tile<double>::interpolate(lat_d, lon_d);
+cout << " z: " << z << flush;
+    // get position on canvas, continue if outside
+// cout << "lat/lon: " << lat_ref<<", "<< lon_ref<<", "<< lat_r << ", " << lon_r << endl;
+    const double dist = distance_atan(lat_ref, lon_ref, lat_r, lon_r);
+cout << " dist: " << dist << flush;
+    const double x = fmod(view_dir_h + view_width/2.0 + bearing(lat_ref, lon_ref, lat_r, lon_r) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
+cout << " x: " << x << flush;
+    const double y = (view_height/2.0 + view_dir_v - angle_v(z_ref, z, dist)) * pixels_per_rad_v; // [px]
+cout << " y: " << y << flush;
+    // cout << "peak x, y " << x_peak << ", " << y_peak << endl;
+    // if(x < 0 || x > C.width ) continue;
+    // if(y < 0 || y > C.height ) continue;
+    xs.push_back(x);
+    ys.push_back(y);
+    dists.push_back(dist);
+cout << "end" << endl;
+  }
+}
 
 // parses the xml object, appends peaks
 void parse_peaks_gpx(const xmlpp::Node *node, vector<point_feature> &peaks) {

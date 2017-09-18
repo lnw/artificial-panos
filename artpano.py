@@ -81,7 +81,7 @@ def getOSMTiles(requiredTiles):
             query_coast = ('(' +
                            'way[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
                            'way[natural=coastline]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
-                           'relation[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                           #'relation[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
                            ');')
             result_coast = api.Get(query_coast, responseformat='xml', verbosity='body')
             # print(result)
@@ -95,7 +95,7 @@ def getOSMTiles(requiredTiles):
             query_isl = ('(' +
                          'node[place=island]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
                          'node[place=islet]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
-                         'relation[place=island]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                         #'relation[place=island]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
                          ');')
             result_isl = api.Get(query_isl, responseformat='xml', verbosity='body')
             # print(result)

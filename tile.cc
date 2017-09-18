@@ -23,6 +23,7 @@ int16_t endian_swap(int16_t in){
 //        p
 //        |
 // iij--aux2---iijj
+// input in deg
 template<>
 double tile<double>::interpolate(const double lat_p, const double lon_p) const {
 //    cout << lat_p <<", "<< lon_p <<", "<<floor(lat_p) << ", "<< lat <<", " << floor(lon_p) <<", "<< lon << endl;

@@ -13,6 +13,8 @@
 
 using namespace std;
 
+class scene;
+class canvas;
 
 struct point_feature{
   double lat;
@@ -52,7 +54,7 @@ struct linear_feature{
   linear_feature(): coords(), name(""), id(0), closed(false) {};
   linear_feature(int N): coords(N), name(""), id(0), closed(false) {};
 
-  bool operator<(const linear_feature &lf) const {return id < lf.id;};
+  bool operator<(const linear_feature &lf) const {return this->id < lf.id;};
 
   size_t size() const {return coords.size();}
   void append(const pair<double,double> &p){
@@ -67,14 +69,13 @@ struct linear_feature{
 
 struct linear_feature_on_canvas{
   linear_feature lf;
-  vector<double> dists;
+  vector<double> xs, ys, dists;
 
-  linear_feature_on_canvas(const linear_feature& _lf, double lat, double lon): lf(_lf){
-    for(pair<double, double> point: lf.coords){
-      const double dist = distance_atan(lat, lon, point.first, point.second);
-      dists.push_back(dist);
-    }
-  };
+  linear_feature_on_canvas(const linear_feature &_lf, const canvas &C, const scene &S);
+
+  size_t size() const {return lf.size();}
+
+  bool operator<(const linear_feature_on_canvas &lfoc) const {return this->lf.id < lfoc.lf.id;};
 
   friend ostream& operator<<(ostream& S, const linear_feature_on_canvas& lfoc) {
     S << "[" << lfoc.lf << ", " << lfoc.dists << "]";

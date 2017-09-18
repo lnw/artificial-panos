@@ -5,7 +5,6 @@
 #include <tuple>
 #include <iostream>
 #include <math.h> // modf
-#include <algorithm> // min, max
 
 #include <gd.h>
 
@@ -14,10 +13,10 @@
 #include "tile.hh"
 #include "scene.hh"
 #include "mapitems.hh"
-#include "labelgroup.hh"
 
 using namespace std;
 
+int get_tile_index(const scene& S, const double lat, const double lon);
 
 class canvas {
 public:
@@ -80,6 +79,11 @@ public:
                             const double x2, const double y2,
                             const double x3, const double y3,
                             const double z);
+
+  bool draw_line(const double x1, const double y1,
+                  const double x2, const double y2,
+                  const double z,
+                  int16_t r, int16_t g, int16_t b);
 
   void draw_tick(int x_tick, int tick_length, string str1, string str2="");
 

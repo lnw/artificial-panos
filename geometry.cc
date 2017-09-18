@@ -19,6 +19,8 @@ double central_angle_acos(const double latA, const double lonA, const double lat
   return acos( sin(latA)*sin(latB) + cos(latA)*cos(latB)*cos(lonA-lonB) ); // [rad]
 }
 
+// distance between A and B, using the atan
+// input in radians
 double distance_atan(const double latA, const double lonA, const double latB, const double lonB) {
   const double latDiff_half = (latA - latB)/2.0;
   const double longDiff_half = (lonA - lonB)/2.0;
@@ -101,7 +103,7 @@ double angle_v_scaled(const double el_ref, const double el, const double dist){
 
 // check if two line segments intersect
 int intersect( const double e1x1, const double e1y1, const double e1x2, const double e1y2,
-                      const double e2x1, const double e2y1, const double e2x2, const double e2y2 ){
+               const double e2x1, const double e2y1, const double e2x2, const double e2y2 ){
   const double a1 = (e1y1 - e1y2)/(e1x1 - e1x2);
   const double b1 = e1y1 - a1 * e1x1;
   if ((e2y1 > a1*e2x1+b1 && e2y2 > a1*e2x2+b1) || (e2y1 < a1*e2x1+b1 && e2y2 < a1*e2x2+b1)) return 0; // both points of the second edge lie on the sam    e side of the first edge
@@ -114,8 +116,8 @@ int intersect( const double e1x1, const double e1y1, const double e1x2, const do
 // draw a line from a reference point which is known to be outside to the point in question
 // count how many sides intersect with this line
 bool point_in_triangle_1(const double px, const double py,
-                                const double refx, const double refy,
-                                const double x1, const double y1, const double x2, const double y2, const double x3, const double y3){
+                         const double refx, const double refy,
+                         const double x1, const double y1, const double x2, const double y2, const double x3, const double y3){
   const int num_intersections = intersect(refx,refy, px,py, x1,y1,x2,y2)
                               + intersect(refx,refy, px,py, x2,y2,x3,y3)
                               + intersect(refx,refy, px,py, x3,y3,x1,y1);
@@ -128,8 +130,9 @@ double signed_area( double x1, double y1, double x2, double y2, double x3, doubl
 }
 
 // is point (px/py) inside a triangle?
+// if the point is inside the triangle, all areas have the same sign, otherwise one has opposite sign
 bool point_in_triangle_2(double px, double py,
-                                double x1, double y1, double x2, double y2, double x3, double y3){
+                         double x1, double y1, double x2, double y2, double x3, double y3){
   bool b1 = signed_area(px, py, x1, y1, x2, y2) < 0;
   bool b2 = signed_area(px, py, x2, y2, x3, y3) < 0;
   bool b3 = signed_area(px, py, x3, y3, x1, y1) < 0;
