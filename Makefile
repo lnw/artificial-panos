@@ -7,7 +7,7 @@ GD_INCLUDES_L=-lgd -lpng -lz -lfreetype -lm
 #BOOST_INCLUDES_L=-lboost_regex -lboost_program_options
 XML_INCLUDES_L=$(shell pkg-config libxml++-2.6 --libs)
 XML_INCLUDES_C=$(shell pkg-config libxml++-2.6 --cflags)
-PYTHON_INCLUDES_C=-I/usr/include/python3.5m
+PYTHON_INCLUDES_C=-I/usr/include/python3.6m
 
 HEADERS=array2D.hh auxiliary.hh canvas.hh geometry.hh labelgroup.hh mapitems.hh scene.hh tile.hh
 
@@ -57,6 +57,6 @@ testing-invocation-zh:
 testing-invocation-hd:
 	./artpano.py --lat 49.4 --lon 8.6 --view-dir-h 50 --view-width 355 --view-height 15 --source view1 srtm1 view3 srtm3 --range 40000
 testing-invocation-sn:
-	./artpano.py --lat 58.2477 --lon 6.5597 --canvas-height 2000 --canvas-width 10000 --view-dir-h 280 --view-width 280 --view-height 40 --range=30000 
+	./artpano.py --lat 58.2477 --lon 6.5597 --canvas-height 2000 --canvas-width 10000 --view-dir-h 280 --view-width 280 --view-height 40 --range=40000 
 
 

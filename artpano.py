@@ -122,7 +122,7 @@ def main():
     C.bucket_fill(100,100,100)
     C.render_scene(S)
     C.highlight_edges()
-    C.draw_coast(S)
+#    C.draw_coast(S)
     C.annotate_peaks(S)
 #    C.annotate_islands(S)
     C.label_axis(S)

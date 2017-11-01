@@ -124,7 +124,8 @@ bool point_in_triangle_1(const double px, const double py,
   return num_intersections==1;
 }
 
-// area of triangle, but more importantly, are the points CW or CCW?
+// twice the area of triangle, but more importantly, are the points CW or CCW?
+// cross product of two edges of the triangle, in 3D, z component of result is twice the area
 double signed_area( double x1, double y1, double x2, double y2, double x3, double y3 ){
   return (x1 - x3) * (y2 - y3) - (x2 - x3) * (y1 - y3);
 }
