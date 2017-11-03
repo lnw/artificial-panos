@@ -1,7 +1,9 @@
 
-#CXX=g++-7
-CXX=clang++-4.0
+#CXX=g++
+CXX=clang++
 AR=ar
+
+FLAGS=-O2 -Wshadow -Wunused -std=c++14 -fpic
 
 GD_INCLUDES_L=-lgd -lpng -lz -lfreetype -lm 
 #BOOST_INCLUDES_L=-lboost_regex -lboost_program_options
@@ -20,7 +22,7 @@ OBJECTS_STANDALONE_P=$(patsubst %.o, build/%.o, $(OBJECTS_STANDALONE))
 OBJECTS_LIB_P=$(patsubst %.o, build/%.o, $(OBJECTS_LIB))
 
 build/%.o: %.cc $(HEADERS) Makefile
-	$(CXX) -g -O2 -Wshadow -std=c++14 -fpic $(XML_INCLUDES_C) $(PYTHON_INCLUDES_C) -c $< -o $@
+	$(CXX) $(FLAGS) $(XML_INCLUDES_C) $(PYTHON_INCLUDES_C) -c $< -o $@
 
 pano: $(OBJECTS_P) $(OBJECTS_STANDALONE_P) Makefile
 	c++ $(OBJECTS_P) $(OBJECTS_STANDALONE_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@
@@ -34,7 +36,7 @@ libartpano.so: $(OBJECTS_P) $(OBJECTS_LIB_P) Makefile
 
 .PHONY: test
 test: Makefile test.cc scene.hh tile.hh array2D.hh auxiliary.hh
-	$(CXX) -g -O2 -std=c++14 test.cc $(XML_INCLUDES) -o test
+	$(CXX) $(FLAGS) test.cc $(XML_INCLUDES) -o test
 	./test
 
 # .PHONY: test-circ
