@@ -4,6 +4,7 @@ import os
 import signal
 import sys
 import math
+import subprocess
 from argparse import ArgumentParser
 
 import libartpano as ap
@@ -32,35 +33,44 @@ def parseCommandline():
                         dest="server", action="store", type=int, default=0)
     parser.add_argument("--source", help="source type and resolution",
                         dest="source", nargs='+', action="store", default=["srtm1","view1"]) # '+' meaning one or more arguments which end up in a list
-    ap = parser.parse_args()
-    ap.pos_lat *= deg2rad
-    ap.pos_lon *= deg2rad
-    ap.view_dir_h *= deg2rad
-    ap.view_dir_v *= deg2rad
-    ap.view_width *= deg2rad
-    ap.view_height *= deg2rad
-    return ap
+    argparse = parser.parse_args()
+    argparse.pos_lat *= deg2rad
+    argparse.pos_lon *= deg2rad
+    argparse.view_dir_h *= deg2rad
+    argparse.view_dir_v *= deg2rad
+    argparse.view_width *= deg2rad
+    argparse.view_height *= deg2rad
+    return argparse
 
 def getElevationTiles(requiredTiles,sources):
-    for west,south in requiredTiles:
+    folder = {'srtm1':'SRTM1v3.0', 'srtm3':'SRTM3v3.0', 'view1':'VIEW1', 'view3':'VIEW3'}
+    for south,west in requiredTiles:
+      tile_exists = False
       for source in sources:
-          # print(west, south)
-          path = 'hgt/'+source+'/N{:02}E{:03}.hgt'.format(west,south)
+          # print(south, west)
+          path = 'hgt/'+folder[source]+'/N{:02}E{:03}.hgt'.format(south,west)
           if (os.path.isfile(path)):
               print(path + " already exists")
+              tile_exists = True
               break
-          else:
-              print("should download " + path + " (not implemented yet)")
-              # break if downloaded successfully
+      if (not tile_exists):
+          for source in sources:
+              subprocess.run(["phyghtmap", "--download-only", "--source={}".format(folder[source]), "-a {:03}:{:02}:{:03}:{:02}".format(west,south,west+1,south+1)])
+              inpath = 'hgt/'+folder[source]+'/N{:02}E{:03}.tif'.format(south,west)
+              outpath = 'hgt/'+folder[source]+'/N{:02}E{:03}.hgt'.format(south,west)
+              if (os.path.isfile(inpath)):
+                  subprocess.run(["gdal_translate", "-ot", "UInt16", "-of", "SRTMHGT", "{}".format(inpath), "{}".format(outpath)])
+                  break
+                  #gdal_translate -ot UInt16 -of SRTMHGT N59E010.tif N59E010.hgt
 
 def getOSMTiles(requiredTiles):
     # from github.com:mvexel/overpass-api-python-wrapper.git
     import overpass
-    for west,south in requiredTiles:
+    for south,west in requiredTiles:
         # print(west, south)
-        path_peak = 'osm/N{:02}E{:03}_peak.osm'.format(west,south)
-        path_coast = 'osm/N{:02}E{:03}_coast.osm'.format(west,south)
-        path_isl = 'osm/N{:02}E{:03}_isl.osm'.format(west,south)
+        path_peak = 'osm/N{:02}E{:03}_peak.osm'.format(south,west)
+        path_coast = 'osm/N{:02}E{:03}_coast.osm'.format(south,west)
+        path_isl = 'osm/N{:02}E{:03}_isl.osm'.format(south,west)
         if (os.path.isfile(path_peak)):
             print(path_peak + " already exists")
         else:

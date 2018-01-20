@@ -59,6 +59,11 @@ testing-invocation-zh:
 testing-invocation-hd:
 	./artpano.py --lat 49.4 --lon 8.6 --view-dir-h 50 --view-width 355 --view-height 15 --source view1 srtm1 view3 srtm3 --range 40000
 testing-invocation-sn:
-	./artpano.py --lat 58.2477 --lon 6.5597 --canvas-height 2000 --canvas-width 10000 --view-dir-h 280 --view-width 280 --view-height 40 --range=40000 
+	./artpano.py --lat 58.2477 --lon 6.5597 --canvas-height 2000 --canvas-width 10000 --view-dir-h 280 --view-width 280 --view-height 40 --source view1 --range=40000 
+testing-invocation-tv:
+	./artpano.py --lat 59.95887 --lon 10.80331 --canvas-height 2000 --canvas-width 10000 --view-dir-h 200 --view-width 180 --view-height 30 --range=20000 --source view1 srtm1 view3 srtm3
+
+valgrind-tv:
+	valgrind --trace-children=yes ./artpano.py --lat 59.95887 --lon 10.80331 --canvas-height 2000 --canvas-width 10000 --view-dir-h 200 --view-width 180 --view-height 30 --range=20000 
 
 

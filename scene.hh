@@ -6,6 +6,7 @@
 #include <utility>  // for pair
 #include <algorithm>
 #include <string>
+#include <unordered_map>
 
 #include "tile.hh"  // for tile
 
@@ -32,15 +33,17 @@ public:
     // determine which tiles to add
     // sample a bunch of points, include the respective tiles
     set<pair<int,int>> required_tiles = determine_required_tiles(view_width, view_range, view_dir_h, lat_standpoint, lon_standpoint);
-cout << required_tiles << endl;
+cout << "required_tiles: " << required_tiles << endl;
     for(auto it=required_tiles.begin(), to=required_tiles.end(); it!=to; it++){
       const int ref_lat = it->first, ref_lon = it->second;
       string path("hgt");
       string fn(string(ref_lat<0?"S":"N") + to_string_fixedwidth(abs(ref_lat),2) +
                 string(ref_lon<0?"W":"E") + to_string_fixedwidth(abs(ref_lon),3) + ".hgt");
       bool source_found = false;
+      std::unordered_map<string, string> folder = {{"srtm1","SRTM1v3.0"}, {"srtm3","SRTM3v3.0"}, {"view1","VIEW1"}, {"view3","VIEW3"}};
       for(vector<string>::const_iterator sit=source.begin(), sot=source.end(); sit!=sot; sit++){
-        string fn_full = path + "/" + *sit + "/" + fn;
+        string fn_full = path + "/" + folder[*sit] + "/" + fn;
+//cout << fn_full << endl;
         if(file_accessable(fn_full)){
           // get tiles, add them
           int tile_size = 0; 
@@ -76,6 +79,7 @@ cout << required_tiles << endl;
     debug.close();
   }
 
+  // lat, lon
   static set<pair<int,int>> determine_required_tiles(const double view_width, const double view_range, const double view_dir_h, const double lat_standpoint, const double lon_standpoint){
     set<pair<int,int>> rt;
     for(int i=0; i<10; i++){
