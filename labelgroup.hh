@@ -2,7 +2,7 @@
 #define LABELGROUP_HH
 
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 #include "mapitems.hh"

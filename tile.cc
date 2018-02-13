@@ -1,5 +1,5 @@
 
-#include <assert.h>    // for assert
+#include <cassert>    // for assert
 #include <stdint.h>    // for int16_t
 #include <string.h>
 #include <cmath>       // for floor, abs, ceil

@@ -4,7 +4,7 @@
 #include <vector>
 #include <tuple>
 #include <iostream>
-#include <math.h> // modf
+#include <cmath> // modf
 
 #include <gd.h>
 

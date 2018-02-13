@@ -2,7 +2,7 @@
 #include <vector>
 #include <tuple>
 #include <iostream>
-#include <math.h> // modf
+#include <cmath> // modf
 #include <algorithm> // min, max
 
 #include <gd.h>

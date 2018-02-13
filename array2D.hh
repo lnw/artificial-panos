@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 //#include <climits>
-#include <assert.h>
+#include <cassert>
 
 #include "auxiliary.hh"
 #include "geometry.hh"

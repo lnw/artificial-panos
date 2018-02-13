@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <iomanip> // required for setfill()
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <sstream>
 #include <vector>
 #include <set>

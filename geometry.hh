@@ -1,7 +1,7 @@
 #ifndef GEOMETRY_HH
 #define GEOMETRY_HH
 
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 #include "auxiliary.hh"

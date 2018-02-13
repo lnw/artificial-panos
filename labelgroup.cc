@@ -1,8 +1,8 @@
 
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <vector>
-#include <assert.h>
+#include <cassert>
 #include <algorithm> // sort
 
 #include "mapitems.hh"
