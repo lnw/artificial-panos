@@ -1,8 +1,8 @@
 #ifndef LABELGROUP_HH
 #define LABELGROUP_HH
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 #include <vector>
 
 #include "mapitems.hh"

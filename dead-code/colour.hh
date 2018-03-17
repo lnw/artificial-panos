@@ -2,7 +2,7 @@
 #define COLOUR_HH
 
 #include <algorithm> // min, max
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 using namespace std;

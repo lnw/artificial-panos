@@ -1,10 +1,10 @@
 #ifndef MAPITEMS_HH
 #define MAPITEMS_HH
 
-#include <vector>
+#include <iomanip> //required for setfill()
 #include <iostream>
 #include <string>
-#include <iomanip> //required for setfill()
+#include <vector>
 
 #include <libxml++/libxml++.h>
 

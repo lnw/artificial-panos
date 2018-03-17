@@ -1,7 +1,7 @@
 
 #include <cassert>    // for assert
-#include <stdint.h>    // for int16_t
-#include <string.h>
+#include <cstdint>    // for int16_t
+#include <cstring>
 #include <cmath>       // for floor, abs, ceil
 #include <fstream>     // for ostream, ifstream
 

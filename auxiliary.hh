@@ -2,13 +2,13 @@
 #ifndef AUXILIARY_HH
 #define AUXILIARY_HH
 
+#include <cmath>
 #include <cstdlib>
 #include <iomanip> // required for setfill()
 #include <iostream>
-#include <cmath>
+#include <set>
 #include <sstream>
 #include <vector>
-#include <set>
 
 #include <libxml++/libxml++.h> //definiert GLib::ustring (das aus dem xml faellt)
 

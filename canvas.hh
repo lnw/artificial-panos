@@ -1,10 +1,10 @@
 #ifndef CANVAS_HH
 #define CANVAS_HH
 
-#include <vector>
-#include <tuple>
+#include <cmath>
 #include <iostream>
-#include <cmath> // modf
+#include <tuple>
+#include <vector>
 
 #include <gd.h>
 

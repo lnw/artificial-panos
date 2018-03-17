@@ -1,10 +1,9 @@
 #ifndef ARRAY2D_HH
 #define ARRAY2D_HH
 
-#include <vector>
-#include <iostream>
-//#include <climits>
 #include <cassert>
+#include <iostream>
+#include <vector>
 
 #include "auxiliary.hh"
 #include "geometry.hh"

@@ -1,12 +1,12 @@
 #ifndef SCENE_HH
 #define SCENE_HH
 
-#include <cmath>   // for M_PI, fmod
-#include <fstream>  // for ofstream
-#include <utility>  // for pair
 #include <algorithm>
-#include <string>
+#include <cmath>
+#include <cstring>
+#include <fstream>  // for ofstream
 #include <unordered_map>
+#include <utility>  // for pair
 
 #include "tile.hh"  // for tile
 
@@ -46,7 +46,7 @@ cout << "required_tiles: " << required_tiles << endl;
 //cout << fn_full << endl;
         if(file_accessable(fn_full)){
           // get tiles, add them
-          int tile_size = 0; 
+          int tile_size = 0;
           try{
             tile_size = 3600/stoi(string(&sit->back())) + 1;
             // tile_size = 3600/int(sit->back()-'0') + 1; // also works ... chars are horrible ...

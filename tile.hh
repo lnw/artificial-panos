@@ -2,9 +2,9 @@
 #define TILE_HH
 
 #include <cassert>    // for assert
-#include <stdint.h>    // for int16_t
-#include <string.h>
 #include <cmath>       // for floor, abs, ceil
+#include <cstdint>    // for int16_t
+#include <cstring>
 #include <fstream>     // for ostream, ifstream
 
 #include "array2D.hh"  // for array2D
