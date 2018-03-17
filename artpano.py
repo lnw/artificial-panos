@@ -32,7 +32,7 @@ def parseCommandline():
     parser.add_argument("--server", help="server from which elevation tiles are fetched",
                         dest="server", action="store", type=int, default=0)
     parser.add_argument("--source", help="source type and resolution",
-                        dest="source", nargs='+', action="store", default=["srtm1","view1"]) # '+' meaning one or more arguments which end up in a list
+                        dest="source", nargs='+', action="store", default=["view1","srtm1"]) # '+' meaning one or more arguments which end up in a list
     argparse = parser.parse_args()
     argparse.pos_lat *= deg2rad
     argparse.pos_lon *= deg2rad
@@ -45,72 +45,69 @@ def parseCommandline():
 def getElevationTiles(requiredTiles,sources):
     folder = {'srtm1':'SRTM1v3.0', 'srtm3':'SRTM3v3.0', 'view1':'VIEW1', 'view3':'VIEW3'}
     for south,west in requiredTiles:
-      tile_exists = False
       for source in sources:
-          # print(south, west)
-          path = 'hgt/'+folder[source]+'/N{:02}E{:03}.hgt'.format(south,west)
-          if (os.path.isfile(path)):
-              print(path + " already exists")
-              tile_exists = True
-              break
-      if (not tile_exists):
-          for source in sources:
-              subprocess.run(["phyghtmap", "--download-only", "--source={}".format(folder[source]), "-a {:03}:{:02}:{:03}:{:02}".format(west,south,west+1,south+1)])
-              inpath = 'hgt/'+folder[source]+'/N{:02}E{:03}.tif'.format(south,west)
-              outpath = 'hgt/'+folder[source]+'/N{:02}E{:03}.hgt'.format(south,west)
-              if (os.path.isfile(inpath)):
-                  subprocess.run(["gdal_translate", "-ot", "UInt16", "-of", "SRTMHGT", "{}".format(inpath), "{}".format(outpath)])
-                  break
-                  #gdal_translate -ot UInt16 -of SRTMHGT N59E010.tif N59E010.hgt
+        # print(south, west)
+        path = 'hgt/'+folder[source]+'/N{:02}E{:03}.hgt'.format(south,west)
+        if (os.path.isfile(path)):
+          print(path + " already exists")
+          break
+        else:
+          subprocess.run(["phyghtmap", "--download-only", "--source={}".format(folder[source]), "-a {:03}:{:02}:{:03}:{:02}".format(west,south,west+1,south+1)])
+          inpath = 'hgt/'+folder[source]+'/N{:02}E{:03}.tif'.format(south,west)
+          outpath = 'hgt/'+folder[source]+'/N{:02}E{:03}.hgt'.format(south,west)
+          if (os.path.isfile(inpath)):
+              subprocess.run(["gdal_translate", "-ot", "UInt16", "-of", "SRTMHGT", "{}".format(inpath), "{}".format(outpath)])
+              return
+              #gdal_translate -ot UInt16 -of SRTMHGT N59E010.tif N59E010.hgt
 
 def getOSMTiles(requiredTiles):
     # from github.com:mvexel/overpass-api-python-wrapper.git
     import overpass
     for south,west in requiredTiles:
-        # print(west, south)
-        path_peak = 'osm/N{:02}E{:03}_peak.osm'.format(south,west)
-        path_coast = 'osm/N{:02}E{:03}_coast.osm'.format(south,west)
-        path_isl = 'osm/N{:02}E{:03}_isl.osm'.format(south,west)
-        if (os.path.isfile(path_peak)):
-            print(path_peak + " already exists")
-        else:
-            print("downloading " + path_peak)
-            api = overpass.API()
-            query_peak = ('(' +
-                          'node[natural=peak]({},{},{},{});'.format(west,south,west+1,south+1) +
-                          ');')
-            result_peak = api.Get(query_peak, responseformat='xml', verbosity='body')
-            # print(result)
-            with open(path_peak, 'w') as f:
-                f.write(result_peak)
-        if (os.path.isfile(path_coast)):
-            print(path_coast + " already exists")
-        else:
-            print("downloading " + path_coast)
-            api = overpass.API()
-            query_coast = ('(' +
-                           'way[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
-                           'way[natural=coastline]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
-                           #'relation[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
-                           ');')
-            result_coast = api.Get(query_coast, responseformat='xml', verbosity='body')
-            # print(result)
-            with open(path_coast, 'w') as f:
-                f.write(result_coast)
-        if (os.path.isfile(path_isl)):
-            print(path_isl + " already exists")
-        else:
-            print("downloading " + path_isl)
-            api = overpass.API()
-            query_isl = ('(' +
-                         'node[place=island]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
-                         'node[place=islet]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
-                         #'relation[place=island]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
-                         ');')
-            result_isl = api.Get(query_isl, responseformat='xml', verbosity='body')
-            # print(result)
-            with open(path_isl, 'w') as f:
-                f.write(result_isl)
+      # print(west, south)
+      path_peak = 'osm/N{:02}E{:03}_peak.osm'.format(south,west)
+      path_coast = 'osm/N{:02}E{:03}_coast.osm'.format(south,west)
+      path_isl = 'osm/N{:02}E{:03}_isl.osm'.format(south,west)
+      if (os.path.isfile(path_peak)):
+        print(path_peak + " already exists")
+      else:
+        print("downloading " + path_peak)
+        api = overpass.API()
+        query_peak = ('(' +
+                      'node[natural=peak]({},{},{},{});'.format(west,south,west+1,south+1) +
+                      ');')
+        result_peak = api.Get(query_peak, responseformat='xml', verbosity='body')
+        # print(result)
+        with open(path_peak, 'w') as f:
+          f.write(result_peak)
+      if (os.path.isfile(path_coast)):
+        print(path_coast + " already exists")
+      else:
+        print("downloading " + path_coast)
+        api = overpass.API()
+        query_coast = ('(' +
+                       'way[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                       'way[natural=coastline]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                       #'relation[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                       ');')
+        result_coast = api.Get(query_coast, responseformat='xml', verbosity='body')
+        # print(result)
+        with open(path_coast, 'w') as f:
+          f.write(result_coast)
+      if (os.path.isfile(path_isl)):
+        print(path_isl + " already exists")
+      else:
+        print("downloading " + path_isl)
+        api = overpass.API()
+        query_isl = ('(' +
+                     'node[place=island]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                     'node[place=islet]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                     #'relation[place=island]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                     ');')
+        result_isl = api.Get(query_isl, responseformat='xml', verbosity='body')
+        # print(result)
+        with open(path_isl, 'w') as f:
+          f.write(result_isl)
 
 # def signal_handler(signal, frame):
 #     print('You pressed Ctrl+C!')
