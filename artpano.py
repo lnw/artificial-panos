@@ -43,6 +43,7 @@ def parseCommandline():
     return argparse
 
 def getElevationTiles(requiredTiles,sources):
+    # from http://katze.tfiu.de/projects/phyghtmap/index.html
     folder = {'srtm1':'SRTM1v3.0', 'srtm3':'SRTM3v3.0', 'view1':'VIEW1', 'view3':'VIEW3'}
     for south,west in requiredTiles:
       for source in sources:
