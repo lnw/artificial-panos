@@ -58,7 +58,7 @@ def getElevationTiles(requiredTiles,sources):
           outpath = 'hgt/'+folder[source]+'/N{:02}E{:03}.hgt'.format(south,west)
           if (os.path.isfile(inpath)):
               subprocess.run(["gdal_translate", "-ot", "UInt16", "-of", "SRTMHGT", "{}".format(inpath), "{}".format(outpath)])
-              return
+              break
               #gdal_translate -ot UInt16 -of SRTMHGT N59E010.tif N59E010.hgt
 
 def getOSMTiles(requiredTiles):

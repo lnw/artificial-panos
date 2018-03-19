@@ -22,13 +22,11 @@ OBJECTS_STANDALONE_P=$(patsubst %.o, build/%.o, $(OBJECTS_STANDALONE))
 OBJECTS_LIB_P=$(patsubst %.o, build/%.o, $(OBJECTS_LIB))
 
 build/%.o: %.cc $(HEADERS) Makefile
+	#$(CXX) -DGRAPHICS_DEBUG $(FLAGS) $(XML_INCLUDES_C) $(PYTHON_INCLUDES_C) -c $< -o $@
 	$(CXX) $(FLAGS) $(XML_INCLUDES_C) $(PYTHON_INCLUDES_C) -c $< -o $@
 
 pano: $(OBJECTS_P) $(OBJECTS_STANDALONE_P) Makefile
 	c++ $(OBJECTS_P) $(OBJECTS_STANDALONE_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@
-
-# pano-debug: Makefile pano.cc mapitems.cc geometry.cc canvas.cc $(HEADERS)
-# 	$(CXX) -g -O0 -DGRAPHICS_DEBUG -Wall -Wpedantic -Wextra -Wshadow -std=c++14 pano.cc mapitems.cc geometry.cc canvas.cc tile.cc $(GD_INCLUDES_L) $(XML_INCLUDES) -o pano-debug
 
 libartpano.so: $(OBJECTS_P) $(OBJECTS_LIB_P) Makefile
 	c++ -shared $(OBJECTS_P) $(OBJECTS_LIB_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@
@@ -55,13 +53,13 @@ distclean: clean
 
 .PHONY: testing-invocation-zh testing-invocation-hd testing-invocation-sn
 testing-invocation-zh:
-	./artpano.py --lat 47.3664 --lon 8.5413  --view-dir-h 290 --view-width 60 --view-height 12 --view-dir-v 4 --range 100000
+	./artpano.py --lat 47.3664 --lon 8.5413  --view-dir-h 290 --view-width 60 --view-height 12 --view-dir-v 4 --range 100000 --output out-zh.png
 testing-invocation-hd:
-	./artpano.py --lat 49.4 --lon 8.6 --view-dir-h 50 --view-width 355 --view-height 15 --source view1 srtm1 view3 srtm3 --range 40000
+	./artpano.py --lat 49.4 --lon 8.6 --view-dir-h 50 --view-width 355 --view-height 15 --source view1 srtm1 view3 srtm3 --range 40000 --output out-hd.png
 testing-invocation-sn:
-	./artpano.py --lat 58.2477 --lon 6.5597 --canvas-height 2000 --canvas-width 10000 --view-dir-h 280 --view-width 280 --view-height 40 --source view1 --range=40000 
+	./artpano.py --lat 58.2477 --lon 6.5597 --canvas-height 2000 --canvas-width 10000 --view-dir-h 280 --view-width 280 --view-height 40 --source view1 --range=40000 --output out-sn.png
 testing-invocation-tv:
-	./artpano.py --lat 59.95887 --lon 10.80331 --canvas-height 2000 --canvas-width 10000 --view-dir-h 200 --view-width 180 --view-height 30 --range=20000 --source view1 srtm1 view3 srtm3
+	./artpano.py --lat 59.95887 --lon 10.80331 --canvas-height 2000 --canvas-width 10000 --view-dir-h 200 --view-width 180 --view-height 30 --range=20000 --source view1 srtm1 view3 srtm3 --output out-tv.png
 
 valgrind-tv:
 	valgrind --trace-children=yes ./artpano.py --lat 59.95887 --lon 10.80331 --canvas-height 2000 --canvas-width 10000 --view-dir-h 200 --view-width 180 --view-height 30 --range=20000 
