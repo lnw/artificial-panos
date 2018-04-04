@@ -34,7 +34,6 @@ int get_tile_index(const scene& S, const double lat, const double lon){
   return tile_index;
 }
 
-// true if any pixel was drawn
 void canvas::write_triangle(const double x1, const double y1,
                             const double x2, const double y2,
                             const double x3, const double y3,
@@ -108,7 +107,7 @@ void canvas::draw_tick(int x_tick, int tick_length, string str1, string str2){
   if(!str1.empty()){
     // get bb of blank string
     int bb[8]; // NW - NE - SE - SW // NW is 0,0
-    char *s1 = const_cast<char*>(str1.c_str());
+    char* s1 = const_cast<char*>(str1.c_str());
     char* err = gdImageStringFT(NULL,&bb[0],0,font,fontsize,0.,0,0,s1);
     if (err) {fprintf(stderr,"%s",err); cout << "not good" << endl;}
     //cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << endl;
@@ -149,8 +148,8 @@ void canvas::label_axis(const scene& S){
   const double right_border = fmod((view_direction_h-view_width/2)+2*M_PI,2*M_PI)*rad2deg; // [deg]
   // cout << left_border << ", " << right_border << endl;
 
-  for (int deg=floor(left_border); deg!=(lround(ceil(right_border))-1 + 360)%360; deg--){
-    if(deg==-1) deg+=360;
+  int deg=floor(left_border); // the leftmost absolute integer degree on the canvas
+  for(int deg_canvas=0; deg_canvas<view_width*rad2deg; deg_canvas++){ // degree relative to the canvas, from left to right
     const int x_tick = fmod(((left_border-deg)+360),360)*pixels_per_deg_h;
     if(deg%90 == 0) {
       // cout << "deg90: " << deg << endl;
@@ -182,6 +181,8 @@ void canvas::label_axis(const scene& S){
         draw_tick(x_tick, 50, str1);
       }
     }
+    deg--;
+    if(deg==-1) deg+=360;
   }
   cout << " done" << endl;
 }

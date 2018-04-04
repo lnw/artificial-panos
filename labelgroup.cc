@@ -68,9 +68,8 @@ int LabelGroups::gather_groups(int first, int last){
         // do at least one more cycle
         converged=false;
         last--;
-      }else{
-        ind++;
       }
+      else{ind++;}
     }
   }
   // cout << "end of gather: " << first << ", " << last << endl;
@@ -129,7 +128,8 @@ vector<point_feature_on_canvas> LabelGroups::prune(){
       if(!delete_something){
         // cout << "group " << lg << " is fine" << endl;
         break;
-      }else{
+      }
+      else{
         //cout << "one or more labels should be removed from group " << lg << endl;
       }
 

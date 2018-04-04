@@ -1,6 +1,6 @@
 
-#CXX=g++
-CXX=clang++
+CXX=g++
+#CXX=clang++
 AR=ar
 
 FLAGS=-O2 -Wshadow -Wunused -std=c++14 -fpic
@@ -22,14 +22,14 @@ OBJECTS_STANDALONE_P=$(patsubst %.o, build/%.o, $(OBJECTS_STANDALONE))
 OBJECTS_LIB_P=$(patsubst %.o, build/%.o, $(OBJECTS_LIB))
 
 build/%.o: %.cc $(HEADERS) Makefile
-	#$(CXX) -DGRAPHICS_DEBUG $(FLAGS) $(XML_INCLUDES_C) $(PYTHON_INCLUDES_C) -c $< -o $@
-	$(CXX) $(FLAGS) $(XML_INCLUDES_C) $(PYTHON_INCLUDES_C) -c $< -o $@
+	$(CXX) -DGRAPHICS_DEBUG $(FLAGS) $(XML_INCLUDES_C) $(PYTHON_INCLUDES_C) -c $< -o $@
+	#$(CXX) $(FLAGS) $(XML_INCLUDES_C) $(PYTHON_INCLUDES_C) -c $< -o $@
 
 pano: $(OBJECTS_P) $(OBJECTS_STANDALONE_P) Makefile
-	c++ $(OBJECTS_P) $(OBJECTS_STANDALONE_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@
+	$(CXX) $(OBJECTS_P) $(OBJECTS_STANDALONE_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@
 
 libartpano.so: $(OBJECTS_P) $(OBJECTS_LIB_P) Makefile
-	c++ -shared $(OBJECTS_P) $(OBJECTS_LIB_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@
+	$(CXX) -shared $(OBJECTS_P) $(OBJECTS_LIB_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@
 
 
 .PHONY: test
