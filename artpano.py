@@ -75,10 +75,11 @@ def getOSMTiles(requiredTiles):
         print("downloading " + path_peak)
         api = overpass.API()
         query_peak = ('(' +
-                      'node[natural=peak]({},{},{},{});'.format(west,south,west+1,south+1) +
+                      'node[natural=peak]({},{},{},{});'.format(south,west,south+1,west+1) +
                       ');')
         result_peak = api.Get(query_peak, responseformat='xml', verbosity='body')
-        # print(result)
+        # print(query_peak)
+        # print(result_peak)
         with open(path_peak, 'w') as f:
           f.write(result_peak)
       if (os.path.isfile(path_coast)):
@@ -87,9 +88,9 @@ def getOSMTiles(requiredTiles):
         print("downloading " + path_coast)
         api = overpass.API()
         query_coast = ('(' +
-                       'way[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
-                       'way[natural=coastline]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
-                       #'relation[natural=water]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                       'way[natural=water]({},{},{},{});(._;>;);'.format(south,west,south+1,west+1) +
+                       'way[natural=coastline]({},{},{},{});(._;>;);'.format(south,west,south+1,west+1) +
+                       #'relation[natural=water]({},{},{},{});(._;>;);'.format(south,west,south+1,west+1) +
                        ');')
         result_coast = api.Get(query_coast, responseformat='xml', verbosity='body')
         # print(result)
@@ -101,8 +102,8 @@ def getOSMTiles(requiredTiles):
         print("downloading " + path_isl)
         api = overpass.API()
         query_isl = ('(' +
-                     'node[place=island]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
-                     'node[place=islet]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                     'node[place=island]({},{},{},{});(._;>;);'.format(south,west,south+1,west+1) +
+                     'node[place=islet]({},{},{},{});(._;>;);'.format(south,west,south+1,west+1) +
                      #'relation[place=island]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
                      ');')
         result_isl = api.Get(query_isl, responseformat='xml', verbosity='body')

@@ -362,7 +362,7 @@ tuple<vector<point_feature_on_canvas>, vector<point_feature_on_canvas>> canvas::
 
     // get a few triangles around the peak, we're interested in 25 squares around the peak, between i-rad/j-rad and i+rad/j+rad
     // the test-patch should be larger for large distances because there are less pixels per ground area
-    const int radius = 2 + dist_peak*pixels_per_rad_h/(0.7*10000000); // the numbers are chosen because they sort-of work
+    const int radius = 2 + dist_peak*pixels_per_rad_h/(1.0*10000000); // the numbers are chosen because they sort-of work
     const int diameter = 2*radius + 1;
     // cout << dist_peak << ", " << radius << ", " << diameter << endl;
 
