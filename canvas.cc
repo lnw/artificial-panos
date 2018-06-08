@@ -45,6 +45,8 @@ void canvas::write_triangle(const double x1, const double y1,
   const int ymin = min( {floor(y1), floor(y2), floor(y3)} );
   const int ymax = max( {ceil(y1),  ceil(y2),  ceil(y3)} );
 
+  if( xmax-xmin>width/2.0 ) return; // avoid drawing triangles that wrap around the edge
+
   // iterate over grid points in bb, draw the ones in the triangle
   for (int x=xmin; x<xmax; x++){
     for (int y=ymin; y<ymax; y++){

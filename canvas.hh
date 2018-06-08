@@ -102,7 +102,7 @@ public:
 
   void render_test();
 
-  void bucket_fill( const int r, const int g, const int b);
+  void bucket_fill(const int r, const int g, const int b);
 
   void annotate_peaks(const scene& S);
 
