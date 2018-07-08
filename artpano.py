@@ -56,7 +56,9 @@ def getElevationTiles(requiredTiles,sources):
           subprocess.run(["phyghtmap", "--download-only", "--source={}".format(folder[source]), "-a {:03}:{:02}:{:03}:{:02}".format(west,south,west+1,south+1)])
           inpath = 'hgt/'+folder[source]+'/N{:02}E{:03}.tif'.format(south,west)
           outpath = 'hgt/'+folder[source]+'/N{:02}E{:03}.hgt'.format(south,west)
-          if (os.path.isfile(inpath)):
+          if (os.path.isfile(outpath)): # loaded hgt
+              break
+          if (os.path.isfile(inpath)): # loaded geotif
               subprocess.run(["gdal_translate", "-ot", "UInt16", "-of", "SRTMHGT", "{}".format(inpath), "{}".format(outpath)])
               break
               #gdal_translate -ot UInt16 -of SRTMHGT N59E010.tif N59E010.hgt
