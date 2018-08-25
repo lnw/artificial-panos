@@ -22,8 +22,8 @@ OBJECTS_STANDALONE_P=$(patsubst %.o, build/%.o, $(OBJECTS_STANDALONE))
 OBJECTS_LIB_P=$(patsubst %.o, build/%.o, $(OBJECTS_LIB))
 
 build/%.o: %.cc $(HEADERS) Makefile
-	#$(CXX) -DGRAPHICS_DEBUG $(FLAGS) $(XML_INCLUDES_C) $(PYTHON_INCLUDES_C) -c $< -o $@
-	$(CXX) $(FLAGS) $(XML_INCLUDES_C) $(PYTHON_INCLUDES_C) -c $< -o $@
+	$(CXX) -DGRAPHICS_DEBUG $(FLAGS) $(XML_INCLUDES_C) $(PYTHON_INCLUDES_C) -c $< -o $@
+	#$(CXX) $(FLAGS) $(XML_INCLUDES_C) $(PYTHON_INCLUDES_C) -c $< -o $@
 
 pano: $(OBJECTS_P) $(OBJECTS_STANDALONE_P) Makefile
 	$(CXX) $(OBJECTS_P) $(OBJECTS_STANDALONE_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@

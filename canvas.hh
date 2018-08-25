@@ -106,6 +106,9 @@ public:
 
   void annotate_peaks(const scene& S);
 
+  bool peak_is_visible_v1(const scene& S, const point_feature peak, const double dist_peak, const int tile_index);
+  bool peak_is_visible_v2(const scene& S, const point_feature peak, const int tile_index);
+
   // test if a peak is visible by attempting to draw a few triangles around it,
   // if the zbuffer admits any pixel to be drawn, the peak is visible
   tuple<vector<point_feature_on_canvas>, vector<point_feature_on_canvas>> get_visible_peaks(vector<point_feature>& peaks, const scene& S);
