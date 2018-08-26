@@ -32,6 +32,7 @@ double horizontal_direction(const double ref_lat, const double ref_lon,
 
 // bearing, starting from ref
 // where N: 0, E:90, S:+/-180, W:-90
+// input and output in rad
 double bearing(const double ref_lat, const double ref_lon,
                const double lat, const double lon);
 
@@ -46,14 +47,14 @@ double angle_v(const double el_ref /* [m] */, const double el /* [m] */, const d
 double angle_v_scaled(const double el_ref, const double el, const double dist);
 
 // check if two line segments intersect
-int intersect( const double e1x1, const double e1y1, const double e1x2, const double e1y2,
-                      const double e2x1, const double e2y1, const double e2x2, const double e2y2 );
+int intersect(const double e1x1, const double e1y1, const double e1x2, const double e1y2,
+              const double e2x1, const double e2y1, const double e2x2, const double e2y2);
 
 // draw a line from a reference point which is known to be outside to the point in question
 // count how many sides intersect with this line
 bool point_in_triangle_1(const double px, const double py,
-                                const double refx, const double refy,
-                                const double x1, const double y1, const double x2, const double y2, const double x3, const double y3);
+                         const double refx, const double refy,
+                         const double x1, const double y1, const double x2, const double y2, const double x3, const double y3);
 
 // area of triangle, but more importantly, are the points CW or CCW?
 double signed_area( double x1, double y1, double x2, double y2, double x3, double y3 );

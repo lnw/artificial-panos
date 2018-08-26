@@ -68,22 +68,23 @@ public:
   }
 
   // true if any pixel was drawn
-  void write_triangle(const double x1, const double y1,
-                      const double x2, const double y2,
-                      const double x3, const double y3,
-                      const double z,
-                      int16_t r, int16_t g, int16_t b);
+  void draw_triangle(const double x1, const double y1,
+                     const double x2, const double y2,
+                     const double x3, const double y3,
+                     const double z,
+                     int16_t r, int16_t g, int16_t b);
 
   // true if any pixel was drawn
-  bool would_write_triangle(const double x1, const double y1,
-                            const double x2, const double y2,
-                            const double x3, const double y3,
-                            const double z);
+  bool would_draw_triangle(const double x1, const double y1,
+                           const double x2, const double y2,
+                           const double x3, const double y3,
+                           const double z);
 
   bool draw_line(const double x1, const double y1,
-                  const double x2, const double y2,
-                  const double z,
-                  int16_t r, int16_t g, int16_t b);
+                 const double x2, const double y2,
+                 const double z,
+                 int16_t r, int16_t g, int16_t b,
+                 bool draw);
 
   void draw_tick(int x_tick, int tick_length, string str1, string str2="");
 
@@ -107,7 +108,7 @@ public:
   void annotate_peaks(const scene& S);
 
   bool peak_is_visible_v1(const scene& S, const point_feature peak, const double dist_peak, const int tile_index);
-  bool peak_is_visible_v2(const scene& S, const point_feature peak, const int tile_index);
+  bool peak_is_visible_v2(const scene& S, const point_feature peak, const double dist_peak);
 
   // test if a peak is visible by attempting to draw a few triangles around it,
   // if the zbuffer admits any pixel to be drawn, the peak is visible
