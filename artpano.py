@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.6
 
 import os
 import signal
@@ -20,13 +20,13 @@ def parseCommandline():
     parser.add_argument("--view-dir-h", help=" ", dest="view_dir_h", action="store", type=float, required=True)
     parser.add_argument("--view-dir-v", help=" ", dest="view_dir_v", action="store", type=float, default=0.0)
     parser.add_argument("--view-width", help=" ", dest="view_width", action="store", type=float, default=100.0)
-    parser.add_argument("--view-height", help=" ", dest="view_height", action="store", type=float, default=20.0)
+    parser.add_argument("--view-height", help=" ", dest="view_height", action="store", type=float, default=0.0) # 20.0
     parser.add_argument("--range", help="visibility range in meters",
                         dest="range", action="store", type=float, default=10000.0)
     parser.add_argument("--canvas-width", help="width of the rendered picture in pixels",
                         dest="canvas_width", action="store", type=int, default="10000")
     parser.add_argument("--canvas-height", help="height of the rendered picture in pixels",
-                        dest="canvas_height", action="store", type=int, default="1000")
+                        dest="canvas_height", action="store", type=int, default="0") # 2000
     parser.add_argument("--output", "-o", help="output filename",
                         dest="out_filename", action="store", type=str, default="out.png")
     parser.add_argument("--server", help="server from which elevation tiles are fetched",
@@ -34,6 +34,14 @@ def parseCommandline():
     parser.add_argument("--source", help="source type and resolution",
                         dest="source", nargs='+', action="store", default=["view1","srtm1"]) # '+' meaning one or more arguments which end up in a list
     argparse = parser.parse_args()
+    if argparse.view_height == 0.0 and argparse.canvas_height == 0:
+        argparse.view_height = 20.0
+        argparse.canvas_height = 2000
+    elif argparse.view_height == 0.0:
+        argparse.view_height = argparse.canvas_height * argparse.view_width / argparse.canvas_width
+    elif argparse.canvas_height == 0:
+        print(argparse.view_height)
+        argparse.canvas_height = int(argparse.view_height * argparse.canvas_width / argparse.view_width)
     argparse.pos_lat *= deg2rad
     argparse.pos_lon *= deg2rad
     argparse.view_dir_h *= deg2rad

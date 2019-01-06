@@ -208,6 +208,8 @@ void canvas::render_scene(const scene& S){
   debug << "canvas height: " << height << endl;
   debug << "horizantal pixels per rad [px/rad]: " << pixels_per_rad_h << endl;
   debug << "vertical pixels per rad [px/rad]: " << pixels_per_rad_v << endl;
+  cout << "horizantal pixels per rad [px/rad]: " << pixels_per_rad_h << endl;
+  cout << "vertical pixels per rad [px/rad]: " << pixels_per_rad_v << endl;
 
   //iterate over tiles in scene
   for (size_t t=0; t<S.tiles.size(); t++){
@@ -279,7 +281,7 @@ void canvas::highlight_edges(){
       if(z_prev / z_curr > thr1 && z_prev - z_curr > 500){
         write_pixel(x,y, 0,0,0);
       }
-      else if(z_prev / z_curr > thr2 && z_prev - z_curr > 300){
+      else if(z_prev / z_curr > thr2 && z_prev - z_curr > 200){
         write_pixel(x,y, 30,30,30);
       }
       z_prev = z_curr;
@@ -576,7 +578,7 @@ vector<point_feature_on_canvas> canvas::draw_visible_peaks(const vector<point_fe
     write_pixel(x_peak, y_peak, 255,0,0);
 
     // const int x_offset=0;
-    const int y_offset=100;
+    const int y_offset = 100;
 
     const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
     gdImageLine(img_ptr, x_peak, y_peak-2, x_peak+lgs[p].xshift, y_peak-y_offset+5, black);
@@ -588,7 +590,7 @@ vector<point_feature_on_canvas> canvas::draw_visible_peaks(const vector<point_fe
     const double fontsize = 12.;
     //char *font = "./palatino-59330a4da3d64.ttf";
     char *font = "./fonts/vera.ttf";
-    const double text_orientation=M_PI/2;
+    const double text_orientation = M_PI/2;
 
     // get bb of blank string
     int bb[8];
