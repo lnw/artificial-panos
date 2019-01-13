@@ -14,7 +14,7 @@ generated and labelled using the openstreemap data.
 ## Example
 
 An example from Slovakia:
-![alt text](master/examples/170705-liptovski-mikulas.png)
+![alt text](examples/170705-liptovski-mikulas.png)
 
 An examples from Zurich:
-![alt text](master/examples/181228_zurich.png)
+![alt text](examples/181228_zurich.png)
