@@ -20,7 +20,7 @@ int get_tile_index(const scene& S, const double lat, const double lon);
 
 class canvas {
 public:
-  size_t width, height; // [pixels]
+  unsigned width, height; // [pixels]
 
 private:
   array2D<double> zbuffer;

@@ -34,23 +34,25 @@ int get_tile_index(const scene& S, const double lat, const double lon){
   return tile_index;
 }
 
+// draw that part of a triangle which is visible
 void canvas::draw_triangle(const double x1, const double y1,
-                            const double x2, const double y2,
-                            const double x3, const double y3,
-                            const double z,
-                            int16_t r, int16_t g, int16_t b){
+                           const double x2, const double y2,
+                           const double x3, const double y3,
+                           const double z,
+                           int16_t r, int16_t g, int16_t b){
   // find triangle's bb
   const int xmin = min( {floor(x1), floor(x2), floor(x3)} );
   const int xmax = max( {ceil(x1),  ceil(x2),  ceil(x3)} );
   const int ymin = min( {floor(y1), floor(y2), floor(y3)} );
   const int ymax = max( {ceil(y1),  ceil(y2),  ceil(y3)} );
+  const int zero = 0;
 
-  if( xmax-xmin>width/2.0 ) return; // avoid drawing triangles that wrap around the edge
+  if( xmax-xmin > width/2.0 ) return; // avoid drawing triangles that wrap around the edge
 
   // iterate over grid points in bb, draw the ones in the triangle
-  for (int x=xmin; x<xmax; x++){
-    for (int y=ymin; y<ymax; y++){
-      if(point_in_triangle_2 (x+0.5,y+0.5, x1,y1,x2,y2,x3,y3)){
+  for(int x=max(xmin, zero); x<min(xmax, int(width)); x++){
+    for(int y=max(ymin, zero); y<min(ymax, int(height)); y++){
+      if( point_in_triangle_2(x+0.5,y+0.5, x1,y1,x2,y2,x3,y3) ){
         write_pixel_zb(x,y,z, r,g,b);
       }
     }
@@ -59,9 +61,9 @@ void canvas::draw_triangle(const double x1, const double y1,
 
 // true if any pixel was drawn
 bool canvas::would_draw_triangle(const double x1, const double y1,
-                                  const double x2, const double y2,
-                                  const double x3, const double y3,
-                                  const double z){
+                                 const double x2, const double y2,
+                                 const double x3, const double y3,
+                                 const double z){
   // find triangle's bb
   const int xmin = min( {floor(x1), floor(x2), floor(x3)} );
   const int xmax = max( {ceil(x1),  ceil(x2),  ceil(x3)} );
@@ -223,37 +225,46 @@ void canvas::render_scene(const scene& S){
     debug << "m: " << m << endl;
     debug << "n: " << n << endl;
     debug << (m-1)*(n-1)*2 << " triangles in tile " << t << endl;
+    const double invis_angle = max(2*M_PI - view_width, 0.0);
     const int inc = 1;
     for (int i=0; i<m-inc; i+=inc){
       for (int j=0; j<n-inc; j+=inc){
-        if(D(i,j) > S.view_range) continue;
-        if(D(i,j) < 100) continue; // avoid close artifacts
+        if(D(i,j) > S.view_range) continue; // too far
+        if(D(i,j) < 100) continue; // too close, avoid artifacts
         // first triangle: i/j, i+1/j, i/j+1
         // second triangle: i+1/j, i/j+1, i+1/j+1
         // get horizontal and vertical angles for all four points of the two triangles
         // translate to image coordinates
-        const double h_ij = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
-        if(h_ij < 0 || h_ij > width) continue;
-        const double h_ijj = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2*M_PI) * pixels_per_rad_h;
-        if(h_ijj < 0 || h_ijj > width) continue;
-        const double h_iij = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - (i+inc)/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI ,2*M_PI) * pixels_per_rad_h;
-        if(h_iij < 0 || h_iij > width) continue;
-        const double h_iijj = fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - (i+inc)/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI, 2.0*M_PI) * pixels_per_rad_h;
-        if(h_iijj < 0 || h_iijj > width) continue;
-        //debug << "("<<i<<","<<j<< ") h: " << h_ij << ", " << h_ijj << ", " << h_iij << ", " << h_iijj << endl;
+        bool visible = false; // anything is visible
+        const double h_ij = ( fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI + invis_angle/2.0, 2*M_PI) - invis_angle/2.0 ) * pixels_per_rad_h;
+        // if(h_ij < 0 || h_ij > width) continue;
+        if(h_ij > 0 || h_ij < width) visible = true;
+        const double h_ijj = ( fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - i/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI + invis_angle/2.0, 2*M_PI) - invis_angle/2.0 ) * pixels_per_rad_h;
+        // if(h_ijj < 0 || h_ijj > width) continue;
+        if(h_ijj > 0 || h_ijj < width) visible = true;
+        const double h_iij = ( fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - (i+inc)/double(m-1))*deg2rad, (H.lon + j/double(n-1))*deg2rad) + 1.5*M_PI + invis_angle/2.0, 2*M_PI) - invis_angle/2.0 ) * pixels_per_rad_h;
+        // if(h_iij < 0 || h_iij > width) continue;
+        if(h_iij > 0 || h_iij < width) visible = true;
+        const double h_iijj = ( fmod(view_direction_h + view_width/2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat + 1 - (i+inc)/double(m-1))*deg2rad, (H.lon + (j+inc)/double(n-1))*deg2rad) + 1.5*M_PI + invis_angle/2.0, 2.0*M_PI) - invis_angle/2.0 ) * pixels_per_rad_h;
+        // if(h_iijj < 0 || h_iijj > width) continue;
+        if(h_iijj > 0 || h_iijj < width) visible = true;
+        // debug << "("<<i<<","<<j<< ") h: " << h_ij << ", " << h_ijj << ", " << h_iij << ", " << h_iijj << endl;
+        
+        if(!visible) continue;
 
-        // there should be a check here to avoid triangles to wrap around
+		// there could be a check here to avoid triangles to wrap around, but
+		// it's only tested in draw_triangle
 
         //cout << S.z_standpoint << ", " << H(i,j) << ", " <<  D(i,j) << endl;
         const double v_ij   = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i,j), D(i,j))) * pixels_per_rad_v; // [px]
-        if(v_ij < 0 || v_ij > height) continue;
+        // if(v_ij < 0 || v_ij > height) continue;
         const double v_ijj  = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i,j+inc), D(i,j+inc))) * pixels_per_rad_v; //[px]
-        if(v_ijj < 0 || v_ijj > height) continue;
+        // if(v_ijj < 0 || v_ijj > height) continue;
         const double v_iij  = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i+inc,j), D(i+inc,j))) * pixels_per_rad_v; // [px]
-        if(v_iij < 0 || v_iij > height) continue;
+        // if(v_iij < 0 || v_iij > height) continue;
         const double v_iijj = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i+inc,j+inc), D(i+inc,j+inc))) * pixels_per_rad_v; // [px]
-        if(v_iijj < 0 || v_iijj > height) continue;
-        //debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << endl;
+        // if(v_iijj < 0 || v_iijj > height) continue;
+        // debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << endl;
         //cout << v_ij << endl;
 
         const double dist1 = (D(i,j)+D(i+inc,j)+D(i,j+inc))/3.0;

@@ -9,7 +9,7 @@ GD_INCLUDES_L=-lgd -lpng -lz -lfreetype -lm
 #BOOST_INCLUDES_L=-lboost_regex -lboost_program_options
 XML_INCLUDES_L=$(shell pkg-config libxml++-2.6 --libs)
 XML_INCLUDES_C=$(shell pkg-config libxml++-2.6 --cflags)
-PYTHON_INCLUDES_C=-I/usr/include/python3.6m
+PYTHON_INCLUDES_C=-I/usr/include/python3.7m
 
 HEADERS=array2D.hh auxiliary.hh canvas.hh geometry.hh labelgroup.hh mapitems.hh scene.hh tile.hh
 
