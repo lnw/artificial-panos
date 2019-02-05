@@ -5,7 +5,7 @@ AR=ar
 
 FLAGS=-O2 -Wshadow -Wunused -std=c++14 -fpic
 
-GD_INCLUDES_L=-lgd -lpng -lz -lfreetype -lm 
+GD_INCLUDES_L=-lgd -lpng -lz -lfreetype -lm
 #BOOST_INCLUDES_L=-lboost_regex -lboost_program_options
 XML_INCLUDES_L=$(shell pkg-config libxml++-2.6 --libs)
 XML_INCLUDES_C=$(shell pkg-config libxml++-2.6 --cflags)
@@ -53,7 +53,7 @@ distclean: clean
 
 .PHONY: testing-invocation-zh testing-invocation-hd testing-invocation-sn
 testing-invocation-zh:
-	./artpano.py --lat 47.3664 --lon 8.5413  --view-dir-h 290 --view-width 60 --view-height 12 --view-dir-v 4 --range 90000 --output out-zh.png
+	./artpano.py --lat 47.3664 --lon 8.5413 --view-dir-h 290 --view-width 60 --view-height 12 --view-dir-v 4 --range 90000 --output out-zh.png
 testing-invocation-hd:
 	./artpano.py --lat 49.4 --lon 8.6 --view-dir-h 50 --view-width 355 --view-height 15 --source view1 srtm1 view3 srtm3 --range 50000 --output out-hd.png
 testing-invocation-sn:
@@ -62,6 +62,6 @@ testing-invocation-tv:
 	./artpano.py --lat 59.95887 --lon 10.80331 --canvas-height 2000 --canvas-width 10000 --view-dir-h 200 --view-width 180 --view-height 30 --range=20000 --source view1 srtm1 view3 srtm3 --output out-tv.png
 
 valgrind-tv:
-	valgrind --trace-children=yes ./artpano.py --lat 59.95887 --lon 10.80331 --canvas-height 2000 --canvas-width 10000 --view-dir-h 200 --view-width 180 --view-height 30 --range=20000 
+	valgrind --suppressions=supp --trace-children=yes --leak-check=full --show-reachable=yes --error-limit=no --gen-suppressions=all --log-file=foo.log ./artpano.py --lat 59.95887 --lon 10.80331 --canvas-height 2000 --canvas-width 10000 --view-dir-h 200 --view-width 180 --view-height 30 --range=2000
 
 

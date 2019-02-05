@@ -249,7 +249,7 @@ void canvas::render_scene(const scene& S){
         // if(h_iijj < 0 || h_iijj > width) continue;
         if(h_iijj > 0 || h_iijj < width) visible = true;
         // debug << "("<<i<<","<<j<< ") h: " << h_ij << ", " << h_ijj << ", " << h_iij << ", " << h_iijj << endl;
-        
+
         if(!visible) continue;
 
 		// there could be a check here to avoid triangles to wrap around, but
@@ -257,13 +257,13 @@ void canvas::render_scene(const scene& S){
 
         //cout << S.z_standpoint << ", " << H(i,j) << ", " <<  D(i,j) << endl;
         const double v_ij   = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i,j), D(i,j))) * pixels_per_rad_v; // [px]
-        // if(v_ij < 0 || v_ij > height) continue;
+        if(v_ij < 0 || v_ij > height) continue;
         const double v_ijj  = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i,j+inc), D(i,j+inc))) * pixels_per_rad_v; //[px]
-        // if(v_ijj < 0 || v_ijj > height) continue;
+        if(v_ijj < 0 || v_ijj > height) continue;
         const double v_iij  = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i+inc,j), D(i+inc,j))) * pixels_per_rad_v; // [px]
-        // if(v_iij < 0 || v_iij > height) continue;
+        if(v_iij < 0 || v_iij > height) continue;
         const double v_iijj = (view_height/2.0 + view_direction_v - angle_v(S.z_standpoint, H(i+inc,j+inc), D(i+inc,j+inc))) * pixels_per_rad_v; // [px]
-        // if(v_iijj < 0 || v_iijj > height) continue;
+        if(v_iijj < 0 || v_iijj > height) continue;
         // debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << endl;
         //cout << v_ij << endl;
 
@@ -449,7 +449,7 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature peak, const 
   const double pixels_per_rad_v = height / view_height; // [px/rad]
   const double ref_lat=S.lat_standpoint, ref_lon=S.lon_standpoint;
 
-  // bearing to peak 
+  // bearing to peak
   // cout << ref_lat << "," << ref_lon <<", "<< peak.lat <<","<< peak.lon << endl;
   const double bearing_rad = bearing(ref_lat, ref_lon, peak.lat*deg2rad, peak.lon*deg2rad);
   // cout << "bearing " << bearing_rad << " / " << bearing_rad*rad2deg << endl;
@@ -458,10 +458,10 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature peak, const 
   const double seg_length = 30.0; // [m]
   const double n_segs = dist_peak / seg_length;
   // cout << "seg no/length: " << n_segs << ", " << seg_length << endl;
-  
+
   double prev_height = 10000.0; // [m]
   double prev_x=1, prev_y=1; // [px]
-  
+
 #ifdef GRAPHICS_DEBUG
   bool visible = false;
 #endif
@@ -477,7 +477,7 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature peak, const 
     // cout << "point coord: " << point_lat*rad2deg << ", " <<  point_lon*rad2deg << endl;
     // cout << "tile index: " << tile_index << endl;
     const tile<double> &H = S.tiles[tile_index].first;
-   
+
     // interpolate to get elevation
     const double height_point = H.interpolate(point_lat*rad2deg, point_lon*rad2deg);
     // cout << "height: " << height_point << endl;

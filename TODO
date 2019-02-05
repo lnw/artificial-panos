@@ -15,3 +15,6 @@ less important
 # render triangles taking into account whether they have a very small angle with the line of sight.
 #  -- what about that fast inverse sqrt?
 
+
+some elevation tiles contain -32768 to indicate missing data ... 
+
