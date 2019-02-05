@@ -13,9 +13,9 @@ generated and labelled using the openstreemap data.
 ## Examples
 
 An example from Slovakia:
-'''
+```
 ./artpano.py --lat 49.07980 --lon 19.62611 --view-dir-h 230 --view-width 290 --view-dir-v 8 --range 40000 --canvas-height 1000 --canvas-width 10000
-'''
+```
 ![alt text](examples/190205-liptovski-mikulas.png)
 
 An example from Zurich/Switzerland:
