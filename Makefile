@@ -1,6 +1,6 @@
 
-CXX=g++
-#CXX=clang++
+# CXX=g++
+CXX=clang++
 AR=ar
 
 FLAGS=-O2 -Wshadow -Wunused -std=c++14 -fpic
@@ -29,7 +29,7 @@ pano: $(OBJECTS_P) $(OBJECTS_STANDALONE_P) Makefile
 	$(CXX) $(OBJECTS_P) $(OBJECTS_STANDALONE_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@
 
 libartpano.so: $(OBJECTS_P) $(OBJECTS_LIB_P) Makefile
-	$(CXX) -shared $(OBJECTS_P) $(OBJECTS_LIB_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@
+	$(CXX) $(FLAGS) -shared $(OBJECTS_P) $(OBJECTS_LIB_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@
 
 
 .PHONY: test

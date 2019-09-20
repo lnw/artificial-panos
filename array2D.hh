@@ -11,12 +11,12 @@
 using namespace std;
 
 template <typename T> class array2D : public vector<T> {
-
-public:
+protected:
   // m: number of rows (i->m)
   // n: number of columns (j->n)
   int m, n; 
 
+public:
   array2D(int _m, int _n, const vector<T>& A) : vector<T>(A.begin(), A.end()), m(_m), n(_n) { assert(A.size()==_m*_n); }
   array2D(int _m, int _n, const T& zero = 0) : vector<T>(_m*_n,zero), m(_m), n(_n) {}
 
@@ -24,6 +24,9 @@ public:
 
   T& operator()(int i, int j)       { return (*this)[i*n+j]; }
   T  operator()(int i, int j) const { return (*this)[i*n+j]; }
+
+  int get_m() const {return m;}
+  int get_n() const {return n;}
 
   void transpose(){
     int x(m); m=n; n=x;

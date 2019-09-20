@@ -217,8 +217,8 @@ void canvas::render_scene(const scene& S){
   for (size_t t=0; t<S.tiles.size(); t++){
     const tile<double> &H = S.tiles[t].first;
     const tile<double> &D = S.tiles[t].second;
-    const int &m = H.m;
-    const int &n = H.n;
+    const int m = H.get_m();
+    const int n = H.get_n();
     // debug << "H: " << H << endl;
     // debug << "D: " << D << endl;
 
@@ -362,8 +362,8 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature peak, const 
 
   const tile<double> &H = S.tiles[tile_index].first;
   const tile<double> &D = S.tiles[tile_index].second;
-  const int &m = H.m;
-  const int &n = H.n;
+  const int m = H.get_m();
+  const int n = H.get_n();
 
   // get a few triangles around the peak, we're interested in 25 squares around the peak, between i-rad/j-rad and i+rad/j+rad
   // the test-patch should be larger for large distances because there are less pixels per ground area

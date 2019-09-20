@@ -8,8 +8,8 @@
 
 namespace py = pybind11;
 
-PYBIND11_PLUGIN(libartpano) {
-  py::module m("libartpano", "pybind11 ... whatever");
+PYBIND11_MODULE(libartpano, m) {
+    m.doc() = "documentation string"; // optional
 
 // class scene
   py::class_<scene>(m, "scene")
@@ -26,7 +26,5 @@ PYBIND11_PLUGIN(libartpano) {
     .def("annotate_peaks", &canvas::annotate_peaks) // scene
     .def("annotate_islands", &canvas::annotate_islands) // scene
     .def("label_axis", &canvas::label_axis); // scene
-
-    return m.ptr();
-}
+};
 

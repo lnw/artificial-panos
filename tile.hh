@@ -14,7 +14,10 @@ using namespace std;
 int16_t endian_swap(int16_t in);
 
 // one tile only, without storing the viewpoint
-template <typename T> class tile: public array2D<T> {
+template <typename T>
+class tile: public array2D<T> {
+  using array2D<T>::m;
+  using array2D<T>::n;
 
 public:
   // [deg], specifying the lower left corner of the tile.  Hence, northern tiles go from 0..89 while southern tiles go from 1..90, east: 0..179, west: 1..180.
@@ -51,12 +54,10 @@ public:
   tile<double> curvature_adjusted_elevations(const tile<double>& dists) const {
     // assert(this->m == dists.m);
     // assert(this->n == dists.n);
-    const int& _m = this->m;
-    const int& _n = this->n;
-    tile<double> A(_m,_n,this->dim,lat,lon);
-    for (int i=0; i<_m; i++){
-      for (int j=0; j<_m; j++){
-        const double coeff = 0.065444 / 1000000.0; // = 0.1695 / 1.609^2  // m
+    const double coeff = 0.065444 / 1000000.0; // = 0.1695 / 1.609^2  // m
+    tile<double> A(m, n, dim, lat, lon);
+    for (int i=0; i<m; i++){
+      for (int j=0; j<n; j++){
         A(i,j) = (*this)(i,j) - coeff*pow(dists(i,j),2);
   //cout << (*this)(i,j) << ", " << dists(i,j) << " --> " << A(i,j) << endl;
       }
@@ -66,12 +67,10 @@ public:
 
   // matrix of distances [m] from standpoint to tile
   tile<double> get_distances(const double lat_standpoint, const double lon_standpoint) const {
-    const int& _m = this->m;
-    const int& _n = this->n;
-    tile<double> A(_m,_n,this->dim,lat,lon);
-    for (int i=0; i<_m; i++){
-      for (int j=0; j<_n; j++){
-        A(i,j) = distance_atan(lat_standpoint, lon_standpoint, (lat + 1 - i/double(_m-1))*deg2rad, (lon + j/double(_n-1))*deg2rad);
+    tile<double> A(m, n, dim, lat, lon);
+    for (int i=0; i<m; i++){
+      for (int j=0; j<n; j++){
+        A(i,j) = distance_atan(lat_standpoint, lon_standpoint, (lat + 1 - i/double(m-1))*deg2rad, (lon + j/double(n-1))*deg2rad);
       }
     }
     return A;
