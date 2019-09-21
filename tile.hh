@@ -18,13 +18,14 @@ template <typename T>
 class tile: public array2D<T> {
   using array2D<T>::m;
   using array2D<T>::n;
-
-public:
-  // [deg], specifying the lower left corner of the tile.  Hence, northern tiles go from 0..89 while southern tiles go from 1..90, east: 0..179, west: 1..180.
-  // however, the array stores everything starting from the top/left corner, row major.
+  // [deg], specifying the lower left corner of the tile.  Hence, northern
+  // tiles go from 0..89 while southern tiles go from 1..90, east: 0..179,
+  // west: 1..180.  however, the array stores everything starting from the
+  // top/left corner, row major.
   int lat, lon;
   int dim; // I expect either 3601 or 1201
 
+public:
   tile(int _m, int _n, int _dim, int _lat, int _lon): array2D<T>(_m,_n), dim(_dim), lat(_lat), lon(_lon) {assert(this->m == this->n);}
   tile(array2D<T> A): array2D<T>(A) {assert(this->m == this->n);}
   tile(char const * FILENAME, int _dim, int _lat, int _lon): array2D<int16_t>(_dim,_dim), lat(_lat), lon(_lon), dim(_dim) {
@@ -49,6 +50,10 @@ public:
       }
     }
   }
+
+  int get_lat() const { return lat; }
+  int get_lon() const { return lon; }
+  int get_dim() const { return dim; }
 
   // viewfinder uses drop/m = 0.1695 m * (dist / miles)^2 to account for curvature and refraction
   tile<double> curvature_adjusted_elevations(const tile<double>& dists) const {

@@ -70,7 +70,7 @@ cout << "required_tiles: " << required_tiles << endl;
        // FIXME the case when points from neighbouring tiles are required
        auto it = find_if(tiles.begin(), tiles.end(),
                          [&](const pair<tile<double>,tile<double>> & p) {
-                         return (p.first.lat == floor(lat_standpoint*rad2deg)) && (p.first.lon == floor(lon_standpoint*rad2deg));}
+                         return (p.first.get_lat() == floor(lat_standpoint*rad2deg)) && (p.first.get_lon() == floor(lon_standpoint*rad2deg));}
                  );
        z_standpoint = (it->first).interpolate(lat_standpoint*rad2deg, lon_standpoint*rad2deg) + 10;
        cout << "overwriting the elevation: " << z_standpoint << endl;
