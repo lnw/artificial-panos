@@ -5,6 +5,7 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
+#include <limits.h>
 
 #include <gd.h>
 

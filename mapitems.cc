@@ -4,6 +4,7 @@
 #include <string>
 #include <iomanip> //required for setfill()
 #include <unordered_map>
+#include <limits.h>
 
 #include <libxml++/libxml++.h>
 
