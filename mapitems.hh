@@ -16,7 +16,7 @@ using namespace std;
 class scene;
 class canvas;
 
-struct point_feature{
+struct point_feature {
   double lat;
   double lon;
   string name;
@@ -32,7 +32,7 @@ struct point_feature{
   }
 };
 
-struct point_feature_on_canvas{
+struct point_feature_on_canvas {
   point_feature pf;
   int x, y, dist;
   int xshift;
@@ -45,19 +45,19 @@ struct point_feature_on_canvas{
   }
 };
 
-struct linear_feature{
+struct linear_feature {
   vector<pair<double, double>> coords; // lat, lon
   string name;
-  size_t id; // so we can deduplicate between tiles
+  size_t id;   // so we can deduplicate between tiles
   bool closed; // detect by comparing first and last element
 
-  linear_feature(): coords(), name(""), id(0), closed(false) {};
-  linear_feature(int N): coords(N), name(""), id(0), closed(false) {};
+  linear_feature(): coords(), name(""), id(0), closed(false){};
+  linear_feature(int N): coords(N), name(""), id(0), closed(false){};
 
-  bool operator<(const linear_feature &lf) const {return this->id < lf.id;};
+  bool operator<(const linear_feature& lf) const { return this->id < lf.id; };
 
-  size_t size() const {return coords.size();}
-  void append(const pair<double,double> &p){
+  size_t size() const { return coords.size(); }
+  void append(const pair<double, double>& p) {
     coords.push_back(p);
   }
 
@@ -67,15 +67,15 @@ struct linear_feature{
   }
 };
 
-struct linear_feature_on_canvas{
+struct linear_feature_on_canvas {
   linear_feature lf;
   vector<double> xs, ys, dists;
 
-  linear_feature_on_canvas(const linear_feature &_lf, const canvas &C, const scene &S);
+  linear_feature_on_canvas(const linear_feature& _lf, const canvas& C, const scene& S);
 
-  size_t size() const {return lf.size();}
+  size_t size() const { return lf.size(); }
 
-  bool operator<(const linear_feature_on_canvas &lfoc) const {return this->lf.id < lfoc.lf.id;};
+  bool operator<(const linear_feature_on_canvas& lfoc) const { return this->lf.id < lfoc.lf.id; };
 
   friend ostream& operator<<(ostream& S, const linear_feature_on_canvas& lfoc) {
     S << "[" << lfoc.lf << ", " << lfoc.dists << "]";
@@ -84,12 +84,12 @@ struct linear_feature_on_canvas{
 };
 
 // parses the xml object, appends peaks
-void parse_peaks_gpx(const xmlpp::Node *node, vector<point_feature> &peaks);
+void parse_peaks_gpx(const xmlpp::Node* node, vector<point_feature>& peaks);
 
 // parses the xml object, first gathers all coordinates with IDs, and all
 // ways/realtions with lists of ID; then compiles vectors of points, ie linear
 // features
-void parse_coast_gpx(const xmlpp::Node *node, vector<linear_feature> &coasts);
+void parse_coast_gpx(const xmlpp::Node* node, vector<linear_feature>& coasts);
 
 // read plain xml
 vector<point_feature> read_peaks_osm(string filename);
@@ -99,4 +99,3 @@ vector<linear_feature> read_coast_osm(string filename);
 vector<linear_feature> read_islands_osm(string filename);
 
 #endif
-

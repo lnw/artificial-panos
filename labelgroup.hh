@@ -9,7 +9,7 @@
 
 using namespace std;
 
-struct group{
+struct group {
   size_t first_index, last_index;
   int centre, width;
 
@@ -20,7 +20,7 @@ struct group{
 };
 
 // all labels are organised in groups, where all labels in one group touch each other
-class LabelGroups{
+class LabelGroups {
   // a vector of all point features, ordered from left to right
   vector<point_feature_on_canvas> pfocs;
   // one entry per group, also ordered from left to right, so g[n].last_index + 1 = g[n+1].first_index
@@ -49,16 +49,14 @@ public:
   void remove_label(int index, int lg);
 
   // subscript for the point feature, ignores groups etc
-  point_feature_on_canvas& operator[](unsigned int i)       { return pfocs[i]; }
-  point_feature_on_canvas  operator[](unsigned int i) const { return pfocs[i]; }
-  size_t size(){return pfocs.size();} // number of point features only
+  point_feature_on_canvas& operator[](unsigned int i) { return pfocs[i]; }
+  point_feature_on_canvas operator[](unsigned int i) const { return pfocs[i]; }
+  size_t size() { return pfocs.size(); } // number of point features only
 
   friend ostream& operator<<(ostream& S, const LabelGroups& lg) {
     S << "[" << lg.pfocs << ", " << lg.g << "]";
     return S;
   }
-
 };
 
 #endif
-

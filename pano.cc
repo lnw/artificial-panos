@@ -1,11 +1,11 @@
 
-#include "canvas.hh"    // for canvas
-#include "geometry.hh"  // for deg2rad
-#include "scene.hh"     // for scene
+#include "canvas.hh"   // for canvas
+#include "geometry.hh" // for deg2rad
+#include "scene.hh"    // for scene
 
 using namespace std;
 
-int main(int ac, char **av) {
+int main(int ac, char** av) {
 
   // const double pos_lat(59.9374*deg2rad), pos_lon(10.7168*deg2rad), pos_z(100), view_direction_h(270*deg2rad), view_width(355*deg2rad), view_height(20*deg2rad), view_direction_v(0*deg2rad), range(80000); // oslo, uni
   // const double pos_lat(49.4*deg2rad), pos_lon(8.6*deg2rad), pos_z(200), view_direction_h(50*deg2rad), view_width(355*deg2rad), view_height(15*deg2rad), view_direction_v(3*deg2rad), range(100000); // hd
@@ -16,9 +16,9 @@ int main(int ac, char **av) {
   // const double pos_lat(48.93885*deg2rad), pos_lon(8.61177*deg2rad), pos_z(300), view_direction_h(220*deg2rad), view_width(355*deg2rad), view_height(30*deg2rad), view_direction_v(0*deg2rad), range(70000); // a garden
   // const double pos_lat(49.38002*deg2rad), pos_lon(8.66683*deg2rad), pos_z(130), view_direction_h(0*deg2rad), view_width(355*deg2rad), view_height(30*deg2rad), view_direction_v(5*deg2rad), range(100000); // kirchheim
   // const double pos_lat(49.4105*deg2rad), pos_lon(8.6766*deg2rad), pos_z(130), view_direction_h(0*deg2rad), view_width(355*deg2rad), view_height(30*deg2rad    ), view_direction_v(5*deg2rad), range(100000); // bruecke
-  const double pos_lat(58.2477*deg2rad), pos_lon(6.5597*deg2rad), pos_z(-1), view_direction_h(280*deg2rad), view_width(280*deg2rad), view_height(40*deg2rad), view_direction_v(0), range(10000); // south norway
+  const double pos_lat(58.2477 * deg2rad), pos_lon(6.5597 * deg2rad), pos_z(-1), view_direction_h(280 * deg2rad), view_width(280 * deg2rad), view_height(40 * deg2rad), view_direction_v(0), range(10000); // south norway
 
-  const vector<string> source({"view1","srtm1","view3","srtm3"});
+  const vector<string> source({"view1", "srtm1", "view3", "srtm3"});
 
   scene S(pos_lat, pos_lon, pos_z, view_direction_h, view_width, view_direction_v, view_height, range, source);
 
@@ -26,7 +26,7 @@ int main(int ac, char **av) {
   const int view_x(10000), view_y(1500); // pixels
   canvas V(filename, view_x, view_y);
 
-  V.bucket_fill(100,100,100);
+  V.bucket_fill(100, 100, 100);
   V.render_scene(S);
   V.highlight_edges();
   V.draw_coast(S);
@@ -35,4 +35,3 @@ int main(int ac, char **av) {
 
   return 0;
 }
-

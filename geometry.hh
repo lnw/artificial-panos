@@ -6,10 +6,10 @@
 
 #include "auxiliary.hh"
 
-const double deg2rad = M_PI/180;
-const double rad2deg = 180/M_PI;
+const double deg2rad = M_PI / 180;
+const double rad2deg = 180 / M_PI;
 // angle = (2*a + b)/3
-const double average_radius_earth = (2*6378.137 + 6356.752)/3.0 * 1000; // 6371.009 km [m]
+const double average_radius_earth = (2 * 6378.137 + 6356.752) / 3.0 * 1000; // 6371.009 km [m]
 
 // distance between two points on a sphere, without elevation
 // phi is the latitude, theta the longitude
@@ -38,7 +38,7 @@ double bearing(const double ref_lat, const double ref_lon,
 
 // destination when going from (lat/lon) a distance dist with bearing b
 // bearing from -pi .. pi, 0 is north
-pair<double,double> destination(const double ref_lat, const double ref_lon, const double dist, const double b);
+pair<double, double> destination(const double ref_lat, const double ref_lon, const double dist, const double b);
 
 // vertical angle, using distance and elevation difference
 // positive is up, negative is down
@@ -57,11 +57,10 @@ bool point_in_triangle_1(const double px, const double py,
                          const double x1, const double y1, const double x2, const double y2, const double x3, const double y3);
 
 // area of triangle, but more importantly, are the points CW or CCW?
-double signed_area( double x1, double y1, double x2, double y2, double x3, double y3 );
+double signed_area(double x1, double y1, double x2, double y2, double x3, double y3);
 
 // is point (px/py) inside a triangle?
 bool point_in_triangle_2(double px, double py,
-                                double x1, double y1, double x2, double y2, double x3, double y3);
+                         double x1, double y1, double x2, double y2, double x3, double y3);
 
 #endif
-
