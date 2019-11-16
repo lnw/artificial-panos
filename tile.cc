@@ -10,13 +10,6 @@
 
 using namespace std;
 
-int16_t endian_swap(int16_t in) {
-  unsigned char c[2];
-  memcpy(c, &in, 2);
-  return (int16_t)(c[0] << 8 | c[1]);
-}
-
-
 // get elevation at lat_p, lon_p, given the correct tile
 // ij---aux1---ijj
 //        |

@@ -45,6 +45,8 @@ public:
         string fn_full = path + "/" + folder[*sit] + "/" + fn;
         //cout << fn_full << endl;
         if (file_accessable(fn_full)) {
+          const auto t0 = std::chrono::high_resolution_clock::now();
+
           // get tiles, add them
           int tile_size = 0;
           try {
@@ -57,12 +59,25 @@ public:
           catch (const std::out_of_range& oor) {
             std::cerr << "Out of Range error: " << oor.what() << endl;
           }
+          // auto t1 = std::chrono::high_resolution_clock::now();
+          // std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
+          // cout << "  preperation took " << fp_ms.count() << " ms" << endl;
           cout << "trying to read: " << fn_full << " with dimension " << tile_size << " ..." << flush;
           char const* FILENAME = fn_full.c_str();
           tile<int16_t> A(tile<int16_t>(FILENAME, tile_size, ref_lat, ref_lon));
+          // auto t2 = std::chrono::high_resolution_clock::now();
+          // fp_ms = t2 - t1;
+          // cout << "  reading " << string(FILENAME) << " took " << fp_ms.count() << " ms" << endl;
           add_tile(A);
           cout << " done" << endl;
           source_found = true;
+
+          auto t3 = std::chrono::high_resolution_clock::now();
+          // std::chrono::duration<double, std::milli>  fp_ms_2 = t3 - t2;
+          std::chrono::duration<double, std::milli> fp_ms_tot = t3 - t0;
+          // cout << "  adding tile took " << fp_ms_2.count() << " ms" << endl;
+          cout << "  reading + processing tile " << string(FILENAME) << " took " << fp_ms_tot.count() << " ms" << endl;
+
           break; // add only one version of each tile
         }
       }
@@ -82,10 +97,11 @@ public:
 
   // lat, lon
   static set<pair<int, int>> determine_required_tiles(const double view_width, const double view_range, const double view_dir_h, const double lat_standpoint, const double lon_standpoint) {
+    const int samples_per_ray = 10;
     set<pair<int, int>> rt;
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < samples_per_ray; i++) {
       const int n_ray = 20;
-      const double dist = i * view_range / 9;
+      const double dist = i * view_range / (samples_per_ray - 1);
       for (int j = 0; j < n_ray; j++) {
         const double bearing = fmod(-view_dir_h - view_width / 2 + M_PI / 2 + j * view_width / (n_ray - 1) + 3 * M_PI, 2 * M_PI) - M_PI;
         pair<double, double> dest = destination(lat_standpoint, lon_standpoint, dist, bearing);
@@ -97,9 +113,19 @@ public:
 
   template <typename T>
   void add_tile(const tile<T>& Tile) {
+    // auto t0 = std::chrono::high_resolution_clock::now();
     tile<double> D(Tile.get_distances(lat_standpoint, lon_standpoint));
+    // auto t1 = std::chrono::high_resolution_clock::now();
+    // std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
+    // cout << "    distances took " << fp_ms.count() << " ms" << endl;
     tile<double> H(Tile.curvature_adjusted_elevations(D));
+    // auto t2 = std::chrono::high_resolution_clock::now();
+    // fp_ms = t2 - t1;
+    // cout << "    curvature took " << fp_ms.count() << " ms" << endl;
     tiles.push_back(make_pair(H, D));
+    // auto t3 = std::chrono::high_resolution_clock::now();
+    // fp_ms = t3 - t2;
+    // cout << "    pair took " << fp_ms.count() << " ms" << endl;
   }
 };
 

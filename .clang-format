@@ -11,9 +11,21 @@ AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: false
 BinPackParameters: true
 
-BraceWrapping:
-  BeforeElse: true
-  BeforeCatch: true
+BraceWrapping:   
+  AfterClass:      false
+  AfterControlStatement: false
+  AfterEnum:       false
+  AfterFunction:   false
+  AfterNamespace:  false
+  AfterObjCDeclaration: false
+  AfterStruct:     false
+  AfterUnion:      false
+  AfterExternBlock: false
+  BeforeCatch:     true
+  BeforeElse:      true
+  IndentBraces:    false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
 BreakBeforeBraces: Custom
 
 BreakBeforeBinaryOperators: false
@@ -60,5 +72,6 @@ SpacesInContainerLiterals: true
 SpacesInParentheses: false
 Language: Cpp
 Standard: C++11
+# Standard: c++17
 TabWidth: 4
 UseTab: Never

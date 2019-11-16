@@ -19,7 +19,7 @@ double central_angle_acos(const double latA, const double lonA, const double lat
   return acos(sin(latA) * sin(latB) + cos(latA) * cos(latB) * cos(lonA - lonB)); // [rad]
 }
 
-// distance between A and B, using the atan
+// distance between A and B, using the atan2
 // input in radians
 double distance_atan(const double latA, const double lonA, const double latB, const double lonB) {
   const double latDiff_half = (latA - latB) / 2.0;
@@ -29,6 +29,8 @@ double distance_atan(const double latA, const double lonA, const double latB, co
   return average_radius_earth * angle; // [m]
 }
 
+// the angle between A-centre-B, using the atan2
+// input in radians
 double central_angle_atan(const double latA, const double lonA, const double latB, const double lonB) {
   const double latDiff_half = (latA - latB) / 2.0;
   const double longDiff_half = (lonA - lonB) / 2.0;
@@ -139,9 +141,9 @@ double signed_area(double x1, double y1, double x2, double y2, double x3, double
 // if the point is inside the triangle, all areas have the same sign, otherwise one has opposite sign
 bool point_in_triangle_2(double px, double py,
                          double x1, double y1, double x2, double y2, double x3, double y3) {
-  bool b1 = signed_area(px, py, x1, y1, x2, y2) < 0;
-  bool b2 = signed_area(px, py, x2, y2, x3, y3) < 0;
-  bool b3 = signed_area(px, py, x3, y3, x1, y1) < 0;
+  const bool b1 = signed_area(px, py, x1, y1, x2, y2) < 0;
+  const bool b2 = signed_area(px, py, x2, y2, x3, y3) < 0;
+  const bool b3 = signed_area(px, py, x3, y3, x1, y1) < 0;
   // and we ignore the case of points lying *on* the boundary
   return ((b1 == b2) && (b2 == b3));
 }

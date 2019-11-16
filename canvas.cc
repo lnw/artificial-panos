@@ -115,9 +115,9 @@ void canvas::draw_tick(int x_tick, int tick_length, string str1, string str2) {
 
   if (!str1.empty()) {
     // get bb of blank string
-    int bb[8]; // NW - NE - SE - SW // NW is 0,0
+    int bb[8]; // SW - SE - NE - NW // SW is 0,0
     char* s1 = const_cast<char*>(str1.c_str());
-    char* err = gdImageStringFT(NULL, &bb[0], 0, font, fontsize, 0., 0, 0, s1);
+    char* err = gdImageStringFT(nullptr, &bb[0], 0, font, fontsize, 0., 0, 0, s1);
     if (err) {
       fprintf(stderr, "%s", err);
       cout << "not good" << endl;
@@ -137,7 +137,7 @@ void canvas::draw_tick(int x_tick, int tick_length, string str1, string str2) {
 
     if (!str2.empty()) {
       char* s2 = const_cast<char*>(str2.c_str());
-      err = gdImageStringFT(NULL, &bb[0], 0, font, fontsize, 0., 0, 0, s2);
+      err = gdImageStringFT(nullptr, &bb[0], 0, font, fontsize, 0., 0, 0, s2);
       if (err) {
         fprintf(stderr, "%s", err);
         cout << "not good" << endl;
@@ -238,6 +238,8 @@ void canvas::render_scene(const scene& S) {
 
   //iterate over tiles in scene
   for (size_t t = 0; t < S.tiles.size(); t++) {
+    const auto t1 = std::chrono::high_resolution_clock::now();
+
     const tile<double>& H = S.tiles[t].first;
     const tile<double>& D = S.tiles[t].second;
     const int m = H.get_m();
@@ -310,6 +312,10 @@ void canvas::render_scene(const scene& S) {
         draw_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, 5 * pow(dist1, 1.0 / 3.0), 50, 150);
       }
     }
+
+    auto t2 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> fp_ms = t2 - t1;
+    cout << "  rendering tile took " << fp_ms.count() << " ms" << endl;
   }
   debug.close();
 }
@@ -656,7 +662,7 @@ vector<point_feature_on_canvas> canvas::draw_visible_peaks(const vector<point_fe
 
     // get bb of blank string
     int bb[8];
-    char* err = gdImageStringFT(NULL, &bb[0], 0, font, fontsize, 0., 0, 0, s);
+    char* err = gdImageStringFT(nullptr, &bb[0], 0, font, fontsize, 0., 0, 0, s);
     if (err) {
       fprintf(stderr, "%s", err);
       cout << "not good" << endl;
