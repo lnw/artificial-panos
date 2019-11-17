@@ -1,9 +1,10 @@
 
-# CXX=g++
-CXX=clang++
+CXX=g++
+# CXX=clang++
 AR=ar
 
-FLAGS=-O2 -Wshadow -Wunused -std=c++14 -fpic
+FLAGS=-O2 -Wshadow -Wunused -std=c++14 -fpic -fopenmp
+LINK_FLAGS=-fopenmp
 
 GD_INCLUDES_L=-lgd -lpng -lz -lfreetype -lm
 #BOOST_INCLUDES_L=-lboost_regex -lboost_program_options
@@ -26,10 +27,10 @@ build/%.o: %.cc $(HEADERS) Makefile
 	$(CXX) $(FLAGS) $(XML_INCLUDES_C) $(PYTHON_INCLUDES_C) -c $< -o $@
 
 pano: $(OBJECTS_P) $(OBJECTS_STANDALONE_P) Makefile
-	$(CXX) $(OBJECTS_P) $(OBJECTS_STANDALONE_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@
+	$(CXX) $(LINK_FLAGS) $(OBJECTS_P) $(OBJECTS_STANDALONE_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@
 
 libartpano.so: $(OBJECTS_P) $(OBJECTS_LIB_P) Makefile
-	$(CXX) $(FLAGS) -shared $(OBJECTS_P) $(OBJECTS_LIB_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@
+	$(CXX) $(LINK_FLAGS) -shared $(OBJECTS_P) $(OBJECTS_LIB_P) $(GD_INCLUDES_L) $(XML_INCLUDES_L) -o $@
 
 
 .PHONY: test

@@ -32,10 +32,12 @@ public:
 
     // determine which tiles to add
     // sample a bunch of points, include the respective tiles
-    set<pair<int, int>> required_tiles = determine_required_tiles(view_width, view_range, view_dir_h, lat_standpoint, lon_standpoint);
+    vector<pair<int, int>> required_tiles = determine_required_tiles_v(view_width, view_range, view_dir_h, lat_standpoint, lon_standpoint);
     cout << "required_tiles: " << required_tiles << endl;
-    for (auto it = required_tiles.begin(), to = required_tiles.end(); it != to; it++) {
-      const int ref_lat = it->first, ref_lon = it->second;
+#pragma omp parallel for
+    for (auto it = required_tiles.begin(); it != required_tiles.end(); it++) {
+      const int ref_lat = it->first,
+                ref_lon = it->second;
       string path("hgt");
       string fn(string(ref_lat < 0 ? "S" : "N") + to_string_fixedwidth(abs(ref_lat), 2) +
                 string(ref_lon < 0 ? "W" : "E") + to_string_fixedwidth(abs(ref_lon), 3) + ".hgt");
@@ -109,6 +111,13 @@ public:
       }
     }
     return rt;
+  }
+
+  // wrapper that returns a vector because omp-for loops require an random access iterator
+  static vector<pair<int, int>> determine_required_tiles_v(const double view_width, const double view_range, const double view_dir_h, const double lat_standpoint, const double lon_standpoint) {
+    const set<pair<int, int>> rt = determine_required_tiles(view_width, view_range, view_dir_h, lat_standpoint, lon_standpoint);
+    const vector<pair<int, int>> rt_v(rt.begin(), rt.end());
+    return rt_v;
   }
 
   template <typename T>
