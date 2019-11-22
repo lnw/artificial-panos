@@ -14,7 +14,15 @@ const double average_radius_earth = (2 * 6378.137 + 6356.752) / 3.0 * 1000; // 6
 // distance between two points on a sphere, without elevation
 // phi is the latitude, theta the longitude
 // Vincenty's formulae might be better (to take into account earth's oblation)
-double distance_acos(const double latA, const double lonA, const double latB, const double lonB);
+// double distance_acos(const double latA, const double lonA, const double latB, const double lonB);
+
+inline double distance_atan(const double latA, const double lonA, const double latB, const double lonB) {
+  const double latDiff_half = (latA - latB) / 2.0;
+  const double longDiff_half = (lonA - lonB) / 2.0;
+  const double a = sin(latDiff_half) * sin(latDiff_half) + sin(longDiff_half) * sin(longDiff_half) * cos(latB) * cos(latA);
+  const double angle = 2 * atan2(sqrt(a), sqrt(1 - a));
+  return average_radius_earth * angle; // [m]
+}
 
 double central_angle_acos(const double latA, const double lonA, const double latB, const double lonB);
 

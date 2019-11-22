@@ -19,15 +19,15 @@ double central_angle_acos(const double latA, const double lonA, const double lat
   return acos(sin(latA) * sin(latB) + cos(latA) * cos(latB) * cos(lonA - lonB)); // [rad]
 }
 
-// distance between A and B, using the atan2
-// input in radians
-double distance_atan(const double latA, const double lonA, const double latB, const double lonB) {
-  const double latDiff_half = (latA - latB) / 2.0;
-  const double longDiff_half = (lonA - lonB) / 2.0;
-  const double a = sin(latDiff_half) * sin(latDiff_half) + sin(longDiff_half) * sin(longDiff_half) * cos(latB) * cos(latA);
-  const double angle = 2 * atan2(sqrt(a), sqrt(1 - a));
-  return average_radius_earth * angle; // [m]
-}
+// // distance between A and B, using the atan2
+// // input in radians
+// double distance_atan(const double latA, const double lonA, const double latB, const double lonB) {
+//   const double latDiff_half = (latA - latB) / 2.0;
+//   const double longDiff_half = (lonA - lonB) / 2.0;
+//   const double a = sin(latDiff_half) * sin(latDiff_half) + sin(longDiff_half) * sin(longDiff_half) * cos(latB) * cos(latA);
+//   const double angle = 2 * atan2(sqrt(a), sqrt(1 - a));
+//   return average_radius_earth * angle; // [m]
+// }
 
 // the angle between A-centre-B, using the atan2
 // input in radians

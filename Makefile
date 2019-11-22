@@ -3,7 +3,7 @@ CXX=g++
 # CXX=clang++
 AR=ar
 
-FLAGS=-O2 -Wshadow -Wunused -std=c++14 -fpic -fopenmp
+FLAGS=-O2 -g -Wshadow -Wunused -std=c++14 -fpic -fopenmp
 LINK_FLAGS=-fopenmp
 
 GD_INCLUDES_L=-lgd -lpng -lz -lfreetype -lm
@@ -14,7 +14,7 @@ PYTHON_INCLUDES_C=-I/usr/include/python3.7m
 
 HEADERS=array2D.hh auxiliary.hh canvas.hh geometry.hh labelgroup.hh mapitems.hh scene.hh tile.hh
 
-OBJECTS=mapitems.o geometry.o canvas.o tile.o labelgroup.o
+OBJECTS=mapitems.o geometry.o canvas.o tile.o labelgroup.o scene.o
 OBJECTS_STANDALONE=pano.o
 OBJECTS_LIB=interface.o
 
@@ -49,7 +49,6 @@ clean:
 
 distclean: clean
 	rm -f pano pano-debug test a.out libartpano.so build/*o
-
 
 
 .PHONY: testing-invocation-zh testing-invocation-hd testing-invocation-sn

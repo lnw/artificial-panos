@@ -21,6 +21,7 @@ PYBIND11_MODULE(libartpano, m) {
       .def(py::init<const string, int, int>())
       .def("bucket_fill", &canvas::bucket_fill)   // int, int, int
       .def("render_scene", &canvas::render_scene) // scene
+      .def("construct_image", &canvas::construct_image)
       .def("highlight_edges", &canvas::highlight_edges)
       .def("draw_coast", &canvas::draw_coast)             // scene
       .def("annotate_peaks", &canvas::annotate_peaks)     // scene

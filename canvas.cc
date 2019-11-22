@@ -17,6 +17,13 @@
 
 using namespace std;
 
+#pragma omp declare reduction(arraymin : array2D<double> : omp_out = omp_out.pointwise_min(omp_in)) \
+                    initializer(omp_priv = array2D<double>(omp_orig))
+#pragma omp declare reduction(+ : array2D<int32_t> : omp_out += omp_in) \
+                    initializer(omp_priv = array2D<int32_t>(omp_orig))
+#pragma omp declare reduction(+ : canvas_t : omp_out += omp_in) \
+                    initializer(omp_priv = canvas_t(omp_orig))
+
 // input in deg
 int get_tile_index(const scene& S, const double lat, const double lon) {
   // find the tile in which the peak is located, continue if none
@@ -46,6 +53,9 @@ void canvas::draw_triangle(const double x1, const double y1,
   const int ymin = min({floor(y1), floor(y2), floor(y3)});
   const int ymax = max({ceil(y1), ceil(y2), ceil(y3)});
   const int zero = 0;
+
+  const unsigned width(core.get_width()),
+                 height(core.get_height());
 
   if (xmax - xmin > width / 2.0)
     return; // avoid drawing triangles that wrap around the edge
@@ -92,8 +102,9 @@ bool canvas::draw_line(const double x1, const double y1,
                        const double z,
                        int16_t r, int16_t g, int16_t b,
                        bool draw) {
+  assert(image_constructed);
   const int colour = gdImageColorResolve(img_ptr, r, g, b);
-  if (z - 30 < zbuffer(x1, y1) && z - 30 < zbuffer(x2, y2)) {
+  if (z - 30 < core.get_zb(x1, y1) && z - 30 < core.get_zb(x2, y2)) {
     if (draw)
       gdImageLine(img_ptr, x1, y1, x2, y2, colour);
     return true;
@@ -103,6 +114,7 @@ bool canvas::draw_line(const double x1, const double y1,
 
 
 void canvas::draw_tick(int x_tick, int tick_length, string str1, string str2) {
+  assert(image_constructed);
   const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
   const double fontsize = 20.;
   char* font = "./fonts/vera.ttf";
@@ -162,6 +174,7 @@ void canvas::draw_tick(int x_tick, int tick_length, string str1, string str2) {
 // every deg if there are less than 10 deg
 void canvas::label_axis(const scene& S) {
   cout << "labelling axis ..." << flush;
+  const unsigned width = core.get_width();
   const double& view_width = S.view_width;                                                  // [rad]
   const double pixels_per_deg_h = width / (view_width * rad2deg);                           // [px/deg]
   const double& view_direction_h = S.view_dir_h;                                            // [rad]
@@ -218,6 +231,8 @@ void canvas::label_axis(const scene& S) {
 
 void canvas::render_scene(const scene& S) {
   ofstream debug("debug-render_scene", ofstream::out | ofstream::app);
+  const unsigned width = core.get_width(),
+                 height = core.get_height();
   // determine the dimensions, especially pixels/deg
   const double& view_direction_h = S.view_dir_h;        // [rad]
   const double& view_width = S.view_width;              // [rad]
@@ -236,7 +251,10 @@ void canvas::render_scene(const scene& S) {
   cout << "horizantal pixels per rad [px/rad]: " << pixels_per_rad_h << endl;
   cout << "vertical pixels per rad [px/rad]: " << pixels_per_rad_v << endl;
 
-  //iterate over tiles in scene
+  // iterate over tiles in scene
+#pragma omp parallel for default(none) \
+                         shared(S, cout, debug, width, height, view_width, view_height, view_direction_h, view_direction_v, pixels_per_rad_h, pixels_per_rad_v) \
+                         reduction(+ : core)
   for (size_t t = 0; t < S.tiles.size(); t++) {
     const auto t1 = std::chrono::high_resolution_clock::now();
 
@@ -324,16 +342,20 @@ void canvas::render_scene(const scene& S) {
 // much closer than the previous one.  Works only because mountains are
 // rarely overhanging or floating in mid-air
 void canvas::highlight_edges() {
+  assert(!image_constructed);
+  const unsigned width(core.get_width()),
+                 height(core.get_height());
+  const array2D<double>& zbuffer(core.get_zb());
   for (size_t x = 0; x < width; x++) {
     double z_prev = 1000000;
     for (size_t y = 0; y < height; y++) {
       const double z_curr = zbuffer(x, y);
       const double thr1 = 1.15, thr2 = 1.05;
       if (z_prev / z_curr > thr1 && z_prev - z_curr > 500) {
-        write_pixel(x, y, 0, 0, 0);
+        write_pixel_core(x, y, 0, 0, 0);
       }
       else if (z_prev / z_curr > thr2 && z_prev - z_curr > 200) {
-        write_pixel(x, y, 30, 30, 30);
+        write_pixel_core(x, y, 30, 30, 30);
       }
       z_prev = z_curr;
     }
@@ -341,18 +363,24 @@ void canvas::highlight_edges() {
 }
 
 void canvas::render_test() {
+  assert(!image_constructed);
+  const unsigned width(core.get_width()),
+                 height(core.get_height());
   for (size_t y = 0; y < height; y++) {
     for (size_t x = 0; x < width; x++) {
-      write_pixel(x, y, x, 0.1 * x, y);
+      write_pixel_core(x, y, x, 0.1 * x, y);
     }
   }
 }
 
 void canvas::bucket_fill(const int r, const int g, const int b) {
+  const unsigned width(core.get_width()),
+                 height(core.get_height());
   for (size_t y = 0; y < height; y++) {
     for (size_t x = 0; x < width; x++) {
       const int32_t col = 127 << 24 | r << 16 | g << 8 | b;
-      img_ptr->tpixels[y][x] = col; // assuming TrueColor
+      // img_ptr->tpixels[y][x] = col; // assuming TrueColor
+      core.get_wc(x, y) = col;
     }
   }
 }
@@ -387,6 +415,8 @@ void canvas::annotate_peaks(const scene& S) {
 
 
 bool canvas::peak_is_visible_v1(const scene& S, const point_feature peak, const double dist_peak, const int tile_index) {
+  const unsigned width(core.get_width()),
+                 height(core.get_height());
   const double& view_direction_h = S.view_dir_h;        // [rad]
   const double& view_width = S.view_width;              // [rad]
   const double pixels_per_rad_h = width / view_width;   // [px/rad]
@@ -492,6 +522,8 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature peak, const 
 // peak visible.  This avoids the problem of flat topped mountains and works
 // only under the condition that mountains don't float in midair.
 bool canvas::peak_is_visible_v2(const scene& S, const point_feature peak, const double dist_peak) {
+  const unsigned width(core.get_width()),
+                 height(core.get_height());
   const double& view_direction_h = S.view_dir_h;        // [rad]
   const double& view_width = S.view_width;              // [rad]
   const double pixels_per_rad_h = width / view_width;   // [px/rad]
@@ -576,6 +608,9 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature peak, const 
 // test if a peak is visible by attempting to draw a few triangles around it,
 // if the zbuffer admits any pixel to be drawn, the peak is visible
 tuple<vector<point_feature_on_canvas>, vector<point_feature_on_canvas>> canvas::get_visible_peaks(vector<point_feature>& peaks, const scene& S) {
+  assert(image_constructed);
+  const unsigned width(core.get_width()),
+                 height(core.get_height());
   const double& view_direction_h = S.view_dir_h;        // [rad]
   const double& view_width = S.view_width;              // [rad]
   const double pixels_per_rad_h = width / view_width;   // [px/rad]
@@ -629,6 +664,8 @@ tuple<vector<point_feature_on_canvas>, vector<point_feature_on_canvas>> canvas::
 
 
 vector<point_feature_on_canvas> canvas::draw_visible_peaks(const vector<point_feature_on_canvas>& peaks_vis) {
+  assert(image_constructed);
+  const unsigned width(core.get_width());
   //int n_labels = peaks_vis.size();
 
   LabelGroups lgs(peaks_vis, width);
@@ -642,7 +679,7 @@ vector<point_feature_on_canvas> canvas::draw_visible_peaks(const vector<point_fe
     const int& dist_peak = lgs[p].dist;
     // cout << peaks[p].name << " is visible" << endl;
     // cout << "pixel will be written at : " << x_peak << ", " << y_peak << endl;
-    write_pixel(x_peak, y_peak, 255, 0, 0);
+    write_pixel_img(x_peak, y_peak, 255, 0, 0);
 
     // const int x_offset=0;
     const int y_offset = 100;
@@ -686,10 +723,11 @@ vector<point_feature_on_canvas> canvas::draw_visible_peaks(const vector<point_fe
 
 void canvas::draw_invisible_peaks(const vector<point_feature_on_canvas>& peaks_invis,
                                   const int16_t r, const int16_t g, const int16_t b) {
+  assert(image_constructed);
   for (size_t p = 0; p < peaks_invis.size(); p++) {
     cout << peaks_invis[p].pf.name << " is invisible" << endl;
     cout << "pixel will be written at : " << peaks_invis[p].x << ", " << peaks_invis[p].y << endl;
-    write_pixel(peaks_invis[p].x, peaks_invis[p].y, r, g, b);
+    write_pixel_core(peaks_invis[p].x, peaks_invis[p].y, r, g, b);
   }
 }
 
@@ -707,6 +745,8 @@ void canvas::annotate_islands(const scene& S) {
 }
 
 void canvas::draw_coast(const scene& S) {
+  const unsigned width(core.get_width()),
+                 height(core.get_height());
   // read all peaks from all tiles in S
   vector<linear_feature> coasts;
   for (const auto& T : S.tiles) {

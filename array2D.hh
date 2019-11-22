@@ -22,10 +22,30 @@ public:
   array2D(int _m, int _n, const T& zero = 0): vector<T>(_m * _n, zero), m(_m), n(_n) {}
 
   template <typename S>
-  array2D(const array2D<S>& A): vector<T>(A.begin(), A.end()), m(A.m), n(A.n) {}
+  array2D(const array2D<S>& A): vector<T>(A.begin(), A.end()), m(A.get_m()), n(A.get_n()) {}
 
   T& operator()(int i, int j) { return (*this)[i * n + j]; }
   T operator()(int i, int j) const { return (*this)[i * n + j]; }
+
+  array2D<T> operator+(const array2D<T>& y) const { return array2D<T>(*this) += y; }
+  array2D<T> operator-(const array2D<T>& y) const { return array2D<T>(*this) -= y; }
+  array2D<T>& operator+=(const array2D<T>& y) {
+    for (size_t i = 0; i < n * m; i++)
+      (*this)[i] += y[i];
+    return *this;
+  }
+  array2D<T>& operator-=(const array2D<T>& y) {
+    for (size_t i = 0; i < n * m; i++)
+      (*this)[i] -= y[i];
+    return *this;
+  }
+
+  array2D<T> pointwise_min(array2D<T>& B) const {
+    array2D<T> Tnew(*this);
+    for (size_t i = 0; i < n * m; i++)
+      Tnew[i] = std::min(Tnew[i], B[i]);
+    return Tnew;
+  }
 
   int get_m() const { return m; }
   int get_n() const { return n; }

@@ -141,6 +141,7 @@ def main():
     C.bucket_fill(100,100,100)
     C.render_scene(S)
     C.highlight_edges()
+    C.construct_image()
 #    C.draw_coast(S)
     C.annotate_peaks(S)
 #    C.annotate_islands(S)

@@ -26,8 +26,8 @@ linear_feature_on_canvas::linear_feature_on_canvas(const linear_feature& _lf, co
       view_dir_v = S.view_dir_v,
       view_width = S.view_width,
       view_height = S.view_height,
-      pixels_per_rad_h = C.width / view_width,   // [px/rad]
-      pixels_per_rad_v = C.height / view_height; // [px/rad]
+      pixels_per_rad_h = C.get_width() / view_width,   // [px/rad]
+      pixels_per_rad_v = C.get_height() / view_height; // [px/rad]
 
   // iterate over points in linear feature
   for (pair<double, double> point : lf.coords) {
