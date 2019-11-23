@@ -256,7 +256,7 @@ void canvas::render_scene(const scene& S) {
                          shared(S, cout, debug, width, height, view_width, view_height, view_direction_h, view_direction_v, pixels_per_rad_h, pixels_per_rad_v) \
                          reduction(+ : core)
   for (size_t t = 0; t < S.tiles.size(); t++) {
-    const auto t1 = std::chrono::high_resolution_clock::now();
+    const auto t0 = std::chrono::high_resolution_clock::now();
 
     const tile<double>& H = S.tiles[t].first;
     const tile<double>& D = S.tiles[t].second;
@@ -331,8 +331,8 @@ void canvas::render_scene(const scene& S) {
       }
     }
 
-    auto t2 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> fp_ms = t2 - t1;
+    auto t1 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
     cout << "  rendering tile took " << fp_ms.count() << " ms" << endl;
   }
   debug.close();
@@ -343,6 +343,7 @@ void canvas::render_scene(const scene& S) {
 // rarely overhanging or floating in mid-air
 void canvas::highlight_edges() {
   assert(!image_constructed);
+  const auto t0 = std::chrono::high_resolution_clock::now();
   const unsigned width(core.get_width()),
                  height(core.get_height());
   const array2D<double>& zbuffer(core.get_zb());
@@ -360,6 +361,10 @@ void canvas::highlight_edges() {
       z_prev = z_curr;
     }
   }
+
+  auto t1 = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
+  cout << "  edge highlighting took " << fp_ms.count() << " ms" << endl;
 }
 
 void canvas::render_test() {
@@ -386,6 +391,7 @@ void canvas::bucket_fill(const int r, const int g, const int b) {
 }
 
 void canvas::annotate_peaks(const scene& S) {
+  const auto t0 = std::chrono::high_resolution_clock::now();
   // read all peaks from all tiles in S
   vector<point_feature> peaks;
   for (auto it = S.tiles.begin(), to = S.tiles.end(); it != to; it++) {
@@ -411,6 +417,10 @@ void canvas::annotate_peaks(const scene& S) {
   draw_invisible_peaks(obscured_peaks, 0, 255, 0);
   draw_invisible_peaks(omitted_peaks, 0, 255, 255);
 #endif
+
+  auto t1 = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
+  cout << "  labelling peaks took " << fp_ms.count() << " ms" << endl;
 }
 
 
