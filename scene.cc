@@ -77,10 +77,12 @@ scene::scene(double lat, double lon, double z, double vdirh, double vw, double v
       cerr << " no source for " + fn + " found, ignoring it" << endl;
   }
   if (z_standpoint == -1) {
+    const double z_offset = 10; // asssume we are floating in midair to avoid artefacts
     // FIXME the case when points from neighbouring tiles are required
+    // find the tile in which we are standing
     auto it = find_if(tiles.begin(), tiles.end(),
                       [&](const pair<tile<double>, tile<double>>& p) { return (p.first.get_lat() == floor(lat_standpoint * rad2deg)) && (p.first.get_lon() == floor(lon_standpoint * rad2deg)); });
-    z_standpoint = (it->first).interpolate(lat_standpoint * rad2deg, lon_standpoint * rad2deg) + 10;
+    z_standpoint = (it->first).interpolate(lat_standpoint * rad2deg, lon_standpoint * rad2deg) + z_offset;
     cout << "overwriting the elevation: " << z_standpoint << endl;
   }
   cout << "scene constructed" << endl;

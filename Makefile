@@ -1,13 +1,12 @@
 
 CXX=g++
-# CXX=clang++
+# CXX=clang++ # requires somthing like libomp-dev, which gcc does not require
 AR=ar
 
 FLAGS=-O2 -g -Wshadow -Wunused -std=c++14 -fpic -fopenmp
 LINK_FLAGS=-fopenmp
 
 GD_INCLUDES_L=-lgd -lpng -lz -lfreetype -lm
-#BOOST_INCLUDES_L=-lboost_regex -lboost_program_options
 XML_INCLUDES_L=$(shell pkg-config libxml++-2.6 --libs)
 XML_INCLUDES_C=$(shell pkg-config libxml++-2.6 --cflags)
 PYTHON_INCLUDES_C=-I/usr/include/python3.7m

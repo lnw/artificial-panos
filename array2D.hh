@@ -23,6 +23,7 @@ public:
 
   template <typename S>
   array2D(const array2D<S>& A): vector<T>(A.begin(), A.end()), m(A.get_m()), n(A.get_n()) {}
+  // array2D(const array2D<T>& A): vector<T>(A.begin(), A.end()), m(A.get_m()), n(A.get_n()) {}
 
   T& operator()(int i, int j) { return (*this)[i * n + j]; }
   T operator()(int i, int j) const { return (*this)[i * n + j]; }

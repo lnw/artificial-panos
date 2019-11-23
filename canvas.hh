@@ -49,7 +49,7 @@ public:
   double get_zb(int x, int y) const {return zbuffer(x, y);}
   double& get_zb(int x, int y) {return zbuffer(x, y);}
 
-  array2D<double> get_wc() const {return working_canvas;}
+  array2D<int32_t> get_wc() const {return working_canvas;}
   const array2D<int32_t>& get_wc() {return working_canvas;}
   int32_t get_wc(int x, int y) const {return working_canvas(x, y);}
   int32_t& get_wc(int x, int y) {return working_canvas(x, y);}
@@ -122,8 +122,7 @@ public:
     }
   }
 
-  // just write the pixel taking into account the zbuffer
-  // true if pixel was drawn
+  // read the zbuffer, return true if the pixel would be drawn
   bool would_write_pixel_zb(const int x, const int y, const double z) {
     if (z > core.get_zb(x, y))
       return false;
