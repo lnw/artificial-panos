@@ -17,6 +17,10 @@
 
 using namespace std;
 
+enum class write_target { core,
+                          imgptr };
+
+
 int get_tile_index(const scene& S, const double lat, const double lon);
 
 
@@ -24,35 +28,35 @@ class canvas_t {
 private:
   unsigned width, height; // [pixels]
   array2D<double> zbuffer;
-  array2D<int32_t> working_canvas;;
+  array2D<int32_t> working_canvas;
 
-public:   
-  canvas_t(int x, int y): width(x), height(y), zbuffer(x, y, INT_MAX), working_canvas(x, y, 0) { }
-  canvas_t(const canvas_t& c): width(c.get_width()), height(c.get_height()), zbuffer(c.get_zb()), working_canvas(c.get_wc()) { }
+public:
+  canvas_t(int x, int y): width(x), height(y), zbuffer(x, y, INT_MAX), working_canvas(x, y, 0) {}
+  canvas_t(const canvas_t& c): width(c.get_width()), height(c.get_height()), zbuffer(c.get_zb()), working_canvas(c.get_wc()) {}
 
   canvas_t operator+(const canvas_t& rh) const { return canvas_t(*this) += rh; }
   canvas_t& operator+=(const canvas_t& rh) {
-    for(int x=0; x<width; x++){
-      for(int y=0; y<height; y++){
-        if(rh.get_zb(x,y) < zbuffer(x,y))
+    for (int x = 0; x < width; x++) {
+      for (int y = 0; y < height; y++) {
+        if (rh.get_zb(x, y) < zbuffer(x, y))
           working_canvas(x, y) = rh.get_wc(x, y);
       }
     }
     return *this;
   }
 
-  unsigned get_width() const {return width;}
-  unsigned get_height() const {return height;}
+  unsigned get_width() const { return width; }
+  unsigned get_height() const { return height; }
 
-  array2D<double> get_zb() const {return zbuffer;}
-  const array2D<double>& get_zb() {return zbuffer;}
-  double get_zb(int x, int y) const {return zbuffer(x, y);}
-  double& get_zb(int x, int y) {return zbuffer(x, y);}
+  array2D<double> get_zb() const { return zbuffer; }
+  const array2D<double>& get_zb() { return zbuffer; }
+  double get_zb(int x, int y) const { return zbuffer(x, y); }
+  double& get_zb(int x, int y) { return zbuffer(x, y); }
 
-  array2D<int32_t> get_wc() const {return working_canvas;}
-  const array2D<int32_t>& get_wc() {return working_canvas;}
-  int32_t get_wc(int x, int y) const {return working_canvas(x, y);}
-  int32_t& get_wc(int x, int y) {return working_canvas(x, y);}
+  array2D<int32_t> get_wc() const { return working_canvas; }
+  const array2D<int32_t>& get_wc() { return working_canvas; }
+  int32_t get_wc(int x, int y) const { return working_canvas(x, y); }
+  int32_t& get_wc(int x, int y) { return working_canvas(x, y); }
 };
 
 
@@ -76,39 +80,34 @@ public:
     gdImageDestroy(img_ptr);
   }
 
-  unsigned get_width() const {return core.get_width();}
-  unsigned get_height() const {return core.get_height();}
+  unsigned get_width() const { return core.get_width(); }
+  unsigned get_height() const { return core.get_height(); }
 
-  void construct_image(){
+  void construct_image() {
     assert(!image_constructed);
     const unsigned width(core.get_width()),
-                   height(core.get_height());
+        height(core.get_height());
     const array2D<int32_t>& wc(core.get_wc());
     // allocate mem
     img_ptr = gdImageCreateTrueColor(width, height);
-    for(size_t x = 0; x<width; x++)
-      for(size_t y = 0; y<height; y++)
+    for (size_t x = 0; x < width; x++)
+      for (size_t y = 0; y < height; y++)
         img_ptr->tpixels[y][x] = wc(x, y); // assuming TrueColor
     image_constructed = true;
   }
 
 
   // just write the pixel
-  void write_pixel_core(const int x, const int y,
-                        int16_t r, int16_t g, int16_t b) {
-    assert(!image_constructed);
+  template <write_target wt>
+  void write_pixel(const int x, const int y,
+                   int16_t r, int16_t g, int16_t b) {
     const int32_t col = 127 << 24 | r << 16 | g << 8 | b;
-    core.get_wc(x, y) = col;
+    if (wt == write_target::core)
+      core.get_wc(x, y) = col;
+    else if (wt == write_target::imgptr)
+      img_ptr->tpixels[y][x] = col; // assuming TrueColor
   }
 
-
-  // just write the pixel
-  void write_pixel_img(const int x, const int y,
-                       int16_t r, int16_t g, int16_t b) {
-    assert(image_constructed);
-    const int32_t col = 127 << 24 | r << 16 | g << 8 | b;
-    img_ptr->tpixels[y][x] = col; // assuming TrueColor
-  }
 
   // just write the pixel taking into account the zbuffer
   void write_pixel_zb(const int x, const int y, const double z,
