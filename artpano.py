@@ -7,6 +7,7 @@ import math
 import subprocess
 from argparse import ArgumentParser
 
+sys.path.append('build')
 import libartpano as ap
 
 deg2rad = math.pi/180.0

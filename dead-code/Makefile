@@ -3,7 +3,8 @@ CXX=g++
 # CXX=clang++ # requires somthing like libomp-dev, which gcc does not require
 AR=ar
 
-FLAGS=-O2 -g -Wshadow -Wunused -std=c++14 -fpic -fopenmp
+# FLAGS=-O0 -g -Wshadow -Wunused -std=c++14 -fpic -fopenmp -DNDEBUG
+FLAGS=-O3 -g -Wshadow -Wunused -std=c++14 -fpic -fopenmp
 LINK_FLAGS=-fopenmp
 
 GD_INCLUDES_L=-lgd -lpng -lz -lfreetype -lm

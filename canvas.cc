@@ -1,6 +1,7 @@
 
 #include <algorithm> // min, max
-#include <cmath>     // modf
+#include <cassert>
+#include <cmath> // modf
 #include <iostream>
 #include <tuple>
 #include <vector>
@@ -17,12 +18,18 @@
 
 using namespace std;
 
-#pragma omp declare reduction(arraymin : array2D<double> : omp_out = omp_out.pointwise_min(omp_in)) \
-                    initializer(omp_priv = array2D<double>(omp_orig))
-#pragma omp declare reduction(+ : array2D<int32_t> : omp_out += omp_in) \
-                    initializer(omp_priv = array2D<int32_t>(omp_orig))
-#pragma omp declare reduction(+ : canvas_t : omp_out += omp_in) \
-                    initializer(omp_priv = canvas_t(omp_orig))
+#pragma omp declare reduction(arraymin                                   \
+                              : array2D <double>                         \
+                              : omp_out = omp_out.pointwise_min(omp_in)) \
+    initializer(omp_priv = array2D <double>(omp_orig))
+#pragma omp declare reduction(+                    \
+                              : array2D <int32_t>  \
+                              : omp_out += omp_in) \
+    initializer(omp_priv = array2D <int32_t>(omp_orig))
+#pragma omp declare reduction(+                    \
+                              : canvas_t           \
+                              : omp_out += omp_in) \
+    initializer(omp_priv = canvas_t(omp_orig))
 
 // input in deg
 int get_tile_index(const scene& S, const double lat, const double lon) {
@@ -252,9 +259,10 @@ void canvas::render_scene(const scene& S) {
   cout << "vertical pixels per rad [px/rad]: " << pixels_per_rad_v << endl;
 
   // iterate over tiles in scene
-#pragma omp parallel for default(none) \
-                         shared(S, cout, debug, width, height, view_width, view_height, view_direction_h, view_direction_v, pixels_per_rad_h, pixels_per_rad_v) \
-                         reduction(+ : core)
+#pragma omp parallel for default(none)                                                                                                     \
+    shared(S, cout, debug, width, height, view_width, view_height, view_direction_h, view_direction_v, pixels_per_rad_h, pixels_per_rad_v) \
+        reduction(+                                                                                                                        \
+                  : core)
   for (size_t t = 0; t < S.tiles.size(); t++) {
     const auto t0 = std::chrono::high_resolution_clock::now();
 
@@ -526,6 +534,7 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature peak, const 
 #endif
   return false;
 }
+
 
 // test if a peak is visible by drawing a line on the ground from the peak to
 // the viewer, but only downhill.  If any part of the line is drawn, I call the
