@@ -1,4 +1,4 @@
-build/*.o
+build/*
 pano
 pano-debug
 a.out
