@@ -412,8 +412,8 @@ void canvas::annotate_peaks(const scene& S) {
   }
   cout << "peaks in db: " << peaks.size() << endl;
   // which of those are visible?
-  vector<point_feature_on_canvas> visible_peaks, obscured_peaks, omitted_peaks;
-  tie(visible_peaks, obscured_peaks) = get_visible_peaks(peaks, S);
+  vector<point_feature_on_canvas> omitted_peaks;
+  auto [visible_peaks, obscured_peaks] = get_visible_peaks(peaks, S);
   cout << "number of visible peaks: " << visible_peaks.size() << endl;
   cout << "number of obscured peaks: " << obscured_peaks.size() << endl;
   cout << "number of out-of-range/wrong direction peaks: " << peaks.size() - visible_peaks.size() - obscured_peaks.size() << endl;
@@ -571,8 +571,7 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature peak, const 
     // cout << "seg no: " << seg << endl;
     // get coords of segment endpoints
     const double dist_point = dist_peak - seg_length * seg;
-    double point_lat, point_lon;
-    tie(point_lat, point_lon) = destination(ref_lat, ref_lon, dist_point, bearing_rad);
+    auto [point_lat, point_lon] = destination(ref_lat, ref_lon, dist_point, bearing_rad);
 
     // find tile in which the point lies
     const int tile_index = get_tile_index(S, point_lat * rad2deg, point_lon * rad2deg);

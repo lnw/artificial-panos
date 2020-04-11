@@ -2,21 +2,20 @@
 #define GEOMETRY_HH
 
 #include <cmath>
-#include <vector>
 
 #include "auxiliary.hh"
 
-const double deg2rad = M_PI / 180;
-const double rad2deg = 180 / M_PI;
+constexpr double deg2rad = M_PI / 180;
+constexpr double rad2deg = 180 / M_PI;
 // angle = (2*a + b)/3
-const double average_radius_earth = (2 * 6378.137 + 6356.752) / 3.0 * 1000; // 6371.009 km [m]
+constexpr double average_radius_earth = (2 * 6378.137 + 6356.752) / 3.0 * 1000; // 6371.009 km [m]
 
 // distance between two points on a sphere, without elevation
 // phi is the latitude, theta the longitude
 // Vincenty's formulae might be better (to take into account earth's oblation)
 // double distance_acos(const double latA, const double lonA, const double latB, const double lonB);
 
-inline double distance_atan(const double latA, const double lonA, const double latB, const double lonB) {
+constexpr double distance_atan(const double latA, const double lonA, const double latB, const double lonB) {
   const double latDiff_half = (latA - latB) / 2.0;
   const double longDiff_half = (lonA - lonB) / 2.0;
   const double a = sin(latDiff_half) * sin(latDiff_half) + sin(longDiff_half) * sin(longDiff_half) * cos(latB) * cos(latA);
@@ -25,8 +24,6 @@ inline double distance_atan(const double latA, const double lonA, const double l
 }
 
 double central_angle_acos(const double latA, const double lonA, const double latB, const double lonB);
-
-double distance_atan(const double latA, const double lonA, const double latB, const double lonB);
 
 double central_angle_atan(const double latA, const double lonA, const double latB, const double lonB);
 

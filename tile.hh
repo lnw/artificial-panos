@@ -3,19 +3,24 @@
 
 #include <cassert>
 #include <chrono>
-#include <cmath>   // for floor, abs, ceil
+#include <cmath>   // floor
 #include <cstdint> // for int16_t
-#include <cstring>
 #include <fstream> // for ostream, ifstream
 
 #include "array2D.hh"
 
-using namespace std;
+template <int nBytes>
+constexpr void swapEndianness(const char* in, char* out) {
+  for (int i = 0; i < nBytes; i++) {
+    out[i] = in[nBytes - i - 1];
+  }
+}
 
-inline int16_t endian_swap(const int16_t in) {
-  unsigned char c[2];
-  memcpy(c, &in, 2);
-  return (int16_t)(c[0] << 8 | c[1]);
+template <typename T>
+constexpr T endian_swap(const T& var) {
+  T res(0);
+  swapEndianness<sizeof(var)>(reinterpret_cast<char const*>(&var), reinterpret_cast<char*>(&res));
+  return res;
 }
 
 
@@ -91,7 +96,7 @@ public:
 
   // matrix of distances [m] from standpoint to tile
   tile<double> get_distances(const double lat_standpoint, const double lon_standpoint) const {
-    vector<double> latitudes(m),
+    std::vector<double> latitudes(m),
         longitudes(m);
     for (int i = 0; i < m; i++)
       latitudes[i] = (lat + 1 - i / double(m - 1)) * deg2rad;
@@ -115,9 +120,25 @@ public:
   //        p
   //        |
   // iij--aux2---iijj
-  double interpolate(const double lat_p, const double lon_p) const;
+  constexpr double interpolate(const double lat_p, const double lon_p) const {
+    // cout << lat_p <<", "<< lon_p <<", "<<floor(lat_p) << ", "<< lat <<", " << floor(lon_p) <<", "<< lon << endl;
+    assert(std::floor(lat_p) == lat && std::floor(lon_p) == lon);
+    const int dim_m1 = dim - 1; // we really need dim-1 all the time
+    // get the surrounding four indices
+    const int i = dim_m1 - std::floor((lat_p - lat) * dim_m1),
+              ii = i - 1,
+              j = std::floor((lon_p - lon) * dim_m1),
+              jj = j + 1;
+    const double aux1_h = (*this)(i, j) * (jj - dim_m1 * (lon_p - lon)) + (*this)(i, jj) * (dim_m1 * (lon_p - lon) - j);
+    // cout << "aux1_h: " << aux1_h << endl;
+    const double aux2_h = (*this)(ii, j) * (jj - dim_m1 * (lon_p - lon)) + (*this)(ii, jj) * (dim_m1 * (lon_p - lon) - j);
+    // cout << "aux2_h: " << aux2_h << endl;
+    const double p_h = aux1_h * ((dim_m1 - ii) - dim_m1 * (lat_p - lat)) + aux2_h * (dim_m1 * (lat_p - lat) - (dim_m1 - i));
+    return p_h;
+  }
 
-  friend ostream& operator<<(ostream& S, const tile& TT) {
+
+  friend std::ostream& operator<<(std::ostream& S, const tile& TT) {
     S << TT.n;
     for (int i = 0; i < TT.m; i++)
       S << " " << i + 1;

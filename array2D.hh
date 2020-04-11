@@ -48,10 +48,10 @@ public:
     return Tnew;
   }
 
-  int get_m() const { return m; }
-  int get_n() const { return n; }
+  constexpr int get_m() const { return m; }
+  constexpr int get_n() const { return n; }
 
-  void transpose() {
+  constexpr void transpose() {
     int x(m);
     m = n;
     n = x;

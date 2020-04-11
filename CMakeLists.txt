@@ -31,7 +31,7 @@ else()
 endif()
 
 include_directories(${glib_INCLUDE_DIR} ${glib_config_INCLUDE_DIR} ${glibmm_INCLUDE_DIR} ${glibmm_config_INCLUDE_DIR} ${libxml++_INCLUDE_DIR} ${libxml++_config_INCLUDE_DIR})
-add_library(ap SHARED mapitems.cc geometry.cc canvas.cc tile.cc labelgroup.cc scene.cc)
+add_library(ap SHARED mapitems.cc geometry.cc canvas.cc labelgroup.cc scene.cc)
 target_link_libraries(ap ${libxml++_LIBRARIES})
 
 add_executable(pano pano.cc)
