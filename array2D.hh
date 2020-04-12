@@ -22,27 +22,27 @@ public:
   array2D(int _m, int _n, const T& zero = 0): vector<T>(_m * _n, zero), m(_m), n(_n) {}
 
   template <typename S>
-  array2D(const array2D<S>& A): vector<T>(A.begin(), A.end()), m(A.get_m()), n(A.get_n()) {}
+  array2D(const array2D<S>& A): std::vector<T>(A.begin(), A.end()), m(A.get_m()), n(A.get_n()) {}
   // array2D(const array2D<T>& A): vector<T>(A.begin(), A.end()), m(A.get_m()), n(A.get_n()) {}
 
   T& operator()(int i, int j) { return (*this)[i * n + j]; }
   T operator()(int i, int j) const { return (*this)[i * n + j]; }
 
-  array2D<T> operator+(const array2D<T>& y) const { return array2D<T>(*this) += y; }
-  array2D<T> operator-(const array2D<T>& y) const { return array2D<T>(*this) -= y; }
-  array2D<T>& operator+=(const array2D<T>& y) {
+  array2D operator+(const array2D& y) const { return array2D(*this) += y; }
+  array2D& operator+=(const array2D& y) {
     for (size_t i = 0; i < n * m; i++)
       (*this)[i] += y[i];
     return *this;
   }
-  array2D<T>& operator-=(const array2D<T>& y) {
+  array2D operator-(const array2D& y) const { return array2D(*this) -= y; }
+  array2D& operator-=(const array2D& y) {
     for (size_t i = 0; i < n * m; i++)
       (*this)[i] -= y[i];
     return *this;
   }
 
-  array2D<T> pointwise_min(array2D<T>& B) const {
-    array2D<T> Tnew(*this);
+  array2D pointwise_min(array2D& B) const {
+    array2D Tnew(*this);
     for (size_t i = 0; i < n * m; i++)
       Tnew[i] = std::min(Tnew[i], B[i]);
     return Tnew;
@@ -61,7 +61,7 @@ public:
         A(j, i) = (*this)(i, j);
       }
     }
-    *this = A;
+    std::swap(*this, A);
   }
 
   friend ostream& operator<<(ostream& S, const array2D& A) {

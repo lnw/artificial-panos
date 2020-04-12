@@ -9,6 +9,7 @@
 
 #include "array2D.hh"
 
+
 template <int nBytes>
 constexpr void swapEndianness(const char* in, char* out) {
   for (int i = 0; i < nBytes; i++) {
@@ -61,11 +62,8 @@ public:
     }
     ifs.close();
 
-    for (int i = 0; i < dim; i++) {
-      for (int j = 0; j < dim; j++) {
-        (*this)(i, j) = endian_swap((*this)(i, j));
-      }
-    }
+    for (size_t i = 0; i < (*this).size(); i++)
+      (*this)[i] = endian_swap((*this)[i]);
 
     // auto t1 = std::chrono::high_resolution_clock::now();
     // std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
@@ -122,18 +120,20 @@ public:
   // iij--aux2---iijj
   constexpr double interpolate(const double lat_p, const double lon_p) const {
     // cout << lat_p <<", "<< lon_p <<", "<<floor(lat_p) << ", "<< lat <<", " << floor(lon_p) <<", "<< lon << endl;
-    assert(std::floor(lat_p) == lat && std::floor(lon_p) == lon);
-    const int dim_m1 = dim - 1; // we really need dim-1 all the time
+    assert(std::floor(lat_p) == lat && std::floor(lon_p) == lon); // ie, we are in the right tile
+    int dim_m1 = dim - 1;                                         // we really need dim-1 all the time
     // get the surrounding four indices
-    const int i = dim_m1 - std::floor((lat_p - lat) * dim_m1),
-              ii = i - 1,
-              j = std::floor((lon_p - lon) * dim_m1),
-              jj = j + 1;
-    const double aux1_h = (*this)(i, j) * (jj - dim_m1 * (lon_p - lon)) + (*this)(i, jj) * (dim_m1 * (lon_p - lon) - j);
+    int i = dim_m1 - std::floor((lat_p - lat) * dim_m1),
+        ii = i - 1,
+        j = std::floor((lon_p - lon) * dim_m1),
+        jj = j + 1;
+    double lon_frac = dim_m1 * (lon_p - lon) - j;
+    double lat_frac = dim_m1 * (lat_p - lat) - (dim_m1 - i);
+    double aux1_h = (*this)(i, j) * (1 - lon_frac) + (*this)(i, jj) * lon_frac;
     // cout << "aux1_h: " << aux1_h << endl;
-    const double aux2_h = (*this)(ii, j) * (jj - dim_m1 * (lon_p - lon)) + (*this)(ii, jj) * (dim_m1 * (lon_p - lon) - j);
+    double aux2_h = (*this)(ii, j) * (1 - lon_frac) + (*this)(ii, jj) * lon_frac;
     // cout << "aux2_h: " << aux2_h << endl;
-    const double p_h = aux1_h * ((dim_m1 - ii) - dim_m1 * (lat_p - lat)) + aux2_h * (dim_m1 * (lat_p - lat) - (dim_m1 - i));
+    double p_h = aux1_h * (1 - lat_frac) + aux2_h * lat_frac;
     return p_h;
   }
 
