@@ -1,7 +1,11 @@
+#include <iosfwd>
+#include <string>
+#include <vector>
 
-#include "canvas.hh"   // for canvas
-#include "geometry.hh" // for deg2rad
-#include "scene.hh"    // for scene
+#include "canvas.hh"
+#include "geometry.hh"
+#include "scene.hh"
+
 
 using namespace std;
 

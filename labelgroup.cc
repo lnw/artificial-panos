@@ -1,12 +1,12 @@
 
 #include <algorithm> // sort
 #include <cassert>
-#include <cmath>
 #include <iostream>
 #include <vector>
 
 #include "labelgroup.hh"
 #include "mapitems.hh"
+#include "geometry.hh"
 
 using namespace std;
 

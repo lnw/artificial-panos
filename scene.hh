@@ -3,10 +3,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstring>
-#include <fstream> // for ofstream
-#include <unordered_map>
-#include <utility> // for pair
+#include <fstream>  // for ofstream
+#include <utility>  // for pair
 
 #include "tile.hh"
 

@@ -1,19 +1,24 @@
 #ifndef CANVAS_HH
 #define CANVAS_HH
 
-#include <cmath>
+#include <cassert>
+#include <cstdint>
 #include <iostream>
 #include <limits>
+#include <cstdio>
+#include <string>
 #include <tuple>
 #include <vector>
 
 #include <gd.h>
 
 #include "array2D.hh"
-#include "geometry.hh"
-#include "mapitems.hh"
-#include "scene.hh"
-#include "tile.hh"
+// #include "scene.hh"
+class scene;
+// #include "mapitems.hh"
+struct point_feature;
+struct point_feature_on_canvas;
+
 
 using namespace std;
 

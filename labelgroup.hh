@@ -1,7 +1,6 @@
 #ifndef LABELGROUP_HH
 #define LABELGROUP_HH
 
-#include <cmath>
 #include <iostream>
 #include <vector>
 

@@ -9,7 +9,6 @@
 #include <libxml++/libxml++.h>
 
 #include "auxiliary.hh"
-#include "geometry.hh"
 
 using namespace std;
 
