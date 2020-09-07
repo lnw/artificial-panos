@@ -27,4 +27,4 @@ PYBIND11_MODULE(libartpano, m) {
       .def("annotate_peaks", &canvas::annotate_peaks)     // scene
       .def("annotate_islands", &canvas::annotate_islands) // scene
       .def("label_axis", &canvas::label_axis);            // scene
-};
+}

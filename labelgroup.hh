@@ -9,7 +9,7 @@
 using namespace std;
 
 struct group {
-  size_t first_index, last_index;
+  int first_index, last_index;
   int centre, width;
 
   friend ostream& operator<<(ostream& S, const group& g) {

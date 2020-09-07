@@ -216,9 +216,9 @@ vector<linear_feature> read_coast_osm(string filename) {
 
   // assemble ways/coordinates
   vector<linear_feature> coastlines(ways.size());
-  for (int i = 0; i < ways.size(); i++) {
+  for (int i = 0; i < static_cast<int>(ways.size()); i++) {
     linear_feature lf_tmp;
-    for (int j = 0; j < ways[i].first.size(); j++) {
+    for (int j = 0; j < static_cast<int>(ways[i].first.size()); j++) {
       const size_t id = ways[i].first[j];
       const pair<double, double> coord(nodes[id]);
       lf_tmp.append(coord);

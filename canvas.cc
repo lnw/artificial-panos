@@ -61,7 +61,7 @@ void canvas::draw_triangle(const double x1, const double y1,
   const int ymax = max({ceil(y1), ceil(y2), ceil(y3)});
   const int zero = 0;
 
-  const unsigned width(core.get_width()),
+  const int width(core.get_width()),
       height(core.get_height());
 
   if (xmax - xmin > width / 2.0)
@@ -238,8 +238,8 @@ void canvas::label_axis(const scene& S) {
 
 void canvas::render_scene(const scene& S) {
   ofstream debug("debug-render_scene", ofstream::out | ofstream::app);
-  const unsigned width = core.get_width(),
-                 height = core.get_height();
+  const int width = core.get_width(),
+            height = core.get_height();
   // determine the dimensions, especially pixels/deg
   const double& view_direction_h = S.view_dir_h;        // [rad]
   const double& view_width = S.view_width;              // [rad]
@@ -763,7 +763,7 @@ void canvas::annotate_islands(const scene& S) {
 }
 
 void canvas::draw_coast(const scene& S) {
-  const unsigned width(core.get_width()),
+  const int width(core.get_width()),
       height(core.get_height());
   // read all peaks from all tiles in S
   vector<linear_feature> coasts;
@@ -804,7 +804,7 @@ void canvas::draw_coast(const scene& S) {
   // do the actual drawing
   for (const linear_feature_on_canvas& coast_oc : coasts_oc) {
     cout << "new line feature" << endl;
-    for (int p = 0; p < coast_oc.size() - 1; p++) {
+    for (int p = 0; p < static_cast<int>(coast_oc.size() - 1); p++) {
       const int
           x1 = coast_oc.xs[p],
           y1 = coast_oc.ys[p], z = coast_oc.dists[p],

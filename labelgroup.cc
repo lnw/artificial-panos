@@ -42,8 +42,8 @@ LabelGroups::LabelGroups(vector<point_feature_on_canvas> _pfocs, int cw): pfocs(
 // first and last are indices of groups (not pfocs)
 // return number of resulting groups
 int LabelGroups::gather_groups(int first, int last) {
-  assert(last < g.size());
-  assert(first <= last);
+  assert(last < static_cast<int>(g.size()));
+  assert(first <= static_cast<int>(last));
   if (last == first)
     return 1; // one element
   //cout << "gather " << first << " to " << last << " (from " << g.size()<< ")" << endl;
@@ -58,7 +58,7 @@ int LabelGroups::gather_groups(int first, int last) {
         // find new centre
         // it->centre = (pfocs[it->first_index].x + pfocs[(it+1)->last_index].x) / 2; // works, but looks silly
         int av = 0;
-        for (size_t i = g[ind].first_index; i <= g[ind].last_index; i++)
+        for (int i = g[ind].first_index; i <= g[ind].last_index; i++)
           av += pfocs[i].x;
         av /= (g[ind].last_index - g[ind].first_index + 1);
         g[ind].centre = av;
@@ -88,8 +88,8 @@ int LabelGroups::gather_groups(int first, int last) {
 // assign xshifts to labels in one or more groups
 // first and last are indices of groups
 void LabelGroups::assign_xshifts(int first, int last) {
-  assert(last < g.size());
-  assert(first <= last);
+  assert(last < static_cast<int>(g.size()));
+  assert(first <= static_cast<int>(last));
   // cout << "assign XS " << first << " to " << last << " (from " << g.size()<< ")" << endl;
   for (int i = first; i <= last; i++) { // groups
     // cout << "pfocs from " << g[i].first_index << " to " << g[i].last_index << endl;
@@ -186,9 +186,9 @@ void LabelGroups::remove_label(int index, int lg) {
   // cout << "remove " << index << " from " << lg << " ..." << flush;
   pfocs.erase(pfocs.begin() + index);
   g[lg].last_index--;
-  if (lg == g.size() - 1)
+  if (lg == static_cast<int>(g.size() - 1))
     return;
-  for (int i = lg + 1; i <= g.size() - 1; i++) {
+  for (int i = lg + 1; i <= static_cast<int>(g.size() - 1); i++) {
     g[i].first_index--;
     g[i].last_index--;
   }

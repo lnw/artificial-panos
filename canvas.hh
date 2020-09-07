@@ -3,9 +3,9 @@
 
 #include <cassert>
 #include <cstdint>
+#include <cstdio>
 #include <iostream>
 #include <limits>
-#include <cstdio>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -31,7 +31,7 @@ int get_tile_index(const scene& S, const double lat, const double lon);
 
 class canvas_t {
 private:
-  unsigned width, height; // [pixels]
+  int width, height; // [pixels]
   array2D<double> zbuffer;
   array2D<int32_t> working_canvas;
 
@@ -85,18 +85,18 @@ public:
     gdImageDestroy(img_ptr);
   }
 
-  unsigned get_width() const { return core.get_width(); }
-  unsigned get_height() const { return core.get_height(); }
+  int get_width() const { return core.get_width(); }
+  int get_height() const { return core.get_height(); }
 
   void construct_image() {
     assert(!image_constructed);
-    const unsigned width(core.get_width()),
+    const int width(core.get_width()),
         height(core.get_height());
     const array2D<int32_t>& wc(core.get_wc());
     // allocate mem
     img_ptr = gdImageCreateTrueColor(width, height);
-    for (size_t x = 0; x < width; x++)
-      for (size_t y = 0; y < height; y++)
+    for (int x = 0; x < width; x++)
+      for (int y = 0; y < height; y++)
         img_ptr->tpixels[y][x] = wc(x, y); // assuming TrueColor
     image_constructed = true;
   }

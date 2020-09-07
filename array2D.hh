@@ -30,20 +30,20 @@ public:
 
   array2D operator+(const array2D& y) const { return array2D(*this) += y; }
   array2D& operator+=(const array2D& y) {
-    for (size_t i = 0; i < n * m; i++)
+    for (int i = 0; i < n * m; i++)
       (*this)[i] += y[i];
     return *this;
   }
   array2D operator-(const array2D& y) const { return array2D(*this) -= y; }
   array2D& operator-=(const array2D& y) {
-    for (size_t i = 0; i < n * m; i++)
+    for (int i = 0; i < n * m; i++)
       (*this)[i] -= y[i];
     return *this;
   }
 
   array2D pointwise_min(array2D& B) const {
     array2D Tnew(*this);
-    for (size_t i = 0; i < n * m; i++)
+    for (int i = 0; i < n * m; i++)
       Tnew[i] = std::min(Tnew[i], B[i]);
     return Tnew;
   }

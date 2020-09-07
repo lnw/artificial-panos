@@ -14,7 +14,7 @@ set(CMAKE_VERBOSE_MAKEFILE FALSE)
 
 set(CMAKE_CXX_FLAGS "-fopenmp")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wshadow -Wpedantic")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wshadow -Wpedantic -fsanitize=undefined")
 
 find_package(libxml++ REQUIRED)
 # message(STATUS "libxml++ incl dir ${libxml++_INCLUDE_DIR}")

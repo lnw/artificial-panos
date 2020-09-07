@@ -34,8 +34,8 @@ class tile: public array2D<T> {
   // tiles go from 0..89 while southern tiles go from 1..90, east: 0..179,
   // west: 1..180.  however, the array stores everything starting from the
   // top/left corner, row major.
-  int lat, lon;
   int dim; // I expect either 3601 or 1201
+  int lat, lon;
 
 public:
   tile(int _m, int _n, int _dim, int _lat, int _lon): array2D<T>(_m, _n), dim(_dim), lat(_lat), lon(_lon) {
@@ -44,7 +44,7 @@ public:
   tile(array2D<T> A): array2D<T>(A) {
     assert(this->m == this->n);
   }
-  tile(char const* FILENAME, int _dim, int _lat, int _lon): array2D<int16_t>(_dim, _dim), lat(_lat), lon(_lon), dim(_dim) {
+  tile(char const* FILENAME, int _dim, int _lat, int _lon): array2D<int16_t>(_dim, _dim), dim(_dim), lat(_lat), lon(_lon) {
     // auto t0 = std::chrono::high_resolution_clock::now();
 
     assert(dim > 0);
