@@ -3,8 +3,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <fstream>  // for ofstream
-#include <utility>  // for pair
+#include <fstream>
+#include <utility>
 
 #include "tile.hh"
 
@@ -20,7 +20,7 @@ public:
   vector<string> source;                                  // list of subset of view1, view3, srtm1, srtm3 in some order: these are considered as source
   vector<pair<tile<double>, tile<double>>> tiles;         // heights, distances
 
-  scene(double lat, double lon, double z, double vdirh, double vw, double vdirv, double vh, double vdist, vector<string> _source);
+  scene(double lat, double lon, double z, double vdirh, double vw, double vdirv, double vh, double vdist, const vector<string>& _source);
 
   // lat, lon
   static set<pair<int, int>> determine_required_tiles(const double view_width, const double view_range, const double view_dir_h, const double lat_standpoint, const double lon_standpoint) {

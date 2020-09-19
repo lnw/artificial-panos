@@ -2,17 +2,18 @@
 #include <algorithm> // sort
 #include <cassert>
 #include <iostream>
+#include <utility>
 #include <vector>
 
+#include "geometry.hh"
 #include "labelgroup.hh"
 #include "mapitems.hh"
-#include "geometry.hh"
 
 using namespace std;
 
 const int label_width = 18;
 
-LabelGroups::LabelGroups(vector<point_feature_on_canvas> _pfocs, int cw): pfocs(_pfocs), canvas_width(cw) {
+LabelGroups::LabelGroups(const vector<point_feature_on_canvas>& _pfocs, int cw): pfocs(_pfocs), canvas_width(cw) {
   // sort by x from left to right
   sort(pfocs.begin(), pfocs.end(),
        [](const point_feature_on_canvas& pfoc1, const point_feature_on_canvas& pfoc2) { return pfoc1.x < pfoc2.x; });
@@ -29,7 +30,7 @@ LabelGroups::LabelGroups(vector<point_feature_on_canvas> _pfocs, int cw): pfocs(
     g[i].width = label_width; // that's one label
   }
 
-  if (g.size() != 0) {
+  if (!g.empty()) {
     gather_groups(0, g.size() - 1);
     assign_xshifts(0, g.size() - 1);
   }

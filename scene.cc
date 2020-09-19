@@ -16,7 +16,7 @@ inline bool file_accessable(const string& fn) {
   return f.good();
 }
 
-scene::scene(double lat, double lon, double z, double vdirh, double vw, double vdirv, double vh, double vdist, vector<string> _source): lat_standpoint(lat), lon_standpoint(lon), z_standpoint(z), view_dir_h(vdirh), view_width(vw), view_dir_v(vdirv), view_height(vh), view_range(vdist), source(_source) {
+scene::scene(double lat, double lon, double z, double vdirh, double vw, double vdirv, double vh, double vdist, const vector<string>& _source): lat_standpoint(lat), lon_standpoint(lon), z_standpoint(z), view_dir_h(vdirh), view_width(vw), view_dir_v(vdirv), view_height(vh), view_range(vdist), source(_source) {
   ofstream debug("debug-render_scene", ofstream::out | ofstream::app);
   debug << "standpoint: " << lat_standpoint * rad2deg << ", " << lon_standpoint * rad2deg << endl;
 
@@ -33,7 +33,7 @@ scene::scene(double lat, double lon, double z, double vdirh, double vw, double v
               string(ref_lon < 0 ? "W" : "E") + to_string_fixedwidth(std::abs(ref_lon), 3) + ".hgt");
     bool source_found = false;
     std::unordered_map<string, string> folder = {{"srtm1", "SRTM1v3.0"}, {"srtm3", "SRTM3v3.0"}, {"view1", "VIEW1"}, {"view3", "VIEW3"}};
-    for (vector<string>::const_iterator sit = source.begin(), sot = source.end(); sit != sot; sit++) {
+    for (auto sit = source.begin(), sot = source.end(); sit != sot; sit++) {
       string fn_full = path + "/" + folder[*sit] + "/" + fn;
       //cout << fn_full << endl;
       if (file_accessable(fn_full)) {

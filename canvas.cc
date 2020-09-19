@@ -120,7 +120,7 @@ bool canvas::draw_line(const double x1, const double y1,
 }
 
 
-void canvas::draw_tick(int x_tick, int tick_length, string str1, string str2) {
+void canvas::draw_tick(int x_tick, int tick_length, const string& str1, const string& str2) {
   assert(image_constructed);
   const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
   const double fontsize = 20.;
@@ -352,12 +352,12 @@ void canvas::render_scene(const scene& S) {
 void canvas::highlight_edges() {
   assert(!image_constructed);
   const auto t0 = std::chrono::high_resolution_clock::now();
-  const unsigned width(core.get_width()),
+  const int width(core.get_width()),
       height(core.get_height());
   const array2D<double>& zbuffer(core.get_zb());
-  for (size_t x = 0; x < width; x++) {
+  for (int x = 0; x < width; x++) {
     double z_prev = 1000000;
-    for (size_t y = 0; y < height; y++) {
+    for (int y = 0; y < height; y++) {
       const double z_curr = zbuffer(x, y);
       const double thr1 = 1.15, thr2 = 1.05;
       if (z_prev / z_curr > thr1 && z_prev - z_curr > 500) {
@@ -377,20 +377,20 @@ void canvas::highlight_edges() {
 
 void canvas::render_test() {
   assert(!image_constructed);
-  const unsigned width(core.get_width()),
+  const int width(core.get_width()),
       height(core.get_height());
-  for (size_t y = 0; y < height; y++) {
-    for (size_t x = 0; x < width; x++) {
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
       write_pixel<write_target::core>(x, y, x, 0.1 * x, y);
     }
   }
 }
 
 void canvas::bucket_fill(const int r, const int g, const int b) {
-  const unsigned width(core.get_width()),
+  const int width(core.get_width()),
       height(core.get_height());
-  for (size_t y = 0; y < height; y++) {
-    for (size_t x = 0; x < width; x++) {
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
       const int32_t col = 127 << 24 | r << 16 | g << 8 | b;
       // img_ptr->tpixels[y][x] = col; // assuming TrueColor
       core.get_wc(x, y) = col;
@@ -432,8 +432,8 @@ void canvas::annotate_peaks(const scene& S) {
 }
 
 
-bool canvas::peak_is_visible_v1(const scene& S, const point_feature peak, const double dist_peak, const int tile_index) {
-  const unsigned width(core.get_width()),
+bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const double dist_peak, const int tile_index) {
+  const int width(core.get_width()),
       height(core.get_height());
   const double& view_direction_h = S.view_dir_h;        // [rad]
   const double& view_width = S.view_width;              // [rad]
@@ -540,8 +540,8 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature peak, const 
 // the viewer, but only downhill.  If any part of the line is drawn, I call the
 // peak visible.  This avoids the problem of flat topped mountains and works
 // only under the condition that mountains don't float in midair.
-bool canvas::peak_is_visible_v2(const scene& S, const point_feature peak, const double dist_peak) {
-  const unsigned width(core.get_width()),
+bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const double dist_peak) {
+  const int width(core.get_width()),
       height(core.get_height());
   const double& view_direction_h = S.view_dir_h;        // [rad]
   const double& view_width = S.view_width;              // [rad]
@@ -627,7 +627,7 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature peak, const 
 // if the zbuffer admits any pixel to be drawn, the peak is visible
 tuple<vector<point_feature_on_canvas>, vector<point_feature_on_canvas>> canvas::get_visible_peaks(vector<point_feature>& peaks, const scene& S) {
   assert(image_constructed);
-  const unsigned width(core.get_width()),
+  const int width(core.get_width()),
       height(core.get_height());
   const double& view_direction_h = S.view_dir_h;        // [rad]
   const double& view_width = S.view_width;              // [rad]
@@ -673,9 +673,9 @@ tuple<vector<point_feature_on_canvas>, vector<point_feature_on_canvas>> canvas::
 
     //if(peak_is_visible_v1(S, peaks[p], dist_peak, tile_index))
     if (peak_is_visible_v2(S, peaks[p], dist_peak))
-      visible_peaks.push_back(point_feature_on_canvas(peaks[p], x_peak, y_peak, dist_peak));
+      visible_peaks.emplace_back(peaks[p], x_peak, y_peak, dist_peak);
     else
-      obscured_peaks.push_back(point_feature_on_canvas(peaks[p], x_peak, y_peak, dist_peak));
+      obscured_peaks.emplace_back(peaks[p], x_peak, y_peak, dist_peak);
   }
   return make_tuple(visible_peaks, obscured_peaks);
 }
@@ -785,13 +785,13 @@ void canvas::draw_coast(const scene& S) {
   set<linear_feature> tmp(coasts.begin(), coasts.end());
   coasts.assign(tmp.begin(), tmp.end());
   cout << "size2: " << coasts.size() << endl;
-  for (auto lf : coasts) {
+  for (const auto& lf : coasts) {
     cout << "coast ids: " << lf.id << endl;
   }
 
   // get linear feature on canvas
   set<linear_feature_on_canvas> coasts_oc;
-  for (const linear_feature coast : coasts) {
+  for (const linear_feature& coast : coasts) {
 
     linear_feature_on_canvas lfoc_tmp(coast, *this, S);
     cout << lfoc_tmp.lf.id << endl;

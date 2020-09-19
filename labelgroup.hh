@@ -27,7 +27,7 @@ class LabelGroups {
   int canvas_width;
 
 public:
-  LabelGroups(vector<point_feature_on_canvas> _pfocs, int cw);
+  LabelGroups(const vector<point_feature_on_canvas>& _pfocs, int cw);
 
   // gather groups from indices 'first' through 'last', in a selfconsistent way
   // first and last are indices of groups (not pfocs)

@@ -1,7 +1,7 @@
 
+#include <climits>
 #include <iomanip> //required for setfill()
 #include <iostream>
-#include <limits.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -19,20 +19,31 @@ using namespace std;
 
 linear_feature_on_canvas::linear_feature_on_canvas(const linear_feature& _lf, const canvas& C, const scene& S): lf(_lf) {
   const double
-      lat_ref = S.lat_standpoint,
-      lon_ref = S.lon_standpoint,
-      z_ref = S.z_standpoint,
-      view_dir_h = S.view_dir_h,
-      view_dir_v = S.view_dir_v,
-      view_width = S.view_width,
-      view_height = S.view_height,
-      pixels_per_rad_h = C.get_width() / view_width,   // [px/rad]
+      lat_ref = S.lat_standpoint;
+  const double
+      lon_ref = S.lon_standpoint;
+  const double
+      z_ref = S.z_standpoint;
+  const double
+      view_dir_h = S.view_dir_h;
+  const double
+      view_dir_v = S.view_dir_v;
+  const double
+      view_width = S.view_width;
+  const double
+      view_height = S.view_height;
+  const double
+      pixels_per_rad_h = C.get_width() / view_width;
+  const double
+      // [px/rad]
       pixels_per_rad_v = C.get_height() / view_height; // [px/rad]
 
   // iterate over points in linear feature
   for (pair<double, double> point : lf.coords) {
-    const double lat_d = point.first, lon_d = point.second;
-    const double lat_r = lat_d * deg2rad, lon_r = lon_d * deg2rad;
+    const double lat_d = point.first;
+    const double lon_d = point.second;
+    const double lat_r = lat_d * deg2rad;
+    const double lon_r = lon_d * deg2rad;
     const int tile_index = get_tile_index(S, lat_d, lon_d);
     if (tile_index < 0) {
       xs.push_back(-1);
@@ -65,12 +76,12 @@ linear_feature_on_canvas::linear_feature_on_canvas(const linear_feature& _lf, co
 
 // parses the xml object, appends peaks
 void parse_peaks_gpx(const xmlpp::Node* node, vector<point_feature>& peaks) {
-  const xmlpp::ContentNode* nodeContent = dynamic_cast<const xmlpp::ContentNode*>(node);
+  const auto* nodeContent = dynamic_cast<const xmlpp::ContentNode*>(node);
   // const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(node);
   // const xmlpp::CommentNode* nodeComment = dynamic_cast<const xmlpp::CommentNode*>(node);
 
   if (node->get_name() == "node") {
-    const xmlpp::Element* nodeElement = dynamic_cast<const xmlpp::Element*>(node);
+    const auto* nodeElement = dynamic_cast<const xmlpp::Element*>(node);
     // lat und lon are attributes of 'node'
     const double lat = to_double(nodeElement->get_attribute("lat")->get_value());
     const double lon = to_double(nodeElement->get_attribute("lon")->get_value());
@@ -78,10 +89,10 @@ void parse_peaks_gpx(const xmlpp::Node* node, vector<point_feature>& peaks) {
     // cout << nodeElement->get_attribute("lon")->get_value() << endl;
     // cout << lat << ", " << lon << endl;
     double ele = 0;
-    string name = "";
+    string name = name;
     for (const xmlpp::Node* child : node->get_children()) {
       if (child->get_name() == "tag") {
-        const xmlpp::Element* child_el = dynamic_cast<const xmlpp::Element*>(child);
+        const auto* child_el = dynamic_cast<const xmlpp::Element*>(child);
         // cout << "looking at childnodes" << endl;
         if (child_el->get_attribute("k")->get_value() == "ele") {
           // cout << "ele found" << endl;
@@ -95,9 +106,9 @@ void parse_peaks_gpx(const xmlpp::Node* node, vector<point_feature>& peaks) {
         }
       }
     }
-    peaks.push_back(point_feature(lat, lon, name, ele));
+    peaks.emplace_back(lat, lon, name, ele);
   }
-  else if (!nodeContent) {
+  else if (nodeContent == nullptr) {
     //Recurse through child nodes:
     for (const xmlpp::Node* child : node->get_children()) {
       parse_peaks_gpx(child, peaks);
@@ -110,12 +121,12 @@ void parse_peaks_gpx(const xmlpp::Node* node, vector<point_feature>& peaks) {
 // ways/realtions with lists of ID; then compiles vectors of points, ie linear
 // features
 void gather_points(const xmlpp::Node* node, unordered_map<size_t, pair<double, double>>& points) {
-  const xmlpp::ContentNode* nodeContent = dynamic_cast<const xmlpp::ContentNode*>(node);
+  const auto* nodeContent = dynamic_cast<const xmlpp::ContentNode*>(node);
   // const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(node);
   // const xmlpp::CommentNode* nodeComment = dynamic_cast<const xmlpp::CommentNode*>(node);
 
   if (node->get_name() == "node") {
-    const xmlpp::Element* nodeElement = dynamic_cast<const xmlpp::Element*>(node);
+    const auto* nodeElement = dynamic_cast<const xmlpp::Element*>(node);
     // id, lat, and lon are attributes of 'node'
     const size_t id = to_st(nodeElement->get_attribute("id")->get_value());
     const double lat = to_double(nodeElement->get_attribute("lat")->get_value());
@@ -123,7 +134,7 @@ void gather_points(const xmlpp::Node* node, unordered_map<size_t, pair<double, d
     // cout << id << ", " << lat << ", " << lon << endl;
     points.insert({id, make_pair(lat, lon)});
   }
-  else if (!nodeContent) {
+  else if (nodeContent == nullptr) {
     //Recurse through child nodes:
     for (const xmlpp::Node* child : node->get_children()) {
       gather_points(child, points);
@@ -135,28 +146,29 @@ void gather_points(const xmlpp::Node* node, unordered_map<size_t, pair<double, d
 // ways/realtions with lists of ID; then compiles vectors of points, ie linear
 // features
 void gather_ways(const xmlpp::Node* node, vector<pair<vector<size_t>, size_t>>& ways) {
-  const xmlpp::ContentNode* nodeContent = dynamic_cast<const xmlpp::ContentNode*>(node);
+  const auto* nodeContent = dynamic_cast<const xmlpp::ContentNode*>(node);
   //   const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(node);
   //   const xmlpp::CommentNode* nodeComment = dynamic_cast<const xmlpp::CommentNode*>(node);
 
   // 'way' contains a list of 'nd'-nodes
   if (node->get_name() == "way") {
-    const xmlpp::Element* el = dynamic_cast<const xmlpp::Element*>(node);
+    const auto* el = dynamic_cast<const xmlpp::Element*>(node);
     const size_t way_id = to_st(el->get_attribute("id")->get_value());
     vector<size_t> way_tmp;
     for (const xmlpp::Node* child : node->get_children()) {
       if (child->get_name() == "nd") {
-        const xmlpp::Element* child_el = dynamic_cast<const xmlpp::Element*>(child);
+        const auto* child_el = dynamic_cast<const xmlpp::Element*>(child);
         const size_t id = to_st(child_el->get_attribute("ref")->get_value());
         way_tmp.push_back(id);
         // cout << id << endl;
       }
     }
     //cout << way_tmp << endl;
-    if (way_tmp.size() != 0)
-      ways.push_back(make_pair(way_tmp, way_id));
+    if (!way_tmp.empty()) {
+      ways.emplace_back(way_tmp, way_id);
+    }
   }
-  else if (!nodeContent) {
+  else if (nodeContent == nullptr) {
     //Recurse through child nodes:
     for (const xmlpp::Node* child : node->get_children()) {
       gather_ways(child, ways);
@@ -166,7 +178,7 @@ void gather_ways(const xmlpp::Node* node, vector<pair<vector<size_t>, size_t>>& 
 
 
 // read plain xml
-vector<point_feature> read_peaks_osm(string filename) {
+vector<point_feature> read_peaks_osm(const string& filename) {
   cout << "attempting to parse: " << filename << " ..." << flush;
   vector<point_feature> peaks;
 
@@ -189,7 +201,7 @@ vector<point_feature> read_peaks_osm(string filename) {
 }
 
 
-vector<linear_feature> read_coast_osm(string filename) {
+vector<linear_feature> read_coast_osm(const string& filename) {
   cout << "attempting to parse: " << filename << " ..." << flush;
 
   unordered_map<size_t, pair<double, double>> nodes;
@@ -233,7 +245,7 @@ vector<linear_feature> read_coast_osm(string filename) {
 }
 
 
-vector<linear_feature> read_islands_osm(string filename) {
+vector<linear_feature> read_islands_osm(const string& filename) {
   cout << "attempting to parse: " << filename << " ..." << flush;
   vector<linear_feature> islands;
   //

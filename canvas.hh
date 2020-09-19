@@ -50,8 +50,8 @@ public:
     return *this;
   }
 
-  unsigned get_width() const { return width; }
-  unsigned get_height() const { return height; }
+  int get_width() const { return width; }
+  int get_height() const { return height; }
 
   array2D<double> get_zb() const { return zbuffer; }
   const array2D<double>& get_zb() { return zbuffer; }
@@ -153,7 +153,7 @@ public:
                  int16_t r, int16_t g, int16_t b,
                  bool draw);
 
-  void draw_tick(int x_tick, int tick_length, string str1, string str2 = "");
+  void draw_tick(int x_tick, int tick_length, const string& str1, const string& str2 = "");
 
   // always do N, E, S, W
   // every 10 deg (always)
@@ -174,8 +174,8 @@ public:
 
   void annotate_peaks(const scene& S);
 
-  bool peak_is_visible_v1(const scene& S, const point_feature peak, const double dist_peak, const int tile_index);
-  bool peak_is_visible_v2(const scene& S, const point_feature peak, const double dist_peak);
+  bool peak_is_visible_v1(const scene& S, const point_feature& peak, const double dist_peak, const int tile_index);
+  bool peak_is_visible_v2(const scene& S, const point_feature& peak, const double dist_peak);
 
   // test if a peak is visible by attempting to draw a few triangles around it,
   // if the zbuffer admits any pixel to be drawn, the peak is visible

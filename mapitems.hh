@@ -91,10 +91,10 @@ void parse_peaks_gpx(const xmlpp::Node* node, vector<point_feature>& peaks);
 void parse_coast_gpx(const xmlpp::Node* node, vector<linear_feature>& coasts);
 
 // read plain xml
-vector<point_feature> read_peaks_osm(string filename);
+vector<point_feature> read_peaks_osm(const string& filename);
 
-vector<linear_feature> read_coast_osm(string filename);
+vector<linear_feature> read_coast_osm(const string& filename);
 
-vector<linear_feature> read_islands_osm(string filename);
+vector<linear_feature> read_islands_osm(const string& filename);
 
 #endif
