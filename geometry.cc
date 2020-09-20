@@ -64,12 +64,12 @@ double horizontal_direction(const double ref_lat, const double ref_lon,
   const double angle = acos(numerator / denominator); // [rad] // <90
   if (lat > ref_lat && lon > ref_lon)
     return M_PI / 2 - angle; // looking North East
-  else if (lat > ref_lat && lon < ref_lon)
+  if (lat > ref_lat && lon < ref_lon)
     return M_PI / 2 + angle; // looking North West
-  else if (lat < ref_lat && lon < ref_lon)
+  if (lat < ref_lat && lon < ref_lon)
     return 3 * M_PI / 2 - angle; // looking South West
-  else                           /*(lat<ref_lat && lon>ref_lon)*/
-    return 3 * M_PI / 2 + angle; // looking South East
+  // (lat<ref_lat && lon>ref_lon)
+  return 3 * M_PI / 2 + angle; // looking South East
 }
 
 // bearing, starting from ref
