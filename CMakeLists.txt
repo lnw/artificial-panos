@@ -12,9 +12,9 @@ set(CMAKE_VERBOSE_MAKEFILE FALSE)
 
 # set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-fix")
 
-set(CMAKE_CXX_FLAGS "-fopenmp")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+set(CMAKE_CXX_FLAGS "-fopenmp -march=native")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall -Wshadow -Wpedantic -fsanitize=undefined")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 
 find_package(libxml++ REQUIRED)
 # message(STATUS "libxml++ incl dir ${libxml++_INCLUDE_DIR}")

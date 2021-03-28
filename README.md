@@ -10,6 +10,10 @@ coastlines from openstreetmap.
 Using the elevation data and a user-chosen position + direction a panorama is
 generated and labelled using the openstreemap data.
 
+## Building
+
+mkdir build; cd build; cmake ..; make; make package
+
 ## Examples
 
 An example from Slovakia:

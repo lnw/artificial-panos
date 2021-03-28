@@ -1,11 +1,10 @@
-#ifndef TILE_HH
-#define TILE_HH
+#pragma once
 
 #include <cassert>
 #include <chrono>
-#include <cmath>   // floor
-#include <cstdint> // for int16_t
-#include <fstream> // for ostream, ifstream
+#include <cmath>
+#include <cstdint>
+#include <fstream>
 
 #include "array2D.hh"
 
@@ -48,17 +47,17 @@ public:
     // auto t0 = std::chrono::high_resolution_clock::now();
 
     assert(dim > 0);
-    // cout << " dimension in tile: " << dim << endl;
+    // std::cout << " dimension in tile: " << dim << std::endl;
     const int size = dim * dim;
     int16_t size_test;
 
-    ifstream ifs(FILENAME, ios::in | ios::binary);
-    ifs.exceptions(ifstream::failbit | ifstream::badbit);
+    std::ifstream ifs(FILENAME, std::ios::in | std::ios::binary);
+    ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try {
       ifs.read(reinterpret_cast<char*>(&((*this)(0, 0))), size * sizeof(size_test));
     }
-    catch (const ifstream::failure& e) {
-      cout << "Exception opening/reading file";
+    catch (const std::ifstream::failure& e) {
+      std::cout << "Exception opening/reading file";
     }
     ifs.close();
 
@@ -67,7 +66,7 @@ public:
 
     // auto t1 = std::chrono::high_resolution_clock::now();
     // std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
-    // cout << "reading tile took " << fp_ms.count() << " ms" << endl;
+    // std::cout << "reading tile took " << fp_ms.count() << " ms" << std::endl;
   }
 
   int get_lat() const { return lat; }
@@ -85,7 +84,7 @@ public:
     for (int i = 0; i < m; i++) {
       for (int j = 0; j < n; j++) {
         A(i, j) = (*this)(i, j) - coeff * pow(dists(i, j), 2);
-        //cout << (*this)(i,j) << ", " << dists(i,j) << " --> " << A(i,j) << endl;
+        // std::cout << (*this)(i,j) << ", " << dists(i,j) << " --> " << A(i,j) << std::endl;
       }
     }
     return A;
@@ -93,18 +92,19 @@ public:
 
 
   // matrix of distances [m] from standpoint to tile
-  tile<double> get_distances(const double lat_standpoint, const double lon_standpoint) const {
-    std::vector<double> latitudes(m),
-        longitudes(m);
+  auto get_distances(const double lat_standpoint, const double lon_standpoint) const {
+    std::vector<double> latitudes(m), longitudes(m);
     for (int i = 0; i < m; i++)
       latitudes[i] = (lat + 1 - i / double(m - 1)) * deg2rad;
     for (int j = 0; j < n; j++)
       longitudes[j] = (lon + j / double(n - 1)) * deg2rad;
 
+    // tile<double> A(m, n, dim, lat, lon);
     tile<double> A(m, n, dim, lat, lon);
     for (int i = 0; i < m; i++) {
       for (int j = 0; j < n; j++) {
-        A(i, j) = distance_atan(lat_standpoint, lon_standpoint, latitudes[i], longitudes[j]);
+        // A(i, j) = distance_atan<double>(lat_standpoint, lon_standpoint, latitudes[i], longitudes[j]);
+        A(i, j) = distance_atan<double>(lat_standpoint, lon_standpoint, latitudes[i], longitudes[j]);
         // A(i, j) = distance_acos(lat_standpoint, lon_standpoint, latitudes[i], longitudes[j]); // worse + slower
       }
     }
@@ -119,7 +119,7 @@ public:
   //        |
   // iij--aux2---iijj
   constexpr double interpolate(const double lat_p, const double lon_p) const {
-    // cout << lat_p <<", "<< lon_p <<", "<<floor(lat_p) << ", "<< lat <<", " << floor(lon_p) <<", "<< lon << endl;
+    // std::cout << lat_p <<", "<< lon_p <<", "<<floor(lat_p) << ", "<< lat <<", " << floor(lon_p) <<", "<< lon << std::endl;
     assert(std::floor(lat_p) == lat && std::floor(lon_p) == lon); // ie, we are in the right tile
     int dim_m1 = dim - 1;                                         // we really need dim-1 all the time
     // get the surrounding four indices
@@ -130,9 +130,9 @@ public:
     double lon_frac = dim_m1 * (lon_p - lon) - j;
     double lat_frac = dim_m1 * (lat_p - lat) - (dim_m1 - i);
     double aux1_h = (*this)(i, j) * (1 - lon_frac) + (*this)(i, jj) * lon_frac;
-    // cout << "aux1_h: " << aux1_h << endl;
+    // std::cout << "aux1_h: " << aux1_h << std::endl;
     double aux2_h = (*this)(ii, j) * (1 - lon_frac) + (*this)(ii, jj) * lon_frac;
-    // cout << "aux2_h: " << aux2_h << endl;
+    // std::cout << "aux2_h: " << aux2_h << std::endl;
     double p_h = aux1_h * (1 - lat_frac) + aux2_h * lat_frac;
     return p_h;
   }
@@ -142,16 +142,15 @@ public:
     S << TT.n;
     for (int i = 0; i < TT.m; i++)
       S << " " << i + 1;
-    S << endl;
+    S << std::endl;
     for (int i = 0; i < TT.m; i++) {
       S << TT.m - i << " ";
       for (int j = 0; j < TT.n; j++) {
         S << TT(i, j) << " ";
       }
-      S << endl;
+      S << std::endl;
     }
     return S;
   }
 };
 
-#endif // TILE_HH

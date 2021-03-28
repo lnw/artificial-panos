@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.8
+#!/usr/bin/env python3.9
 
 import os
 import signal
@@ -9,6 +9,7 @@ from argparse import ArgumentParser
 
 sys.path.append('build')
 import libartpano as ap
+# import ap
 
 deg2rad = math.pi/180.0
 rad2deg = 180.0/math.pi
@@ -118,7 +119,7 @@ def getOSMTiles(requiredTiles):
                      #'relation[place=island]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
                      ');')
         result_isl = api.Get(query_isl, responseformat='xml', verbosity='body')
-        # print(result)
+        # print(result_isl)
         with open(path_isl, 'w') as f:
           f.write(result_isl)
 

@@ -1,5 +1,4 @@
-#ifndef ARRAY2D_HH
-#define ARRAY2D_HH
+#pragma once
 
 #include <cassert>
 #include <iostream>
@@ -8,22 +7,21 @@
 #include "auxiliary.hh"
 #include "geometry.hh"
 
-using namespace std;
 
 template <typename T>
-class array2D: public vector<T> {
+class array2D: public std::vector<T> {
 protected:
   // m: number of rows (i->m)
   // n: number of columns (j->n)
   int m, n;
 
 public:
-  array2D(int _m, int _n, const vector<T>& A): vector<T>(A.begin(), A.end()), m(_m), n(_n) { assert(A.size() == _m * _n); }
-  array2D(int _m, int _n, const T& zero = 0): vector<T>(_m * _n, zero), m(_m), n(_n) {}
+  array2D(int _m, int _n, const std::vector<T>& A): std::vector<T>(A.begin(), A.end()), m(_m), n(_n) { assert(A.size() == _m * _n); }
+  array2D(int _m, int _n, const T& zero = 0): std::vector<T>(_m * _n, zero), m(_m), n(_n) {}
 
   template <typename S>
   array2D(const array2D<S>& A): std::vector<T>(A.begin(), A.end()), m(A.get_m()), n(A.get_n()) {}
-  // array2D(const array2D<T>& A): vector<T>(A.begin(), A.end()), m(A.get_m()), n(A.get_n()) {}
+  // array2D(const array2D<T>& A): std::vector<T>(A.begin(), A.end()), m(A.get_m()), n(A.get_n()) {}
 
   T& operator()(int i, int j) { return (*this)[i * n + j]; }
   T operator()(int i, int j) const { return (*this)[i * n + j]; }
@@ -64,8 +62,8 @@ public:
     std::swap(*this, A);
   }
 
-  friend ostream& operator<<(ostream& S, const array2D& A) {
-    vector<vector<T>> VV(A.m, vector<T>(A.n));
+  friend std::ostream& operator<<(std::ostream& S, const array2D& A) {
+    std::vector<std::vector<T>> VV(A.m, std::vector<T>(A.n));
     for (int i = 0; i < A.m; i++)
       for (int j = 0; j < A.n; j++)
         VV[i][j] = A[i * A.n + j];
@@ -75,4 +73,3 @@ public:
   }
 };
 
-#endif

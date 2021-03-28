@@ -1,28 +1,31 @@
-
-#ifndef AUXILIARY_HH
-#define AUXILIARY_HH
+#pragma once
 
 #include <cmath>
 #include <cstdlib>
-#include <iomanip> // required for setfill()
+#include <iomanip>
 #include <iostream>
 #include <set>
 #include <sstream>
 #include <vector>
 
-#include <libxml++/libxml++.h> //definiert GLib::ustring (das aus dem xml faellt)
+#define NO_DEPR_DECL_WARNINGS_START _Pragma("GCC diagnostic push")
+_Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
+#define NO_DEPR_DECL_WARNINGS_END _Pragma("GCC diagnostic pop")
 
-using namespace std;
+NO_DEPR_DECL_WARNINGS_START
+#include <libxml++/libxml++.h> // defines GLib::ustring (das aus dem xml faellt)
+NO_DEPR_DECL_WARNINGS_END
+
 
 template <typename S, typename T>
-ostream& operator<<(ostream& s, const pair<S, T>& p) {
+std::ostream& operator<<(std::ostream& s, const std::pair<S, T>& p) {
   s << "{" << p.first << "," << p.second << "}";
   return s;
 }
 
 #define container_output(container)                                         \
 template <typename T>                                                       \
-ostream& operator<<(ostream& s, const container<T>& v) {                    \
+std::ostream& operator<<(std::ostream& s, const container<T>& v) {          \
   s << "{";                                                                 \
   for (typename container<T>::const_iterator x(v.begin()); x != v.end();) { \
     s << *x;                                                                \
@@ -33,8 +36,8 @@ ostream& operator<<(ostream& s, const container<T>& v) {                    \
   return s;                                                                 \
 }
 
-container_output(vector)
-container_output(set)
+container_output(std::vector)
+container_output(std::set)
 
 
 template <typename T>
@@ -97,4 +100,3 @@ size_t to_st(const T& s) {
   return result;
 }
 
-#endif // auxiliary

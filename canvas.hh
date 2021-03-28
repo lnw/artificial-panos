@@ -1,5 +1,4 @@
-#ifndef CANVAS_HH
-#define CANVAS_HH
+#pragma once
 
 #include <cassert>
 #include <cstdint>
@@ -13,14 +12,11 @@
 #include <gd.h>
 
 #include "array2D.hh"
-// #include "scene.hh"
+
 class scene;
-// #include "mapitems.hh"
 struct point_feature;
 struct point_feature_on_canvas;
 
-
-using namespace std;
 
 enum class write_target { core,
                           imgptr };
@@ -68,12 +64,12 @@ public:
 class canvas {
 private:
   canvas_t core;
-  string filename;
+  std::string filename;
   gdImagePtr img_ptr = nullptr;
   bool image_constructed;
 
 public:
-  canvas(string fn, int x, int y): core(x, y), filename(fn), image_constructed(false) {
+  canvas(std::string fn, int x, int y): core(x, y), filename(fn), image_constructed(false) {
   }
 
   ~canvas() {
@@ -153,7 +149,7 @@ public:
                  int16_t r, int16_t g, int16_t b,
                  bool draw);
 
-  void draw_tick(int x_tick, int tick_length, const string& str1, const string& str2 = "");
+  void draw_tick(int x_tick, int tick_length, const std::string& str1, const std::string& str2 = "");
 
   // always do N, E, S, W
   // every 10 deg (always)
@@ -179,15 +175,14 @@ public:
 
   // test if a peak is visible by attempting to draw a few triangles around it,
   // if the zbuffer admits any pixel to be drawn, the peak is visible
-  tuple<vector<point_feature_on_canvas>, vector<point_feature_on_canvas>> get_visible_peaks(vector<point_feature>& peaks, const scene& S);
+  std::tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_canvas>> get_visible_peaks(std::vector<point_feature>& peaks, const scene& S);
 
-  vector<point_feature_on_canvas> draw_visible_peaks(const vector<point_feature_on_canvas>& peaks_vis);
+  std::vector<point_feature_on_canvas> draw_visible_peaks(const std::vector<point_feature_on_canvas>& peaks_vis);
 
-  void draw_invisible_peaks(const vector<point_feature_on_canvas>& peaks_invis,
+  void draw_invisible_peaks(const std::vector<point_feature_on_canvas>& peaks_invis,
                             const int16_t r, const int16_t g, const int16_t b);
 
   void annotate_islands(const scene& S);
   void draw_coast(const scene& S);
 };
 
-#endif

@@ -70,7 +70,7 @@ void canvas::draw_triangle(const double x1, const double y1,
   // iterate over grid points in bb, draw the ones in the triangle
   for (int x = max(xmin, zero); x < min(xmax, int(width)); x++) {
     for (int y = max(ymin, zero); y < min(ymax, int(height)); y++) {
-      if (point_in_triangle_2(x + 0.5, y + 0.5, x1, y1, x2, y2, x3, y3)) {
+      if (point_in_triangle_2<double>(x + 0.5, y + 0.5, x1, y1, x2, y2, x3, y3)) {
         write_pixel_zb(x, y, z, r, g, b);
       }
     }
@@ -92,7 +92,7 @@ bool canvas::would_draw_triangle(const double x1, const double y1,
   // iterate over grid points in bb, draw the ones in the triangle
   for (int x = xmin; x < xmax; x++) {
     for (int y = ymin; y < ymax; y++) {
-      if (point_in_triangle_2(x + 0.5, y + 0.5, x1, y1, x2, y2, x3, y3)) {
+      if (point_in_triangle_2<double>(x + 0.5, y + 0.5, x1, y1, x2, y2, x3, y3)) {
         if (would_write_pixel_zb(x, y, z))
           pixel_drawn = true;
       }
@@ -124,7 +124,7 @@ void canvas::draw_tick(int x_tick, int tick_length, const string& str1, const st
   assert(image_constructed);
   const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
   const double fontsize = 20.;
-  char* font = "./fonts/vera.ttf";
+  char font[] = "./fonts/vera.ttf";
   const double text_orientation = 0;
 
   // cout << "deg90: " << deg << endl;
@@ -401,18 +401,18 @@ void canvas::bucket_fill(const int r, const int g, const int b) {
 void canvas::annotate_peaks(const scene& S) {
   const auto t0 = std::chrono::high_resolution_clock::now();
   // read all peaks from all tiles in S
-  vector<point_feature> peaks;
+  std::vector<point_feature> peaks;
   for (auto it = S.tiles.begin(), to = S.tiles.end(); it != to; it++) {
     string path("osm");
     string xml_name(string(it->first.get_lat() < 0 ? "S" : "N") + to_string_fixedwidth(abs(it->first.get_lat()), 2) +
                     string(it->first.get_lon() < 0 ? "W" : "E") + to_string_fixedwidth(abs(it->first.get_lon()), 3) + "_peak.osm");
     xml_name = path + "/" + xml_name;
-    vector<point_feature> tmp = read_peaks_osm(xml_name);
+    std::vector<point_feature> tmp = read_peaks_osm(xml_name);
     peaks.insert(std::end(peaks), std::begin(tmp), std::end(tmp));
   }
   cout << "peaks in db: " << peaks.size() << endl;
   // which of those are visible?
-  vector<point_feature_on_canvas> omitted_peaks;
+  std::vector<point_feature_on_canvas> omitted_peaks;
   auto [visible_peaks, obscured_peaks] = get_visible_peaks(peaks, S);
   cout << "number of visible peaks: " << visible_peaks.size() << endl;
   cout << "number of obscured peaks: " << obscured_peaks.size() << endl;
@@ -625,7 +625,7 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
 
 // test if a peak is visible by attempting to draw a few triangles around it,
 // if the zbuffer admits any pixel to be drawn, the peak is visible
-tuple<vector<point_feature_on_canvas>, vector<point_feature_on_canvas>> canvas::get_visible_peaks(vector<point_feature>& peaks, const scene& S) {
+tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_canvas>> canvas::get_visible_peaks(std::vector<point_feature>& peaks, const scene& S) {
   assert(image_constructed);
   const int width(core.get_width()),
       height(core.get_height());
@@ -637,8 +637,8 @@ tuple<vector<point_feature_on_canvas>, vector<point_feature_on_canvas>> canvas::
   const double pixels_per_rad_v = height / view_height; // [px/rad]
   // cout << "pprh: " << pixels_per_rad_h << endl;
 
-  vector<point_feature_on_canvas> visible_peaks;
-  vector<point_feature_on_canvas> obscured_peaks;
+  std::vector<point_feature_on_canvas> visible_peaks;
+  std::vector<point_feature_on_canvas> obscured_peaks;
   for (size_t p = 0; p < peaks.size(); p++) {
     // cout << "--- p=" << p << " ---" << endl;
     // distance from the peak
@@ -681,7 +681,7 @@ tuple<vector<point_feature_on_canvas>, vector<point_feature_on_canvas>> canvas::
 }
 
 
-vector<point_feature_on_canvas> canvas::draw_visible_peaks(const vector<point_feature_on_canvas>& peaks_vis) {
+std::vector<point_feature_on_canvas> canvas::draw_visible_peaks(const std::vector<point_feature_on_canvas>& peaks_vis) {
   assert(image_constructed);
   const unsigned width(core.get_width());
   //int n_labels = peaks_vis.size();
@@ -689,7 +689,7 @@ vector<point_feature_on_canvas> canvas::draw_visible_peaks(const vector<point_fe
   LabelGroups lgs(peaks_vis, width);
 
   // prune ... if the offsets in one group get too large, some of the lower peaks should be omitted
-  vector<point_feature_on_canvas> omitted_peaks = lgs.prune();
+  std::vector<point_feature_on_canvas> omitted_peaks = lgs.prune();
 
   for (size_t p = 0; p < lgs.size(); p++) {
     const int& x_peak = lgs[p].x;
@@ -708,11 +708,11 @@ vector<point_feature_on_canvas> canvas::draw_visible_peaks(const vector<point_fe
     string name(lgs[p].pf.name);
     if (!lgs[p].pf.name.empty())
       name += ", ";
-    name += to_string(lgs[p].pf.elev) + "m, " + to_string(int(round(dist_peak / 1000))) + "km";
+    name += to_string(lgs[p].pf.elev) + "m, " + to_string(int(std::round(dist_peak / 1000))) + "km";
     char* s = const_cast<char*>(name.c_str());
     const double fontsize = 12.;
-    //char *font = "./palatino-59330a4da3d64.ttf";
-    char* font = "./fonts/vera.ttf";
+    //char font[] = "./palatino-59330a4da3d64.ttf";
+    char font[] = "./fonts/vera.ttf";
     const double text_orientation = M_PI / 2;
 
     // get bb of blank string
@@ -739,7 +739,7 @@ vector<point_feature_on_canvas> canvas::draw_visible_peaks(const vector<point_fe
 }
 
 
-void canvas::draw_invisible_peaks(const vector<point_feature_on_canvas>& peaks_invis,
+void canvas::draw_invisible_peaks(const std::vector<point_feature_on_canvas>& peaks_invis,
                                   const int16_t r, const int16_t g, const int16_t b) {
   assert(image_constructed);
   for (size_t p = 0; p < peaks_invis.size(); p++) {
@@ -751,13 +751,13 @@ void canvas::draw_invisible_peaks(const vector<point_feature_on_canvas>& peaks_i
 
 void canvas::annotate_islands(const scene& S) {
   // read all peaks from all tiles in S
-  vector<linear_feature> islands;
+  std::vector<linear_feature> islands;
   // for (auto it=S.tiles.begin(), to=S.tiles.end(); it!=to; it++){
   //   string path("osm");
   //   string xml_name(string(it->first.get_lat()<0?"S":"N") + to_string_fixedwidth(abs(it->first.get_lat()),2) +
   //                   string(it->first.get_lon()<0?"W":"E") + to_string_fixedwidth(abs(it->first.get_lon()),3) + "_isl.osm");
   //   xml_name = path + "/" + xml_name;
-  //   vector<linear_feature> tmp = read_islands_osm(xml_name);
+  //   std::vector<linear_feature> tmp = read_islands_osm(xml_name);
   //   islands.insert(std::end(islands), std::begin(tmp), std::end(tmp));
   // }
 }
@@ -766,13 +766,13 @@ void canvas::draw_coast(const scene& S) {
   const int width(core.get_width()),
       height(core.get_height());
   // read all peaks from all tiles in S
-  vector<linear_feature> coasts;
+  std::vector<linear_feature> coasts;
   for (const auto& T : S.tiles) {
     string path("osm");
     string xml_name(string(T.first.get_lat() < 0 ? "S" : "N") + to_string_fixedwidth(abs(T.first.get_lat()), 2) +
                     string(T.first.get_lon() < 0 ? "W" : "E") + to_string_fixedwidth(abs(T.first.get_lon()), 3) + "_coast.osm");
     xml_name = path + "/" + xml_name;
-    vector<linear_feature> tmp = read_coast_osm(xml_name);
+    std::vector<linear_feature> tmp = read_coast_osm(xml_name);
     coasts.insert(std::end(coasts), std::begin(tmp), std::end(tmp));
   }
 

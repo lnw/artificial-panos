@@ -13,12 +13,12 @@ PYBIND11_MODULE(libartpano, m) {
 
   // class scene
   py::class_<scene>(m, "scene")
-      .def(py::init<double, double, double, double, double, double, double, double, vector<string>>())
+      .def(py::init<double, double, double, double, double, double, double, double, std::vector<std::string>>())
       .def_static("determine_required_tiles", &scene::determine_required_tiles); // double, double, double, double, double
 
   // class canvas
   py::class_<canvas>(m, "canvas")
-      .def(py::init<const string, int, int>())
+      .def(py::init<const std::string, int, int>())
       .def("bucket_fill", &canvas::bucket_fill)   // int, int, int
       .def("render_scene", &canvas::render_scene) // scene
       .def("construct_image", &canvas::construct_image)
