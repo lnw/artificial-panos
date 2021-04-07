@@ -1,13 +1,11 @@
 cmake_minimum_required(VERSION 3.12.0)
 project(artpano CXX)
 
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 message(STATUS "cmake mod path ${CMAKE_MODULE_PATH}")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
-
 set(CMAKE_VERBOSE_MAKEFILE FALSE)
 
 # set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-fix")
@@ -29,6 +27,14 @@ INCLUDE_DIRECTORIES(${Python3_INCLUDE_DIRS})
 include_directories(${glib_INCLUDE_DIR} ${glib_config_INCLUDE_DIR} ${glibmm_INCLUDE_DIR} ${glibmm_config_INCLUDE_DIR} ${libxml++_INCLUDE_DIR} ${libxml++_config_INCLUDE_DIR})
 add_library(ap SHARED mapitems.cc geometry.cc canvas.cc labelgroup.cc scene.cc)
 target_link_libraries(ap ${libxml++_LIBRARIES} ${GD_LIBRARY})
+
+include(CheckIPOSupported)
+check_ipo_supported(RESULT DO_LTO OUTPUT LTO_MESSAGE)
+if(DO_LTO)
+  set_property(TARGET ap PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+else()
+  message(WARNING "IPO is not supported: ${LTO_MESSAGE}")
+endif()
 
 add_executable(pano pano.cc)
 target_link_libraries(pano ap)
