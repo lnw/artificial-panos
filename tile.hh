@@ -99,11 +99,10 @@ public:
     for (int j = 0; j < n; j++)
       longitudes[j] = (lon + j / double(n - 1)) * deg2rad;
 
-    // tile<double> A(m, n, dim, lat, lon);
     tile<double> A(m, n, dim, lat, lon);
+#pragma omp parallel for
     for (int i = 0; i < m; i++) {
       for (int j = 0; j < n; j++) {
-        // A(i, j) = distance_atan<double>(lat_standpoint, lon_standpoint, latitudes[i], longitudes[j]);
         A(i, j) = distance_atan<double>(lat_standpoint, lon_standpoint, latitudes[i], longitudes[j]);
         // A(i, j) = distance_acos(lat_standpoint, lon_standpoint, latitudes[i], longitudes[j]); // worse + slower
       }
@@ -153,4 +152,3 @@ public:
     return S;
   }
 };
-

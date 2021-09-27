@@ -99,4 +99,3 @@ constexpr bool point_in_triangle_2(T px, T py, T x1, T y1, T x2, T y2, T x3, T y
   // and we ignore the case of points lying *on* the boundary
   return ((b1 == b2) && (b2 == b3));
 }
-

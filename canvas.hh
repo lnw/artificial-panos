@@ -33,7 +33,6 @@ private:
 
 public:
   canvas_t(int x, int y): width(x), height(y), zbuffer(x, y, INT_MAX), working_canvas(x, y, 0) {}
-  canvas_t(const canvas_t& c): width(c.get_width()), height(c.get_height()), zbuffer(c.get_zb()), working_canvas(c.get_wc()) {}
 
   canvas_t operator+(const canvas_t& rh) const { return canvas_t(*this) += rh; }
   canvas_t& operator+=(const canvas_t& rh) {
@@ -46,18 +45,18 @@ public:
     return *this;
   }
 
-  int get_width() const { return width; }
-  int get_height() const { return height; }
+  constexpr int get_width() const { return width; }
+  constexpr int get_height() const { return height; }
 
   array2D<double> get_zb() const { return zbuffer; }
-  const array2D<double>& get_zb() { return zbuffer; }
+  constexpr const array2D<double>& get_zb() { return zbuffer; }
   double get_zb(int x, int y) const { return zbuffer(x, y); }
-  double& get_zb(int x, int y) { return zbuffer(x, y); }
+  constexpr double& get_zb(int x, int y) { return zbuffer(x, y); }
 
   array2D<int32_t> get_wc() const { return working_canvas; }
-  const array2D<int32_t>& get_wc() { return working_canvas; }
+  constexpr const array2D<int32_t>& get_wc() { return working_canvas; }
   int32_t get_wc(int x, int y) const { return working_canvas(x, y); }
-  int32_t& get_wc(int x, int y) { return working_canvas(x, y); }
+  constexpr int32_t& get_wc(int x, int y) { return working_canvas(x, y); }
 };
 
 
@@ -71,6 +70,10 @@ private:
 public:
   canvas(std::string fn, int x, int y): core(x, y), filename(fn), image_constructed(false) {
   }
+  canvas& operator=(const canvas&) = delete;
+  canvas& operator=(canvas&&) = default;
+  canvas(const canvas&) = delete;
+  canvas(canvas&&) = default;
 
   ~canvas() {
     // actually the file is only opened here
@@ -81,13 +84,13 @@ public:
     gdImageDestroy(img_ptr);
   }
 
-  int get_width() const { return core.get_width(); }
-  int get_height() const { return core.get_height(); }
+  constexpr int get_width() const { return core.get_width(); }
+  constexpr int get_height() const { return core.get_height(); }
 
   void construct_image() {
     assert(!image_constructed);
-    const int width(core.get_width()),
-        height(core.get_height());
+    const int width(core.get_width());
+    const int height(core.get_height());
     const array2D<int32_t>& wc(core.get_wc());
     // allocate mem
     img_ptr = gdImageCreateTrueColor(width, height);
@@ -123,7 +126,7 @@ public:
   }
 
   // read the zbuffer, return true if the pixel would be drawn
-  bool would_write_pixel_zb(const int x, const int y, const double z) {
+  constexpr bool would_write_pixel_zb(const int x, const int y, const double z) {
     if (z > core.get_zb(x, y))
       return false;
     else
@@ -185,4 +188,3 @@ public:
   void annotate_islands(const scene& S);
   void draw_coast(const scene& S);
 };
-

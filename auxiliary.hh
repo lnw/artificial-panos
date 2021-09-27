@@ -99,4 +99,3 @@ size_t to_st(const T& s) {
   ss >> result;
   return result;
 }
-

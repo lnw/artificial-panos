@@ -1,7 +1,6 @@
-
-#include <algorithm> // min, max
+#include <algorithm>
 #include <cassert>
-#include <cmath> // modf
+#include <cmath>
 #include <iostream>
 #include <tuple>
 #include <vector>
@@ -278,6 +277,7 @@ void canvas::render_scene(const scene& S) {
     debug << (m - 1) * (n - 1) * 2 << " triangles in tile " << t << endl;
     const double invis_angle = max(2 * M_PI - view_width, 0.0);
     const int inc = 1;
+// #pragma omp parallel for
     for (int i = 0; i < m - inc; i += inc) {
       for (int j = 0; j < n - inc; j += inc) {
         if (D(i, j) > S.view_range)
@@ -352,8 +352,8 @@ void canvas::render_scene(const scene& S) {
 void canvas::highlight_edges() {
   assert(!image_constructed);
   const auto t0 = std::chrono::high_resolution_clock::now();
-  const int width(core.get_width()),
-      height(core.get_height());
+  const int width(core.get_width());
+  const int height(core.get_height());
   const array2D<double>& zbuffer(core.get_zb());
   for (int x = 0; x < width; x++) {
     double z_prev = 1000000;
@@ -377,8 +377,8 @@ void canvas::highlight_edges() {
 
 void canvas::render_test() {
   assert(!image_constructed);
-  const int width(core.get_width()),
-      height(core.get_height());
+  const int width(core.get_width());
+  const int height(core.get_height());
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       write_pixel<write_target::core>(x, y, x, 0.1 * x, y);
@@ -387,8 +387,8 @@ void canvas::render_test() {
 }
 
 void canvas::bucket_fill(const int r, const int g, const int b) {
-  const int width(core.get_width()),
-      height(core.get_height());
+  const int width(core.get_width());
+  const int height(core.get_height());
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       const int32_t col = 127 << 24 | r << 16 | g << 8 | b;
@@ -433,20 +433,19 @@ void canvas::annotate_peaks(const scene& S) {
 
 
 bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const double dist_peak, const int tile_index) {
-  const int width(core.get_width()),
-      height(core.get_height());
-  const double& view_direction_h = S.view_dir_h;        // [rad]
-  const double& view_width = S.view_width;              // [rad]
+  const int width(core.get_width());
+  const int height(core.get_height());
+  const double view_direction_h = S.view_dir_h;         // [rad]
+  const double view_width = S.view_width;               // [rad]
   const double pixels_per_rad_h = width / view_width;   // [px/rad]
-  const double& view_direction_v = S.view_dir_v;        // [rad]
-  const double& view_height = S.view_height;            // [rad]
+  const double view_direction_v = S.view_dir_v;         // [rad]
+  const double view_height = S.view_height;             // [rad]
   const double pixels_per_rad_v = height / view_height; // [px/rad]
 
   // integral and fractal part of the point
   double intpart_i, intpart_j;
-  const double
-      fractpart_i = modf(peak.lat, &intpart_i),
-      fractpart_j = modf(peak.lon, &intpart_j);
+  const double fractpart_i = std::modf(peak.lat, &intpart_i);
+  const double fractpart_j = std::modf(peak.lon, &intpart_j);
 
   const tile<double>& H = S.tiles[tile_index].first;
   const tile<double>& D = S.tiles[tile_index].second;
@@ -541,8 +540,8 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
 // peak visible.  This avoids the problem of flat topped mountains and works
 // only under the condition that mountains don't float in midair.
 bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const double dist_peak) {
-  const int width(core.get_width()),
-      height(core.get_height());
+  const int width(core.get_width());
+  const int height(core.get_height());
   const double& view_direction_h = S.view_dir_h;        // [rad]
   const double& view_width = S.view_width;              // [rad]
   const double pixels_per_rad_h = width / view_width;   // [px/rad]
@@ -627,8 +626,8 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
 // if the zbuffer admits any pixel to be drawn, the peak is visible
 tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_canvas>> canvas::get_visible_peaks(std::vector<point_feature>& peaks, const scene& S) {
   assert(image_constructed);
-  const int width(core.get_width()),
-      height(core.get_height());
+  const int width(core.get_width());
+  const int height(core.get_height());
   const double& view_direction_h = S.view_dir_h;        // [rad]
   const double& view_width = S.view_width;              // [rad]
   const double pixels_per_rad_h = width / view_width;   // [px/rad]
@@ -677,7 +676,7 @@ tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_canvas>
     else
       obscured_peaks.emplace_back(peaks[p], x_peak, y_peak, dist_peak);
   }
-  return make_tuple(visible_peaks, obscured_peaks);
+  return {visible_peaks, obscured_peaks};
 }
 
 

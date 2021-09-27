@@ -59,4 +59,3 @@ public:
     // cout << "    pair took " << fp_ms.count() << " ms" << endl;
   }
 };
-

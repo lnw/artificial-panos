@@ -96,4 +96,3 @@ std::vector<point_feature> read_peaks_osm(const std::string& filename);
 std::vector<linear_feature> read_coast_osm(const std::string& filename);
 
 std::vector<linear_feature> read_islands_osm(const std::string& filename);
-
