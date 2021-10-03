@@ -11,8 +11,8 @@
 template <typename T>
 class array2D: public std::vector<T> {
 protected:
-  // m: number of rows (i->m)
-  // n: number of columns (j->n)
+  // m: number of rows (i->m)  // y
+  // n: number of columns (j->n)  // x
   int m, n;
 
 public:

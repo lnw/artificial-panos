@@ -27,8 +27,8 @@ linear_feature_on_canvas::linear_feature_on_canvas(const linear_feature& _lf, co
   const double view_dir_v = S.view_dir_v;
   const double view_width = S.view_width;
   const double view_height = S.view_height;
-  const double pixels_per_rad_h = C.get_width() / view_width;
-  const double pixels_per_rad_v = C.get_height() / view_height; // [px/rad]
+  const double pixels_per_rad_h = C.width() / view_width;
+  const double pixels_per_rad_v = C.height() / view_height; // [px/rad]
 
   // iterate over points in linear feature
   for (pair<double, double> point : lf.coords) {
@@ -240,22 +240,22 @@ vector<linear_feature> read_coast_osm(const string& filename) {
 vector<linear_feature> read_islands_osm(const string& filename) {
   cout << "attempting to parse: " << filename << " ..." << flush;
   vector<linear_feature> islands;
-  
-    try {
-      xmlpp::DomParser parser;
-      parser.parse_file(filename);
-      if(parser) {
-        //find root node
-        const xmlpp::Node* pNode = parser.get_document()->get_root_node();
-        //print recursively
-        // parse_island_gpx(pNode, islands);
-      }
+
+  try {
+    xmlpp::DomParser parser;
+    parser.parse_file(filename);
+    if (parser) {
+      //find root node
+      const xmlpp::Node* pNode = parser.get_document()->get_root_node();
+      //print recursively
+      // parse_island_gpx(pNode, islands);
     }
-    catch(const exception& ex) {
-      cout << "Exception caught: " << ex.what() << endl;
-      abort();
-    }
- 
-    cout << " done" << endl;
+  }
+  catch (const exception& ex) {
+    cout << "Exception caught: " << ex.what() << endl;
+    abort();
+  }
+
+  cout << " done" << endl;
   return islands;
 }

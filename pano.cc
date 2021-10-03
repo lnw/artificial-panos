@@ -1,4 +1,3 @@
-#include <iosfwd>
 #include <string>
 #include <vector>
 
@@ -28,14 +27,16 @@ int main(int ac, char** av) {
 
   const string filename = "out.png";
   const int view_x(10000), view_y(1500); // pixels
-  canvas V(filename, view_x, view_y);
 
+  canvas_t V(view_x, view_y);
   V.bucket_fill(100, 100, 100);
   V.render_scene(S);
   V.highlight_edges();
-  V.draw_coast(S);
-  V.annotate_peaks(S);
-  V.label_axis(S);
+
+  canvas VV(filename, V);
+  VV.draw_coast(S);
+  VV.annotate_peaks(S);
+  VV.label_axis(S);
 
   return 0;
 }

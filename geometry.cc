@@ -10,7 +10,7 @@
 double distance_acos(const double latA, const double lonA, const double latB, const double lonB) {
   // angle = arccos ( sin latA * sin phi 2 + cos phi 1 * cos phi 2 * cos (lambda 1 - lambda 2) )
   const double angle = std::acos(std::sin(latA) * std::sin(latB) + std::cos(latA) * std::cos(latB) * std::cos(lonA - lonB)); // [rad]
-  return average_radius_earth * angle;                                                         // [m]
+  return average_radius_earth * angle;                                                                                       // [m]
 }
 
 double central_angle_acos(const double latA, const double lonA, const double latB, const double lonB) {
@@ -98,7 +98,7 @@ T angle_v(const T el_ref /* [m] */, const T el /* [m] */, const T dist /* [m] */
   const int up = el - el_ref > 0 ? 1 : -1;
   const double diff_el = std::abs(el - el_ref);   // [m]
   const double angle = std::atan(diff_el / dist); // [rad]
-  return up * angle;                         // [rad]
+  return up * angle;                              // [rad]
 }
 template double angle_v(const double el_ref, const double el, const double dist);
 template float angle_v(const float el_ref, const float el, const float dist);
@@ -110,4 +110,3 @@ T angle_v_scaled(const T el_ref, const T el, const T dist) {
     angle *= 0.7;
   return angle; // [rad]
 }
-

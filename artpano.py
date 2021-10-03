@@ -139,15 +139,16 @@ def main():
     # print(args.source)
     S = ap.scene(args.pos_lat, args.pos_lon, args.pos_ele, args.view_dir_h, args.view_width, args.view_dir_v, args.view_height, args.range, args.source)
     # print(S)
-    C = ap.canvas(args.out_filename, args.canvas_width, args.canvas_height)
+    C = ap.canvas_t(args.canvas_width, args.canvas_height)
     C.bucket_fill(100,100,100)
     C.render_scene(S)
     C.highlight_edges()
-    C.construct_image()
-#    C.draw_coast(S)
-    C.annotate_peaks(S)
-#    C.annotate_islands(S)
-    C.label_axis(S)
+
+    CC = ap.canvas(args.out_filename, C)
+#    CC.draw_coast(S)
+    CC.annotate_peaks(S)
+#    CC.annotate_islands(S)
+    CC.label_axis(S)
 
 if __name__ == "__main__":
     main()

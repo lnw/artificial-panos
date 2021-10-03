@@ -18,57 +18,124 @@ struct point_feature;
 struct point_feature_on_canvas;
 
 
-enum class write_target { core,
-                          imgptr };
-
-
 int get_tile_index(const scene& S, const double lat, const double lon);
 
 
-class canvas_t {
+template <typename S, typename T>
+class array_zb {
 private:
-  int width, height; // [pixels]
-  array2D<double> zbuffer;
-  array2D<int32_t> working_canvas;
+  array2D<S> zbuffer_;
+  array2D<T> arr2d_;
 
 public:
-  canvas_t(int x, int y): width(x), height(y), zbuffer(x, y, INT_MAX), working_canvas(x, y, 0) {}
+  array_zb(int x, int y): zbuffer_(x, y, INT_MAX), arr2d_(x, y, 0) {}
 
-  canvas_t operator+(const canvas_t& rh) const { return canvas_t(*this) += rh; }
-  canvas_t& operator+=(const canvas_t& rh) {
+  constexpr int width() const { return arr2d_.width(); }
+  constexpr int height() const { return arr2d_.height(); }
+
+  auto& zb() { return zbuffer_; }
+  constexpr const auto& zb() const { return zbuffer_; }
+  S zb(int x, int y) const { return zbuffer_(x, y); }
+  constexpr S& zb(int x, int y) { return zbuffer_(x, y); }
+
+  auto& a2d() { return arr2d_; }
+  constexpr const auto& a2d() const { return arr2d_; }
+  T a2d(int x, int y) const { return arr2d_(x, y); }
+  constexpr T& a2d(int x, int y) { return arr2d_(x, y); }
+
+  array_zb operator+(const array_zb& rh) const { return array_zb(*this) += rh; }
+  array_zb& operator+=(const array_zb& rh) {
+    const int width = arr2d_.get_n();
+    const int height = arr2d_.get_m();
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < height; y++) {
-        if (rh.get_zb(x, y) < zbuffer(x, y))
-          working_canvas(x, y) = rh.get_wc(x, y);
+        if (rh.zb(x, y) < zbuffer_(x, y)) { // rh is closer
+          arr2d_(x, y) = rh.a2d(x, y);
+          zbuffer_(x, y) = rh.zb(x, y);
+        }
       }
     }
     return *this;
   }
+};
 
-  constexpr int get_width() const { return width; }
-  constexpr int get_height() const { return height; }
 
-  array2D<double> get_zb() const { return zbuffer; }
-  constexpr const array2D<double>& get_zb() { return zbuffer; }
-  double get_zb(int x, int y) const { return zbuffer(x, y); }
-  constexpr double& get_zb(int x, int y) { return zbuffer(x, y); }
+class canvas_t {
+private:
+  int width_, height_; // [pixels]
+  array_zb<double, int32_t> buffered_canvas;
 
-  array2D<int32_t> get_wc() const { return working_canvas; }
-  constexpr const array2D<int32_t>& get_wc() { return working_canvas; }
-  int32_t get_wc(int x, int y) const { return working_canvas(x, y); }
-  constexpr int32_t& get_wc(int x, int y) { return working_canvas(x, y); }
+public:
+  canvas_t(int x, int y): width_(x), height_(y), buffered_canvas(x, y) {}
+
+  constexpr int width() const { return width_; }
+  constexpr int height() const { return height_; }
+
+  array2D<double>& get_zb() { return buffered_canvas.zb(); }
+  constexpr const array2D<double>& get_zb() const { return buffered_canvas.zb(); }
+  double get_zb(int x, int y) const { return buffered_canvas.zb(x, y); }
+  constexpr double& get_zb(int x, int y) { return buffered_canvas.zb(x, y); }
+
+  array2D<int32_t>& get_wc() { return buffered_canvas.a2d(); }
+  constexpr const array2D<int32_t>& get_wc() const { return buffered_canvas.a2d(); }
+  int32_t get_wc(int x, int y) const { return buffered_canvas.a2d(x, y); }
+  constexpr int32_t& get_wc(int x, int y) { return buffered_canvas.a2d(x, y); }
+
+  // for each column, walk from top to bottom and colour a pixel dark if it is
+  // much closer than the previous one.  Works only because mountains are
+  // rarely overhanging or floating in mid-air
+  void highlight_edges();
+
+  // just write the pixel taking into account the zbuffer
+  void write_pixel_zb(const int x, const int y, const double z,
+                      int16_t r, int16_t g, int16_t b) {
+    if (z < buffered_canvas.zb(x, y)) {
+      buffered_canvas.zb(x, y) = z;
+      const int32_t col = 127 << 24 | r << 16 | g << 8 | b;
+      // img_ptr->tpixels[y][x] = col; // assuming TrueColor
+      buffered_canvas.a2d(x, y) = col;
+    }
+  }
+
+  // just write the pixel
+  void write_pixel(const int x, const int y,
+                   int16_t r, int16_t g, int16_t b) {
+    const int32_t col = 127 << 24 | r << 16 | g << 8 | b;
+    buffered_canvas.a2d(x, y) = col;
+  }
+
+  // true if any pixel was drawn
+  void draw_triangle(const double x1, const double y1,
+                     const double x2, const double y2,
+                     const double x3, const double y3,
+                     const double z,
+                     int16_t r, int16_t g, int16_t b);
+
+
+  void render_scene(const scene& S);
+
+  void render_test();
+
+  void bucket_fill(const int r, const int g, const int b);
 };
 
 
 class canvas {
 private:
-  canvas_t core;
+  int width_;
+  int height_;
+  const array2D<double>& zbuffer;
   std::string filename;
   gdImagePtr img_ptr = nullptr;
-  bool image_constructed;
 
 public:
-  canvas(std::string fn, int x, int y): core(x, y), filename(fn), image_constructed(false) {
+  canvas(std::string fn, const canvas_t& core): width_(core.width()), height_(core.height()), zbuffer(core.get_zb()), filename(fn) {
+    const array2D<int32_t>& wc(core.get_wc());
+    // allocate mem
+    img_ptr = gdImageCreateTrueColor(width_, height_);
+    for (int x = 0; x < width_; x++)
+      for (int y = 0; y < height_; y++)
+        img_ptr->tpixels[y][x] = wc(x, y); // assuming TrueColor
   }
   canvas& operator=(const canvas&) = delete;
   canvas& operator=(canvas&&) = default;
@@ -84,67 +151,29 @@ public:
     gdImageDestroy(img_ptr);
   }
 
-  constexpr int get_width() const { return core.get_width(); }
-  constexpr int get_height() const { return core.get_height(); }
-
-  void construct_image() {
-    assert(!image_constructed);
-    const int width(core.get_width());
-    const int height(core.get_height());
-    const array2D<int32_t>& wc(core.get_wc());
-    // allocate mem
-    img_ptr = gdImageCreateTrueColor(width, height);
-    for (int x = 0; x < width; x++)
-      for (int y = 0; y < height; y++)
-        img_ptr->tpixels[y][x] = wc(x, y); // assuming TrueColor
-    image_constructed = true;
-  }
-
+  constexpr int width() const { return width_; }
+  constexpr int height() const { return height_; }
 
   // just write the pixel
-  template <write_target wt>
   void write_pixel(const int x, const int y,
                    int16_t r, int16_t g, int16_t b) {
     const int32_t col = 127 << 24 | r << 16 | g << 8 | b;
-    if (wt == write_target::core)
-      core.get_wc(x, y) = col;
-    else if (wt == write_target::imgptr)
-      img_ptr->tpixels[y][x] = col; // assuming TrueColor
-  }
-
-
-  // just write the pixel taking into account the zbuffer
-  void write_pixel_zb(const int x, const int y, const double z,
-                      int16_t r, int16_t g, int16_t b) {
-    assert(!image_constructed);
-    if (z < core.get_zb(x, y)) {
-      core.get_zb(x, y) = z;
-      const int32_t col = 127 << 24 | r << 16 | g << 8 | b;
-      // img_ptr->tpixels[y][x] = col; // assuming TrueColor
-      core.get_wc(x, y) = col;
-    }
+    img_ptr->tpixels[y][x] = col; // assuming TrueColor
   }
 
   // read the zbuffer, return true if the pixel would be drawn
-  constexpr bool would_write_pixel_zb(const int x, const int y, const double z) {
-    if (z > core.get_zb(x, y))
+  constexpr bool would_write_pixel_zb(const int x, const int y, const double z) const {
+    if (z > zbuffer(x, y))
       return false;
     else
       return true;
   }
 
   // true if any pixel was drawn
-  void draw_triangle(const double x1, const double y1,
-                     const double x2, const double y2,
-                     const double x3, const double y3,
-                     const double z,
-                     int16_t r, int16_t g, int16_t b);
-
-  // true if any pixel was drawn
   bool would_draw_triangle(const double x1, const double y1,
                            const double x2, const double y2,
                            const double x3, const double y3,
-                           const double z);
+                           const double z) const;
 
   bool draw_line(const double x1, const double y1,
                  const double x2, const double y2,
@@ -159,17 +188,6 @@ public:
   // every 5 deg if there are less than 45 deg
   // every deg if there are less than 10 deg
   void label_axis(const scene& S);
-
-  void render_scene(const scene& S);
-
-  // for each column, walk from top to bottom and colour a pixel dark if it is
-  // much closer than the previous one.  Works only because mountains are
-  // rarely overhanging or floating in mid-air
-  void highlight_edges();
-
-  void render_test();
-
-  void bucket_fill(const int r, const int g, const int b);
 
   void annotate_peaks(const scene& S);
 
