@@ -102,12 +102,20 @@ bool canvas::would_draw_triangle(const double x1, const double y1,
 bool canvas::draw_line(const double x1, const double y1,
                        const double x2, const double y2,
                        const double z,
-                       int16_t r, int16_t g, int16_t b,
-                       bool draw) {
-  const int colour = gdImageColorResolve(img_ptr, r, g, b);
+                       int16_t r, int16_t g, int16_t b) {
   if (z - 30 < zbuffer(x1, y1) && z - 30 < zbuffer(x2, y2)) {
-    if (draw)
-      gdImageLine(img_ptr, x1, y1, x2, y2, colour);
+    const int colour = gdImageColorResolve(img_ptr, r, g, b);
+    gdImageLine(img_ptr, x1, y1, x2, y2, colour);
+    return true;
+  }
+  return false;
+}
+
+
+bool canvas::would_draw_line(const double x1, const double y1,
+                             const double x2, const double y2,
+                             const double z) const {
+  if (z - 30 < zbuffer(x1, y1) && z - 30 < zbuffer(x2, y2)) {
     return true;
   }
   return false;
@@ -384,10 +392,10 @@ void canvas::annotate_peaks(const scene& S) {
   const auto t0 = std::chrono::high_resolution_clock::now();
   // read all peaks from all tiles in S
   std::vector<point_feature> peaks;
-  for (auto it = S.tiles.begin(), to = S.tiles.end(); it != to; it++) {
+  for (const auto& tile : S.tiles) {
     std::string path("osm");
-    std::string xml_name(std::string(it->first.get_lat() < 0 ? "S" : "N") + to_string_fixedwidth(std::abs(it->first.get_lat()), 2) +
-                         std::string(it->first.get_lon() < 0 ? "W" : "E") + to_string_fixedwidth(std::abs(it->first.get_lon()), 3) + "_peak.osm");
+    std::string xml_name(std::string(tile.first.get_lat() < 0 ? "S" : "N") + to_string_fixedwidth(std::abs(tile.first.get_lat()), 2) +
+                         std::string(tile.first.get_lon() < 0 ? "W" : "E") + to_string_fixedwidth(std::abs(tile.first.get_lon()), 3) + "_peak.osm");
     xml_name = path + "/" + xml_name;
     std::vector<point_feature> tmp = read_peaks_osm(xml_name);
     peaks.insert(std::end(peaks), std::begin(tmp), std::end(tmp));
@@ -414,7 +422,7 @@ void canvas::annotate_peaks(const scene& S) {
 }
 
 
-bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const double dist_peak, const int tile_index) {
+bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const double dist_peak, const int tile_index) const {
   const double view_direction_h = S.view_dir_h;          // [rad]
   const double view_width = S.view_width;                // [rad]
   const double pixels_per_rad_h = width_ / view_width;   // [px/rad]
@@ -519,7 +527,7 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
 // the viewer, but only downhill.  If any part of the line is drawn, I call the
 // peak visible.  This avoids the problem of flat topped mountains and works
 // only under the condition that mountains don't float in midair.
-bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const double dist_peak) {
+bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const double dist_peak) const {
   const double& view_direction_h = S.view_dir_h;         // [rad]
   const double& view_width = S.view_width;               // [rad]
   const double pixels_per_rad_h = width_ / view_width;   // [px/rad]
@@ -574,17 +582,13 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
 
     // draw?
     // std::cout << prev_x << ", " << prev_y << ", " << x_point << ", " << y_point << ", " << dist_point+seg_length/2.0 << std::endl;
-    const int r(0), g(255), b(0);
+    if (seg > 0) {
 #ifdef GRAPHICS_DEBUG
-    bool draw = true;
+      const int r(0), g(255), b(0);
+      visible |= draw_line(prev_x, prev_y, x_point, y_point, dist_point + seg_length / 2.0, r, g, b);
 #else
-    bool draw = false;
-#endif
-    if (seg > 0 && draw_line(prev_x, prev_y, x_point, y_point, dist_point + seg_length / 2.0, r, g, b, draw)) {
-#ifdef GRAPHICS_DEBUG
-      visible = true;
-#else
-      return true;
+      if (would_draw_line(prev_x, prev_y, x_point, y_point, dist_point + seg_length / 2.0))
+        return true;
 #endif
     }
     prev_x = x_point;
@@ -604,11 +608,11 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
 // test if a peak is visible by attempting to draw a few triangles around it,
 // if the zbuffer admits any pixel to be drawn, the peak is visible
 std::tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_canvas>> canvas::get_visible_peaks(std::vector<point_feature>& peaks, const scene& S) {
-  const double& view_direction_h = S.view_dir_h;         // [rad]
-  const double& view_width = S.view_width;               // [rad]
+  const double view_direction_h = S.view_dir_h;          // [rad]
+  const double view_width = S.view_width;                // [rad]
   const double pixels_per_rad_h = width_ / view_width;   // [px/rad]
-  const double& view_direction_v = S.view_dir_v;         // [rad]
-  const double& view_height = S.view_height;             // [rad]
+  const double view_direction_v = S.view_dir_v;          // [rad]
+  const double view_height = S.view_height;              // [rad]
   const double pixels_per_rad_v = height_ / view_height; // [px/rad]
   // std::cout << "pprh: " << pixels_per_rad_h << std::endl;
 
@@ -792,8 +796,7 @@ void canvas::draw_coast(const scene& S) {
         continue;
       const int r(0), g(255), b(0);
       std::cout << " drawing line" << std::endl;
-      bool draw(true);
-      draw_line(x1, y1, x2, y2, z, r, g, b, draw);
+      draw_line(x1, y1, x2, y2, z, r, g, b);
     }
   }
 }

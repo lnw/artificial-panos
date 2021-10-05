@@ -11,10 +11,10 @@
 // everything about the depicted landscape that has nothing to do with pixels yet
 class scene {
 public:
-  double lat_standpoint, lon_standpoint, z_standpoint;    // [rad], [rad], [m]
-  double view_dir_h, view_width, view_dir_v, view_height; // [rad], [rad], [rad], [rad]
-  double view_range;                                      // [m]
-  std::vector<std::string> source;                        // list of subset of view1, view3, srtm1, srtm3 in some order: these are considered as source
+  double lat_standpoint, lon_standpoint, z_standpoint;      // [rad], [rad], [m]
+  double view_dir_h, view_width, view_dir_v, view_height;   // [rad], [rad], [rad], [rad]
+  double view_range;                                        // [m]
+  std::vector<std::string> source;                          // list of subset of view1, view3, srtm1, srtm3 in some order: these are considered as source
   std::vector<std::pair<tile<double>, tile<double>>> tiles; // heights, distances
 
   scene(double lat, double lon, double z, double vdirh, double vw, double vdirv, double vh, double vdist, const std::vector<std::string>& _source);

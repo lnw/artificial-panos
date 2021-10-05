@@ -178,8 +178,10 @@ public:
   bool draw_line(const double x1, const double y1,
                  const double x2, const double y2,
                  const double z,
-                 int16_t r, int16_t g, int16_t b,
-                 bool draw);
+                 int16_t r, int16_t g, int16_t b);
+  bool would_draw_line(const double x1, const double y1,
+                       const double x2, const double y2,
+                       const double z) const;
 
   void draw_tick(int x_tick, int tick_length, const std::string& str1, const std::string& str2 = "");
 
@@ -191,8 +193,8 @@ public:
 
   void annotate_peaks(const scene& S);
 
-  bool peak_is_visible_v1(const scene& S, const point_feature& peak, const double dist_peak, const int tile_index);
-  bool peak_is_visible_v2(const scene& S, const point_feature& peak, const double dist_peak);
+  bool peak_is_visible_v1(const scene& S, const point_feature& peak, const double dist_peak, const int tile_index) const;
+  bool peak_is_visible_v2(const scene& S, const point_feature& peak, const double dist_peak) const;
 
   // test if a peak is visible by attempting to draw a few triangles around it,
   // if the zbuffer admits any pixel to be drawn, the peak is visible
