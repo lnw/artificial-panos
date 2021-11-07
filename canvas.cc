@@ -15,6 +15,12 @@
 #include "scene.hh"
 #include "tile.hh"
 
+namespace {
+constexpr colour colour_scheme1(float dist) {
+  return colour{int16_t(5 * std::cbrt(dist)), 50, 150};
+}
+} // namespace
+
 
 #pragma omp declare reduction(arraymin                                   \
                               : array2D <double>                         \
@@ -51,7 +57,7 @@ void canvas_t::draw_triangle(const double x1, const double y1,
                              const double x2, const double y2,
                              const double x3, const double y3,
                              const double z,
-                             int16_t r, int16_t g, int16_t b) {
+                             const colour& col) {
   // find triangle's bb
   const int xmin = std::min({std::floor(x1), std::floor(x2), std::floor(x3)});
   const int xmax = std::max({std::ceil(x1), std::ceil(x2), std::ceil(x3)});
@@ -59,14 +65,15 @@ void canvas_t::draw_triangle(const double x1, const double y1,
   const int ymax = std::max({std::ceil(y1), std::ceil(y2), std::ceil(y3)});
   const int zero = 0;
 
-  if (xmax - xmin > width() / 2.0)
-    return; // avoid drawing triangles that wrap around the edge
+  if (xmax - xmin > width() / 2.0) { // avoid drawing triangles that wrap around the edge
+    return;
+  }
 
   // iterate over grid points in bb, draw the ones in the triangle
   for (int x = std::max(xmin, zero); x < std::min(xmax, width()); x++) {
     for (int y = std::max(ymin, zero); y < std::min(ymax, height()); y++) {
       if (point_in_triangle_2<double>(x + 0.5, y + 0.5, x1, y1, x2, y2, x3, y3)) {
-        write_pixel_zb(x, y, z, r, g, b);
+        write_pixel_zb(x, y, z, col);
       }
     }
   }
@@ -102,10 +109,11 @@ bool canvas::would_draw_triangle(const double x1, const double y1,
 bool canvas::draw_line(const double x1, const double y1,
                        const double x2, const double y2,
                        const double z,
-                       int16_t r, int16_t g, int16_t b) {
+                       const colour& col) {
+  const auto [r, g, b] = col;
   if (z - 30 < zbuffer(x1, y1) && z - 30 < zbuffer(x2, y2)) {
-    const int colour = gdImageColorResolve(img_ptr, r, g, b);
-    gdImageLine(img_ptr, x1, y1, x2, y2, colour);
+    const int32_t c = gdImageColorResolve(img_ptr, r, g, b);
+    gdImageLine(img_ptr, x1, y1, x2, y2, c);
     return true;
   }
   return false;
@@ -329,12 +337,10 @@ void canvas_t::render_scene(const scene& S) {
         //std::cout << v_ij << std::endl;
 
         const double dist1 = (D(i, j) + D(i + inc, j) + D(i, j + inc)) / 3.0;
-        // draw_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, 5* pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500), 150);
-        draw_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, 5 * pow(dist1, 1.0 / 3.0), 50, 150);
+        draw_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, colour_scheme1(dist1));
         // maybe add an array with real heights?
         const double dist2 = (D(i + inc, j) + D(i, j + inc) + D(i + inc, j + inc)) / 3.0;
-        // draw_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, 5*pow(dist1, 1.0/3.0), H(i,j)*(255.0/3500) , 150);
-        draw_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, 5 * pow(dist1, 1.0 / 3.0), 50, 150);
+        draw_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, colour_scheme1(dist2));
       }
     }
 
@@ -350,16 +356,18 @@ void canvas_t::render_scene(const scene& S) {
 // rarely overhanging or floating in mid-air
 void canvas_t::highlight_edges() {
   const auto t0 = std::chrono::high_resolution_clock::now();
+  const colour black = {0, 0, 0};
+  const colour dark_gray = {30, 30, 30};
+  const double thr1 = 1.15, thr2 = 1.05;
   for (int x = 0; x < width_; x++) {
     double z_prev = 1000000;
     for (int y = 0; y < height_; y++) {
       const double z_curr = get_zb(x, y);
-      const double thr1 = 1.15, thr2 = 1.05;
       if (z_prev / z_curr > thr1 && z_prev - z_curr > 500) {
-        write_pixel(x, y, 0, 0, 0);
+        write_pixel(x, y, black);
       }
       else if (z_prev / z_curr > thr2 && z_prev - z_curr > 200) {
-        write_pixel(x, y, 30, 30, 30);
+        write_pixel(x, y, dark_gray);
       }
       z_prev = z_curr;
     }
@@ -373,16 +381,16 @@ void canvas_t::highlight_edges() {
 void canvas_t::render_test() {
   for (int y = 0; y < height_; y++) {
     for (int x = 0; x < width_; x++) {
-      write_pixel(x, y, x, 0.1 * x, y);
+      const colour col = {x, int(0.1 * x), y};
+      write_pixel(x, y, col);
     }
   }
 }
 
 void canvas_t::bucket_fill(const int r, const int g, const int b) {
+  const int32_t col = int32_t(colour(r, g, b));
   for (int y = 0; y < height_; y++) {
     for (int x = 0; x < width_; x++) {
-      const int32_t col = 127 << 24 | r << 16 | g << 8 | b;
-      // img_ptr->tpixels[y][x] = col; // assuming TrueColor
       get_wc(x, y) = col;
     }
   }
@@ -412,8 +420,10 @@ void canvas::annotate_peaks(const scene& S) {
   std::cout << "number of visible+drawn peaks: " << visible_peaks.size() - omitted_peaks.size() << std::endl;
   std::cout << "number of visible+omitted peaks: " << omitted_peaks.size() << std::endl;
 #ifdef GRAPHICS_DEBUG
-  draw_invisible_peaks(obscured_peaks, 0, 255, 0);
-  draw_invisible_peaks(omitted_peaks, 0, 255, 255);
+  colour green = {0, 255, 0};
+  colour cyan = {0, 255, 255};
+  draw_invisible_peaks(obscured_peaks, green);
+  draw_invisible_peaks(omitted_peaks, cyan);
 #endif
 
   auto t1 = std::chrono::high_resolution_clock::now();
@@ -510,8 +520,8 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
         return true;
 #endif
 #ifdef GRAPHICS_DEBUG
-      draw_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, 5 * pow(dist1, 1.0 / 3.0), H(i, j) * (255.0 / 3500), 50);
-      draw_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, 5 * pow(dist1, 1.0 / 3.0), H(i, j) * (255.0 / 3500), 250);
+      draw_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, {5 * std::cbrt(dist1), H(i, j) * (255.0 / 3500), 50});
+      draw_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, {5 * std::cbrt(dist2), H(i, j) * (255.0 / 3500), 250});
 #endif
     }
   }
@@ -584,8 +594,8 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
     // std::cout << prev_x << ", " << prev_y << ", " << x_point << ", " << y_point << ", " << dist_point+seg_length/2.0 << std::endl;
     if (seg > 0) {
 #ifdef GRAPHICS_DEBUG
-      const int r(0), g(255), b(0);
-      visible |= draw_line(prev_x, prev_y, x_point, y_point, dist_point + seg_length / 2.0, r, g, b);
+      const colour col = {0, 255, 0};
+      visible |= draw_line(prev_x, prev_y, x_point, y_point, dist_point + seg_length / 2.0, col);
 #else
       if (would_draw_line(prev_x, prev_y, x_point, y_point, dist_point + seg_length / 2.0))
         return true;
@@ -639,7 +649,7 @@ std::tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_ca
     // if the osm doesn't know the height, take from elevation data
     const double coeff = 0.065444 / 1000000.0; // = 0.1695 / 1.609^2  // m
     if (peaks[p].elev == 0)
-      peaks[p].elev = height_peak + coeff * pow(dist_peak, 2); // revert earth's curvature
+      peaks[p].elev = height_peak + coeff * dist_peak * dist_peak; // revert earth's curvature
 
     // get position of peak on canvas, continue if outside
     const double x_peak = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, peaks[p].lat * deg2rad, peaks[p].lon * deg2rad) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
@@ -667,6 +677,7 @@ std::vector<point_feature_on_canvas> canvas::draw_visible_peaks(const std::vecto
 
   // prune ... if the offsets in one group get too large, some of the lower peaks should be omitted
   std::vector<point_feature_on_canvas> omitted_peaks = lgs.prune();
+  const colour red = {255, 0, 0};
 
   for (size_t p = 0; p < lgs.size(); p++) {
     const int& x_peak = lgs[p].x;
@@ -674,7 +685,7 @@ std::vector<point_feature_on_canvas> canvas::draw_visible_peaks(const std::vecto
     const int& dist_peak = lgs[p].dist;
     // std::cout << peaks[p].name << " is visible" << std::endl;
     // std::cout << "pixel will be written at : " << x_peak << ", " << y_peak << std::endl;
-    write_pixel(x_peak, y_peak, 255, 0, 0);
+    write_pixel(x_peak, y_peak, red);
 
     // const int x_offset=0;
     const int y_offset = 100;
@@ -717,11 +728,11 @@ std::vector<point_feature_on_canvas> canvas::draw_visible_peaks(const std::vecto
 
 
 void canvas::draw_invisible_peaks(const std::vector<point_feature_on_canvas>& peaks_invis,
-                                  const int16_t r, const int16_t g, const int16_t b) {
-  for (size_t p = 0; p < peaks_invis.size(); p++) {
-    std::cout << peaks_invis[p].pf.name << " is invisible" << std::endl;
-    std::cout << "pixel will be written at : " << peaks_invis[p].x << ", " << peaks_invis[p].y << std::endl;
-    write_pixel(peaks_invis[p].x, peaks_invis[p].y, r, g, b);
+                                  const colour& col) {
+  for (const auto& peak : peaks_invis) {
+    std::cout << peak.pf.name << " is invisible" << std::endl;
+    std::cout << "pixel will be written at : " << peak.x << ", " << peak.y << std::endl;
+    write_pixel(peak.x, peak.y, col);
   }
 }
 
@@ -775,6 +786,7 @@ void canvas::draw_coast(const scene& S) {
     std::cout << "b" << std::endl;
   }
 
+  const colour col = {0, 255, 0};
 
   // do the actual drawing
   for (const linear_feature_on_canvas& coast_oc : coasts_oc) {
@@ -794,9 +806,8 @@ void canvas::draw_coast(const scene& S) {
         continue;
       if (y2 < 0 || y2 > height_)
         continue;
-      const int r(0), g(255), b(0);
       std::cout << " drawing line" << std::endl;
-      draw_line(x1, y1, x2, y2, z, r, g, b);
+      draw_line(x1, y1, x2, y2, z, col);
     }
   }
 }

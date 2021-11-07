@@ -21,6 +21,15 @@ struct point_feature_on_canvas;
 int get_tile_index(const scene& S, const double lat, const double lon);
 
 
+struct colour {
+  constexpr colour(int r, int g, int b): r_(r), g_(g), b_(b) {}
+  int16_t r_ = 0, g_ = 0, b_ = 0;
+
+  operator int32_t() const {
+    return 127 << 24 | r_ << 16 | g_ << 8 | b_;
+  }
+};
+
 template <typename S, typename T>
 class array_zb {
 private:
@@ -88,20 +97,17 @@ public:
 
   // just write the pixel taking into account the zbuffer
   void write_pixel_zb(const int x, const int y, const double z,
-                      int16_t r, int16_t g, int16_t b) {
+                      const colour& col) {
     if (z < buffered_canvas.zb(x, y)) {
       buffered_canvas.zb(x, y) = z;
-      const int32_t col = 127 << 24 | r << 16 | g << 8 | b;
-      // img_ptr->tpixels[y][x] = col; // assuming TrueColor
-      buffered_canvas.a2d(x, y) = col;
+      buffered_canvas.a2d(x, y) = int32_t(col);
     }
   }
 
   // just write the pixel
   void write_pixel(const int x, const int y,
-                   int16_t r, int16_t g, int16_t b) {
-    const int32_t col = 127 << 24 | r << 16 | g << 8 | b;
-    buffered_canvas.a2d(x, y) = col;
+                   const colour& col) {
+    buffered_canvas.a2d(x, y) = int32_t(col);
   }
 
   // true if any pixel was drawn
@@ -109,7 +115,7 @@ public:
                      const double x2, const double y2,
                      const double x3, const double y3,
                      const double z,
-                     int16_t r, int16_t g, int16_t b);
+                     const colour& col);
 
 
   void render_scene(const scene& S);
@@ -155,10 +161,8 @@ public:
   constexpr int height() const { return height_; }
 
   // just write the pixel
-  void write_pixel(const int x, const int y,
-                   int16_t r, int16_t g, int16_t b) {
-    const int32_t col = 127 << 24 | r << 16 | g << 8 | b;
-    img_ptr->tpixels[y][x] = col; // assuming TrueColor
+  void write_pixel(const int x, const int y, const colour& col) {
+    img_ptr->tpixels[y][x] = int32_t(col); // assuming TrueColor
   }
 
   // read the zbuffer, return true if the pixel would be drawn
@@ -178,7 +182,7 @@ public:
   bool draw_line(const double x1, const double y1,
                  const double x2, const double y2,
                  const double z,
-                 int16_t r, int16_t g, int16_t b);
+                 const colour& col);
   bool would_draw_line(const double x1, const double y1,
                        const double x2, const double y2,
                        const double z) const;
@@ -203,7 +207,7 @@ public:
   std::vector<point_feature_on_canvas> draw_visible_peaks(const std::vector<point_feature_on_canvas>& peaks_vis);
 
   void draw_invisible_peaks(const std::vector<point_feature_on_canvas>& peaks_invis,
-                            const int16_t r, const int16_t g, const int16_t b);
+                            const colour& col);
 
   void annotate_islands(const scene& S);
   void draw_coast(const scene& S);
