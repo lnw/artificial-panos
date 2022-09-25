@@ -40,14 +40,14 @@ int get_tile_index(const scene& S, const double lat, const double lon) {
   // find the tile in which the peak is located, continue if none
   int tile_index = -1;
   for (size_t t = 0; t < S.tiles.size(); t++) {
-    if (S.tiles[t].first.get_lat() == int(lat) &&
-        S.tiles[t].first.get_lon() == int(lon)) {
+    if (S.tiles[t].first.get_lat() == int(std::floor(lat)) &&
+        S.tiles[t].first.get_lon() == int(std::floor(lon))) {
       tile_index = t;
       break;
     }
   }
   if (tile_index == -1) {
-    std::cout << "tile " << int(lat) << "/" << int(lon) << " is required but seems to be inavailable." << std::endl;
+    std::cout << "tile " << int(std::floor(lat)) << "/" << int(std::floor(lon)) << " is required but seems to be inavailable." << std::endl;
   }
   return tile_index;
 }
@@ -72,7 +72,7 @@ void canvas_t::draw_triangle(const double x1, const double y1,
   // iterate over grid points in bb, draw the ones in the triangle
   for (int x = std::max(xmin, zero); x < std::min(xmax, width()); x++) {
     for (int y = std::max(ymin, zero); y < std::min(ymax, height()); y++) {
-      if (point_in_triangle_2<double>(x + 0.5, y + 0.5, x1, y1, x2, y2, x3, y3)) {
+      if (point_in_triangle_2<float>(x + 0.5, y + 0.5, x1, y1, x2, y2, x3, y3)) {
         write_pixel_zb(x, y, z, col);
       }
     }
@@ -94,7 +94,7 @@ bool canvas::would_draw_triangle(const double x1, const double y1,
   // iterate over grid points in bb, draw the ones in the triangle
   for (int x = xmin; x < xmax; x++) {
     for (int y = ymin; y < ymax; y++) {
-      if (point_in_triangle_2<double>(x + 0.5, y + 0.5, x1, y1, x2, y2, x3, y3)) {
+      if (point_in_triangle_2<float>(x + 0.5, y + 0.5, x1, y1, x2, y2, x3, y3)) {
         if (would_write_pixel_zb(x, y, z))
           pixel_drawn = true;
       }
@@ -110,8 +110,8 @@ bool canvas::draw_line(const double x1, const double y1,
                        const double x2, const double y2,
                        const double z,
                        const colour& col) {
-  const auto [r, g, b] = col;
   if (z - 30 < zbuffer(x1, y1) && z - 30 < zbuffer(x2, y2)) {
+    const auto [r, g, b] = col;
     const int32_t c = gdImageColorResolve(img_ptr, r, g, b);
     gdImageLine(img_ptr, x1, y1, x2, y2, c);
     return true;
@@ -133,7 +133,6 @@ bool canvas::would_draw_line(const double x1, const double y1,
 void canvas::draw_tick(int x_tick, int tick_length, const std::string& str1, const std::string& str2) {
   const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
   const double fontsize = 20.;
-  char font[] = "./fonts/vera.ttf";
   const double text_orientation = 0;
 
   // std::cout << "deg90: " << deg << std::endl;
@@ -142,6 +141,7 @@ void canvas::draw_tick(int x_tick, int tick_length, const std::string& str1, con
   gdImageLine(img_ptr, x_tick + 1, 0, x_tick + 1, tick_length, black);
 
   if (!str1.empty()) {
+    char font[] = "./fonts/vera.ttf";
     // get bb of blank std::string
     int bb[8]; // SW - SE - NE - NW // SW is 0,0
     char* s1 = const_cast<char*>(str1.c_str());
@@ -567,7 +567,7 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
     // std::cout << "seg no: " << seg << std::endl;
     // get coords of segment endpoints
     const double dist_point = dist_peak - seg_length * seg;
-    auto [point_lat, point_lon] = destination(ref_lat, ref_lon, dist_point, bearing_rad);
+    const auto [point_lat, point_lon] = destination(ref_lat, ref_lon, dist_point, bearing_rad);
 
     // find tile in which the point lies
     const int tile_index = get_tile_index(S, point_lat * rad2deg, point_lon * rad2deg);

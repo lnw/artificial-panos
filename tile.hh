@@ -49,11 +49,11 @@ public:
     assert(dim > 0);
     // std::cout << " dimension in tile: " << dim << std::endl;
     const int size = dim * dim;
-    int16_t size_test;
 
     std::ifstream ifs(FILENAME, std::ios::in | std::ios::binary);
     ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try {
+      int16_t size_test;
       ifs.read(reinterpret_cast<char*>(&((*this)(0, 0))), size * sizeof(size_test));
     }
     catch (const std::ifstream::failure& e) {

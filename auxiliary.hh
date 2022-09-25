@@ -13,7 +13,7 @@ _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
 #define NO_DEPR_DECL_WARNINGS_END _Pragma("GCC diagnostic pop")
 
 NO_DEPR_DECL_WARNINGS_START
-#include <libxml++/libxml++.h> // defines GLib::ustring (das aus dem xml faellt)
+#include <libxml++/libxml++.h> // defines GLib::ustring
 NO_DEPR_DECL_WARNINGS_END
 
 

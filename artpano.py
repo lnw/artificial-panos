@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.9
+#!/usr/bin/env python
 
 import os
 import signal
@@ -34,7 +34,7 @@ def parseCommandline():
     parser.add_argument("--server", help="server from which elevation tiles are fetched",
                         dest="server", action="store", type=int, default=0)
     parser.add_argument("--source", help="source type and resolution",
-                        dest="source", nargs='+', action="store", default=["view1","srtm1"]) # '+' meaning one or more arguments which end up in a list
+                        dest="source", nargs='+', action="store", default=["view1","srtm1","view3","srtm3"]) # '+' meaning one or more arguments which end up in a list
     argparse = parser.parse_args()
     if argparse.view_height == 0.0 and argparse.canvas_height == 0:
         argparse.view_height = 20.0
@@ -76,18 +76,18 @@ def getElevationTiles(requiredTiles,sources):
 def getOSMTiles(requiredTiles):
     # from github.com:mvexel/overpass-api-python-wrapper.git
     import overpass
-    for south,west in requiredTiles:
+    for north,east in requiredTiles: # which are the south-west corners of respective tiles
       # print(west, south)
-      path_peak = 'osm/N{:02}E{:03}_peak.osm'.format(south,west)
-      path_coast = 'osm/N{:02}E{:03}_coast.osm'.format(south,west)
-      path_isl = 'osm/N{:02}E{:03}_isl.osm'.format(south,west)
+      path_peak = 'osm/{}{:02}{}{:03}_peak.osm'.format('N' if north>=0 else 'S', abs(north), 'E' if east>=0 else 'W', abs(east))
+      path_coast = 'osm/{}{:02}{}{:03}_coast.osm'.format('N' if north>=0 else 'S', abs(north), 'E' if east>=0 else 'W', abs(east))
+      path_isl = 'osm/{}{:02}{}{:03}_isl.osm'.format('N' if north>=0 else 'S', abs(north), 'E' if east>=0 else 'W', abs(east))
       if (os.path.isfile(path_peak)):
         print(path_peak + " already exists")
       else:
         print("downloading " + path_peak)
         api = overpass.API()
         query_peak = ('(' +
-                      'node[natural=peak]({},{},{},{});'.format(south,west,south+1,west+1) +
+                      'node[natural=peak]({},{},{},{});'.format(north,east,north+1,east+1) +
                       ');')
         result_peak = api.Get(query_peak, responseformat='xml', verbosity='body')
         # print(query_peak)
@@ -100,9 +100,9 @@ def getOSMTiles(requiredTiles):
         print("downloading " + path_coast)
         api = overpass.API()
         query_coast = ('(' +
-                       'way[natural=water]({},{},{},{});(._;>;);'.format(south,west,south+1,west+1) +
-                       'way[natural=coastline]({},{},{},{});(._;>;);'.format(south,west,south+1,west+1) +
-                       #'relation[natural=water]({},{},{},{});(._;>;);'.format(south,west,south+1,west+1) +
+                       'way[natural=water]({},{},{},{});(._;>;);'.format(north,east,north+1,east+1) +
+                       'way[natural=coastline]({},{},{},{});(._;>;);'.format(north,east,north+1,east+1) +
+                       #'relation[natural=water]({},{},{},{});(._;>;);'.format(north,east,north+1,east+1) +
                        ');')
         result_coast = api.Get(query_coast, responseformat='xml', verbosity='body')
         # print(result)
@@ -114,9 +114,9 @@ def getOSMTiles(requiredTiles):
         print("downloading " + path_isl)
         api = overpass.API()
         query_isl = ('(' +
-                     'node[place=island]({},{},{},{});(._;>;);'.format(south,west,south+1,west+1) +
-                     'node[place=islet]({},{},{},{});(._;>;);'.format(south,west,south+1,west+1) +
-                     #'relation[place=island]({},{},{},{});(._;>;);'.format(west,south,west+1,south+1) +
+                     'node[place=island]({},{},{},{});(._;>;);'.format(north,east,north+1,east+1) +
+                     'node[place=islet]({},{},{},{});(._;>;);'.format(north,east,north+1,east+1) +
+                     #'relation[place=island]({},{},{},{});(._;>;);'.format(east,north,east+1,north+1) +
                      ');')
         result_isl = api.Get(query_isl, responseformat='xml', verbosity='body')
         # print(result_isl)

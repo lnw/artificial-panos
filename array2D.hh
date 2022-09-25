@@ -38,7 +38,7 @@ public:
     return *this;
   }
 
-  array2D pointwise_min(array2D& B) const {
+  array2D pointwise_min(const array2D& B) const {
     array2D Tnew(*this);
     for (int i = 0; i < n * m; i++)
       Tnew[i] = std::min(Tnew[i], B[i]);

@@ -25,7 +25,13 @@ find_package(Python3 COMPONENTS Development REQUIRED)
 INCLUDE_DIRECTORIES(${Python3_INCLUDE_DIRS})
 
 include_directories(${glib_INCLUDE_DIR} ${glib_config_INCLUDE_DIR} ${glibmm_INCLUDE_DIR} ${glibmm_config_INCLUDE_DIR} ${libxml++_INCLUDE_DIR} ${libxml++_config_INCLUDE_DIR})
-add_library(ap SHARED mapitems.cc geometry.cc canvas.cc labelgroup.cc scene.cc)
+add_library(ap SHARED
+            canvas.cc
+            geometry.cc
+            labelgroup.cc
+            mapitems.cc
+            scene.cc
+)
 target_link_libraries(ap ${libxml++_LIBRARIES} ${GD_LIBRARY})
 
 include(CheckIPOSupported)
@@ -39,6 +45,8 @@ endif()
 add_executable(pano pano.cc)
 target_link_libraries(pano ap)
 
-add_library(artpano SHARED interface.cc)
+add_library(artpano SHARED
+            interface.cc
+)
 target_link_libraries(artpano ap ${Python3_LIBRARIES})
 

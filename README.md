@@ -12,11 +12,11 @@ generated and labelled using the openstreemap data.
 
 ## Building
 
-mkdir build; cd build; cmake ..; make; make package
+mkdir build; cd build; cmake ..; make
 
 ## Examples
 
-An example from Slovakia:
+An example from Liptovsky Mikulas/Slovakia:
 ```
 ./artpano.py --lat 49.07980 --lon 19.62611 --view-dir-h 230 --view-width 290 --view-dir-v 8 --range 40000 --canvas-height 1000 --canvas-width 10000
 ```

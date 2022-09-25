@@ -38,12 +38,11 @@ double horizontal_direction(const double ref_lat, const double ref_lon,
 // bearing, starting from ref
 // where N: 0, E:90, S:+/-180, W:-90
 // input and output in rad
-double bearing(const double ref_lat, const double ref_lon,
-               const double lat, const double lon);
+double bearing(double ref_lat, double ref_lon, double lat, double lon);
 
 // destination when going from (lat/lon) a distance dist with bearing b
 // bearing from -pi .. pi, 0 is north
-std::pair<double, double> destination(const double ref_lat, const double ref_lon, const double dist, const double b);
+std::pair<double, double> destination(double ref_lat, double ref_lon, double dist, double b);
 
 // vertical angle, using distance and elevation difference
 // positive is up, negative is down

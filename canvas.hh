@@ -22,6 +22,7 @@ int get_tile_index(const scene& S, const double lat, const double lon);
 
 
 struct colour {
+  constexpr colour() = default;
   constexpr colour(int r, int g, int b): r_(r), g_(g), b_(b) {}
   int16_t r_ = 0, g_ = 0, b_ = 0;
 
@@ -135,7 +136,7 @@ private:
   gdImagePtr img_ptr = nullptr;
 
 public:
-  canvas(std::string fn, const canvas_t& core): width_(core.width()), height_(core.height()), zbuffer(core.get_zb()), filename(fn) {
+  canvas(std::string fn, const canvas_t& core): width_(core.width()), height_(core.height()), zbuffer(core.get_zb()), filename(std::move(fn)) {
     const array2D<int32_t>& wc(core.get_wc());
     // allocate mem
     img_ptr = gdImageCreateTrueColor(width_, height_);

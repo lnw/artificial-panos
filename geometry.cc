@@ -48,7 +48,7 @@ double angle_h(const double latA, const double lonA,
   // Use the Spherical law of cosines to get at the angle between a and b
   const double numerator = cos(b) - cos(a) * cos(c);
   const double denominator = sin(a) * sin(c);
-  return acos(numerator / denominator); // [rad]
+  return std::acos(numerator / denominator); // [rad]
 }
 
 double horizontal_direction(const double ref_lat, const double ref_lon,
@@ -78,7 +78,7 @@ double bearing(const double ref_lat, const double ref_lon,
   const double Dlon = lon - ref_lon;
   const double x = std::cos(lat) * std::sin(Dlon);
   const double y = std::cos(ref_lat) * std::sin(lat) - std::sin(ref_lat) * std::cos(lat) * std::cos(Dlon);
-  return atan2(x, y);
+  return std::atan2(x, y);
 }
 
 // destination when going from (lat/lon) a distance dist with bearing b
@@ -88,7 +88,7 @@ std::pair<double, double> destination(const double ref_lat, const double ref_lon
   const double lat = std::asin(std::sin(ref_lat) * std::cos(c_angle) + std::cos(ref_lat) * std::sin(c_angle) * std::cos(b));
   const double lon = ref_lon + std::atan2(std::sin(b) * std::sin(c_angle) * std::cos(ref_lat),
                                           std::cos(c_angle) - std::sin(ref_lat) * std::sin(lat));
-  return std::make_pair(lat, lon);
+  return {lat, lon};
 }
 
 // vertical angle, using distance and elevation difference

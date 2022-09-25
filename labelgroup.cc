@@ -130,7 +130,7 @@ vector<point_feature_on_canvas> LabelGroups::prune() {
     while (true) {
       bool delete_something = false;
       for (int j = g[lg].first_index; j <= g[lg].last_index; j++) {
-        if (abs(pfocs[j].xshift) / label_width > 4) { // one label is dispaced by more than 4 labelwidths
+        if (std::abs(pfocs[j].xshift) / label_width > 4) { // one label is displaced by more than 4 labelwidths
           delete_something = true;
         }
       }

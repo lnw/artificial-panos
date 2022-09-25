@@ -21,9 +21,9 @@ struct point_feature {
   std::string name;
   int elev; // provided by osm data, otherwise interpolated from elevation data
 
-  point_feature(double la, double lo, std::string n, int e): lat(la), lon(lo), name(n), elev(e) {}
+  point_feature(double la, double lo, std::string n, int e): lat(la), lon(lo), name(std::move(n)), elev(e) {}
   point_feature(double la, double lo, int e): lat(la), lon(lo), name(""), elev(e) {}
-  point_feature(double la, double lo, std::string n): lat(la), lon(lo), name(n), elev() {}
+  point_feature(double la, double lo, std::string n): lat(la), lon(lo), name(std::move(n)), elev() {}
 
   friend std::ostream& operator<<(std::ostream& S, const point_feature& pf) {
     S << "{(" << pf.lat << ", " << pf.lon << "), " << pf.name << ", " << pf.elev << "}";
@@ -36,7 +36,7 @@ struct point_feature_on_canvas {
   int x, y, dist;
   int xshift;
 
-  point_feature_on_canvas(point_feature _pf, int _x, int _y, int _dist): pf(_pf), x(_x), y(_y), dist(_dist), xshift(0) {}
+  point_feature_on_canvas(point_feature _pf, int _x, int _y, int _dist): pf(std::move(_pf)), x(_x), y(_y), dist(_dist), xshift(0) {}
 
   friend std::ostream& operator<<(std::ostream& S, const point_feature_on_canvas& pfc) {
     S << pfc.pf << " at (" << pfc.x << ", " << pfc.y << ", " << pfc.dist << ")";
@@ -51,7 +51,7 @@ struct linear_feature {
   bool closed; // detect by comparing first and last element
 
   linear_feature(): coords(), name(""), id(0), closed(false){};
-  linear_feature(int N): coords(N), name(""), id(0), closed(false){};
+  explicit linear_feature(int N): coords(N), name(""), id(0), closed(false){};
 
   bool operator<(const linear_feature& lf) const { return this->id < lf.id; };
 
