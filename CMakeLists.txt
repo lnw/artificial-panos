@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.12.0)
+cmake_minimum_required(VERSION 3.20.0)
 project(artpano CXX)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 message(STATUS "cmake mod path ${CMAKE_MODULE_PATH}")
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_VERBOSE_MAKEFILE false)
 
@@ -22,15 +22,23 @@ find_package(GD REQUIRED)
 # message(STATUS "libGD libs ${GD_LIBRARY}")
 
 find_package(Python3 COMPONENTS Development REQUIRED)
-INCLUDE_DIRECTORIES(${Python3_INCLUDE_DIRS})
+include_directories(${Python3_INCLUDE_DIRS})
 
 include_directories(${glib_INCLUDE_DIR} ${glib_config_INCLUDE_DIR} ${glibmm_INCLUDE_DIR} ${glibmm_config_INCLUDE_DIR} ${libxml++_INCLUDE_DIR} ${libxml++_config_INCLUDE_DIR})
 add_library(ap SHARED
+            array2D.hh
+            auxiliary.hh
             canvas.cc
+            canvas.hh
             geometry.cc
+            geometry.hh
             labelgroup.cc
+            labelgroup.hh
             mapitems.cc
+            mapitems.hh
             scene.cc
+            scene.hh
+            tile.hh
 )
 target_link_libraries(ap ${libxml++_LIBRARIES} ${GD_LIBRARY})
 

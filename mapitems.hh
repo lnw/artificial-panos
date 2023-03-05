@@ -7,6 +7,10 @@
 
 #include "auxiliary.hh"
 
+#define NO_DEPR_DECL_WARNINGS_START _Pragma("GCC diagnostic push")
+_Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
+#define NO_DEPR_DECL_WARNINGS_END _Pragma("GCC diagnostic pop")
+
 NO_DEPR_DECL_WARNINGS_START
 #include <libxml++/libxml++.h>
 NO_DEPR_DECL_WARNINGS_END

@@ -40,8 +40,8 @@ int get_tile_index(const scene& S, const double lat, const double lon) {
   // find the tile in which the peak is located, continue if none
   int tile_index = -1;
   for (size_t t = 0; t < S.tiles.size(); t++) {
-    if (S.tiles[t].first.get_lat() == int(std::floor(lat)) &&
-        S.tiles[t].first.get_lon() == int(std::floor(lon))) {
+    if (S.tiles[t].first.lat() == int(std::floor(lat)) &&
+        S.tiles[t].first.lon() == int(std::floor(lon))) {
       tile_index = t;
       break;
     }
@@ -275,8 +275,8 @@ void canvas_t::render_scene(const scene& S) {
 
     const tile<double>& H = S.tiles[t].first;
     const tile<double>& D = S.tiles[t].second;
-    const int m = H.get_m();
-    const int n = H.get_n();
+    const int64_t m = H.m();
+    const int64_t n = H.n();
     // debug << "H: " << H << std::endl;
     // debug << "D: " << D << std::endl;
 
@@ -296,19 +296,19 @@ void canvas_t::render_scene(const scene& S) {
         // get horizontal and vertical angles for all four points of the two triangles
         // translate to image coordinates
         bool visible = false; // anything is visible
-        const double h_ij = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.get_lat() + 1 - i / double(m - 1)) * deg2rad, (H.get_lon() + j / double(n - 1)) * deg2rad) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const double h_ij = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - i / double(m - 1)) * deg2rad, (H.lon() + j / double(n - 1)) * deg2rad) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
         // if(h_ij < 0 || h_ij > width) continue;
         if (h_ij > 0 || h_ij < width_)
           visible = true;
-        const double h_ijj = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.get_lat() + 1 - i / double(m - 1)) * deg2rad, (H.get_lon() + (j + inc) / double(n - 1)) * deg2rad) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const double h_ijj = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - i / double(m - 1)) * deg2rad, (H.lon() + (j + inc) / double(n - 1)) * deg2rad) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
         // if(h_ijj < 0 || h_ijj > width) continue;
         if (h_ijj > 0 || h_ijj < width_)
           visible = true;
-        const double h_iij = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.get_lat() + 1 - (i + inc) / double(m - 1)) * deg2rad, (H.get_lon() + j / double(n - 1)) * deg2rad) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const double h_iij = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - (i + inc) / double(m - 1)) * deg2rad, (H.lon() + j / double(n - 1)) * deg2rad) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
         // if(h_iij < 0 || h_iij > width) continue;
         if (h_iij > 0 || h_iij < width_)
           visible = true;
-        const double h_iijj = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.get_lat() + 1 - (i + inc) / double(m - 1)) * deg2rad, (H.get_lon() + (j + inc) / double(n - 1)) * deg2rad) + 1.5 * M_PI + invis_angle / 2.0, 2.0 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const double h_iijj = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - (i + inc) / double(m - 1)) * deg2rad, (H.lon() + (j + inc) / double(n - 1)) * deg2rad) + 1.5 * M_PI + invis_angle / 2.0, 2.0 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
         // if(h_iijj < 0 || h_iijj > width) continue;
         if (h_iijj > 0 || h_iijj < width_)
           visible = true;
@@ -402,8 +402,8 @@ void canvas::annotate_peaks(const scene& S) {
   std::vector<point_feature> peaks;
   for (const auto& tile : S.tiles) {
     std::string path("osm");
-    std::string xml_name(std::string(tile.first.get_lat() < 0 ? "S" : "N") + to_string_fixedwidth(std::abs(tile.first.get_lat()), 2) +
-                         std::string(tile.first.get_lon() < 0 ? "W" : "E") + to_string_fixedwidth(std::abs(tile.first.get_lon()), 3) + "_peak.osm");
+    std::string xml_name(std::string(tile.first.lat() < 0 ? "S" : "N") + to_stringish_fixedwidth<std::string>(std::abs(tile.first.lat()), 2) +
+                         std::string(tile.first.lon() < 0 ? "W" : "E") + to_stringish_fixedwidth<std::string>(std::abs(tile.first.lon()), 3) + "_peak.osm");
     xml_name = path + "/" + xml_name;
     std::vector<point_feature> tmp = read_peaks_osm(xml_name);
     peaks.insert(std::end(peaks), std::begin(tmp), std::end(tmp));
@@ -447,8 +447,8 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
 
   const tile<double>& H = S.tiles[tile_index].first;
   const tile<double>& D = S.tiles[tile_index].second;
-  const int m = H.get_m();
-  const int n = H.get_n();
+  const int64_t m = H.m();
+  const int64_t n = H.n();
 
   // get a few triangles around the peak, we're interested in 25 squares around the peak, between i-rad/j-rad and i+rad/j+rad
   // the test-patch should be larger for large distances because there are less pixels per ground area
@@ -456,13 +456,13 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
   const int diameter = 2 * radius + 1;
   // std::cout << dist_peak << ", " << radius << ", " << diameter << std::endl;
 
-  const int tile_size_m1 = S.tiles[tile_index].first.get_dim() - 1; // because we always need size-1 here
+  const int tile_size_m1 = S.tiles[tile_index].first.dim() - 1; // because we always need size-1 here
 
   // ii and jj pont to the NW corner of a 5x5 grid of tiles where the feature is in the middle tile
   const int ii = tile_size_m1 - std::ceil(std::abs(fractpart_i) * (tile_size_m1)) - radius; // lat
   const int jj = std::floor(std::abs(fractpart_j) * tile_size_m1) - radius;                 // lon
   //      std::cout << "ii,jj: " <<  ii << ", " << jj << std::endl;
-  //      std::cout << "coords: " << peaks[p].get_lat() << ", " << peaks[p].get_lon() << std::endl;
+  //      std::cout << "coords: " << peaks[p].lat() << ", " << peaks[p].lon() << std::endl;
   //      std::cout << "points will be at: " << 1-ii/3600.0 << ", " << 1-(ii+1)/3600.0 << ", " << 1-(ii+2)/3600.0 << ", " << 1-(ii+3)/3600.0 << std::endl;
   //      std::cout << "points will be at: " << jj/3600.0 << ", " << (jj+1)/3600.0 << ", " << (jj+2)/3600.0 << ", " << (jj+3)/3600.0 << std::endl;
 
@@ -477,16 +477,16 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
     for (int j = jj; j < jj + diameter; j++) {
       if (j < 0 || j > tile_size_m1)
         continue; // FIXME
-      const double h_ij = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.get_lat() + 1 - i / double(m - 1)) * deg2rad, (H.get_lon() + j / double(n - 1)) * deg2rad) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
+      const double h_ij = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - i / double(m - 1)) * deg2rad, (H.lon() + j / double(n - 1)) * deg2rad) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
       if (h_ij < 0 || h_ij > width_)
         continue;
-      const double h_ijj = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.get_lat() + 1 - i / double(m - 1)) * deg2rad, (H.get_lon() + (j + inc) / double(n - 1)) * deg2rad) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
+      const double h_ijj = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - i / double(m - 1)) * deg2rad, (H.lon() + (j + inc) / double(n - 1)) * deg2rad) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
       if (h_ijj < 0 || h_ijj > width_)
         continue;
-      const double h_iij = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.get_lat() + 1 - (i + inc) / double(m - 1)) * deg2rad, (H.get_lon() + j / double(n - 1)) * deg2rad) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
+      const double h_iij = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - (i + inc) / double(m - 1)) * deg2rad, (H.lon() + j / double(n - 1)) * deg2rad) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
       if (h_iij < 0 || h_iij > width_)
         continue;
-      const double h_iijj = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.get_lat() + 1 - (i + inc) / double(m - 1)) * deg2rad, (H.get_lon() + (j + inc) / double(n - 1)) * deg2rad) + 1.5 * M_PI, 2.0 * M_PI) * pixels_per_rad_h;
+      const double h_iijj = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - (i + inc) / double(m - 1)) * deg2rad, (H.lon() + (j + inc) / double(n - 1)) * deg2rad) + 1.5 * M_PI, 2.0 * M_PI) * pixels_per_rad_h;
       if (h_iijj < 0 || h_iijj > width_)
         continue;
 
@@ -548,7 +548,7 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
   const double ref_lon = S.lon_standpoint;
 
   // bearing to peak
-  // std::cout << ref_lat << "," << ref_lon <<", "<< peak.get_lat() <<","<< peak.get_lon() << std::endl;
+  // std::cout << ref_lat << "," << ref_lon <<", "<< peak.lat() <<","<< peak.lon() << std::endl;
   const double bearing_rad = bearing(ref_lat, ref_lon, peak.lat * deg2rad, peak.lon * deg2rad);
   // std::cout << "bearing " << bearing_rad << " / " << bearing_rad*rad2deg << std::endl;
 
@@ -741,8 +741,8 @@ void canvas::annotate_islands(const scene& S) {
   std::vector<linear_feature> islands;
   // for (auto it=S.tiles.begin(), to=S.tiles.end(); it!=to; it++){
   //   std::string path("osm");
-  //   std::string xml_name(std::string(it->first.get_lat()<0?"S":"N") + to_string_fixedwidth(std::abs(it->first.get_lat()),2) +
-  //                   std::string(it->first.get_lon()<0?"W":"E") + to_string_fixedwidth(std::abs(it->first.get_lon()),3) + "_isl.osm");
+  //   std::string xml_name(std::string(it->first.lat()<0?"S":"N") + to_string_fixedwidth(std::abs(it->first.lat()),2) +
+  //                   std::string(it->first.lon()<0?"W":"E") + to_string_fixedwidth(std::abs(it->first.lon()),3) + "_isl.osm");
   //   xml_name = path + "/" + xml_name;
   //   std::vector<linear_feature> tmp = read_islands_osm(xml_name);
   //   islands.insert(std::end(islands), std::begin(tmp), std::end(tmp));
@@ -756,8 +756,8 @@ void canvas::draw_coast(const scene& S) {
   std::vector<linear_feature> coasts;
   for (const auto& T : S.tiles) {
     std::string path("osm");
-    std::string xml_name(std::string(T.first.get_lat() < 0 ? "S" : "N") + to_string_fixedwidth(std::abs(T.first.get_lat()), 2) +
-                         std::string(T.first.get_lon() < 0 ? "W" : "E") + to_string_fixedwidth(std::abs(T.first.get_lon()), 3) + "_coast.osm");
+    std::string xml_name(std::string(T.first.lat() < 0 ? "S" : "N") + to_stringish_fixedwidth<std::string>(std::abs(T.first.lat()), 2) +
+                         std::string(T.first.lon() < 0 ? "W" : "E") + to_stringish_fixedwidth<std::string>(std::abs(T.first.lon()), 3) + "_coast.osm");
     xml_name = path + "/" + xml_name;
     std::vector<linear_feature> tmp = read_coast_osm(xml_name);
     coasts.insert(std::end(coasts), std::begin(tmp), std::end(tmp));

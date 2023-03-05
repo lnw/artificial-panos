@@ -38,7 +38,7 @@ private:
   array2D<T> arr2d_;
 
 public:
-  array_zb(int x, int y): zbuffer_(x, y, INT_MAX), arr2d_(x, y, 0) {}
+  array_zb(int x, int y): zbuffer_(x, y, std::numeric_limits<int>::max()), arr2d_(x, y, 0) {}
 
   constexpr int width() const { return arr2d_.width(); }
   constexpr int height() const { return arr2d_.height(); }
@@ -55,8 +55,8 @@ public:
 
   array_zb operator+(const array_zb& rh) const { return array_zb(*this) += rh; }
   array_zb& operator+=(const array_zb& rh) {
-    const int width = arr2d_.get_n();
-    const int height = arr2d_.get_m();
+    const int width = arr2d_.n();
+    const int height = arr2d_.m();
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < height; y++) {
         if (rh.zb(x, y) < zbuffer_(x, y)) { // rh is closer
