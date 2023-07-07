@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <fstream>
 
-#include "array2D.hh"
+#include "array2d.hh"
 
 
 // one tile only, without storing the viewpoint

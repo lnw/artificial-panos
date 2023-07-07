@@ -12,7 +12,12 @@ generated and labelled using the openstreemap data.
 
 ## Building
 
-mkdir build; cd build; cmake ..; make
+```
+mkdir build;
+cd build;
+cmake ..;
+make
+```
 
 ## Examples
 

@@ -11,7 +11,7 @@
 
 #include <gd.h>
 
-#include "array2D.hh"
+#include "array2d.hh"
 
 class scene;
 struct point_feature;
@@ -24,9 +24,9 @@ int get_tile_index(const scene& S, const double lat, const double lon);
 struct colour {
   constexpr colour() = default;
   constexpr colour(int r, int g, int b): r_(r), g_(g), b_(b) {}
-  int16_t r_ = 0, g_ = 0, b_ = 0;
+  uint8_t r_ = 0, g_ = 0, b_ = 0;
 
-  operator int32_t() const {
+  operator uint32_t() const {
     return 127 << 24 | r_ << 16 | g_ << 8 | b_;
   }
 };
@@ -97,18 +97,16 @@ public:
   void highlight_edges();
 
   // just write the pixel taking into account the zbuffer
-  void write_pixel_zb(const int x, const int y, const double z,
-                      const colour& col) {
+  void write_pixel_zb(const int x, const int y, const double z, const colour& col) {
     if (z < buffered_canvas.zb(x, y)) {
       buffered_canvas.zb(x, y) = z;
-      buffered_canvas.a2d(x, y) = int32_t(col);
+      buffered_canvas.a2d(x, y) = uint32_t(col);
     }
   }
 
   // just write the pixel
-  void write_pixel(const int x, const int y,
-                   const colour& col) {
-    buffered_canvas.a2d(x, y) = int32_t(col);
+  void write_pixel(const int x, const int y, const colour& col) {
+    buffered_canvas.a2d(x, y) = uint32_t(col);
   }
 
   // true if any pixel was drawn

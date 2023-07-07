@@ -7,7 +7,7 @@
 
 #include <gd.h>
 
-#include "array2D.hh"
+#include "array2d.hh"
 #include "canvas.hh"
 #include "geometry.hh"
 #include "labelgroup.hh"
@@ -284,13 +284,13 @@ void canvas_t::render_scene(const scene& S) {
     debug << "n: " << n << std::endl;
     debug << (m - 1) * (n - 1) * 2 << " triangles in tile " << t << std::endl;
     const double invis_angle = std::max(2 * M_PI - view_width, 0.0);
-    const int inc = 1;
+    const int inc = 1;  // render fewer triangles
     for (int i = 0; i < m - inc; i += inc) {
       for (int j = 0; j < n - inc; j += inc) {
-        if (D(i, j) > S.view_range)
-          continue; // too far
-        if (D(i, j) < 100)
-          continue; // too close, avoid artifacts
+        if (D(i, j) > S.view_range) // too far
+          continue;
+        if (D(i, j) < 100) // too close, avoid artifacts
+          continue;
         // first triangle: i/j, i+1/j, i/j+1
         // second triangle: i+1/j, i/j+1, i+1/j+1
         // get horizontal and vertical angles for all four points of the two triangles
