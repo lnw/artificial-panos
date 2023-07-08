@@ -33,7 +33,7 @@ int main(int ac, char** av) {
   V.render_scene(S);
   V.highlight_edges();
 
-  canvas VV(filename, V);
+  canvas VV(filename, std::move(V));
   VV.draw_coast(S);
   VV.annotate_peaks(S);
   VV.label_axis(S);

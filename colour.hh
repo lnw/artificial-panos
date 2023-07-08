@@ -1,0 +1,14 @@
+#pragma once
+
+#include <cstdint>
+#include <cstdio>
+
+struct colour {
+  constexpr colour() = default;
+  constexpr colour(int r, int g, int b): r_(r), g_(g), b_(b) {}
+  uint8_t r_ = 0, g_ = 0, b_ = 0;
+
+  operator uint32_t() const {
+    return 127 << 24 | r_ << 16 | g_ << 8 | b_;
+  }
+};

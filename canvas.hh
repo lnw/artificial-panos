@@ -12,6 +12,7 @@
 #include <gd.h>
 
 #include "array2d.hh"
+#include "colour.hh"
 
 class scene;
 struct point_feature;
@@ -20,16 +21,6 @@ struct point_feature_on_canvas;
 
 int get_tile_index(const scene& S, const double lat, const double lon);
 
-
-struct colour {
-  constexpr colour() = default;
-  constexpr colour(int r, int g, int b): r_(r), g_(g), b_(b) {}
-  uint8_t r_ = 0, g_ = 0, b_ = 0;
-
-  operator uint32_t() const {
-    return 127 << 24 | r_ << 16 | g_ << 8 | b_;
-  }
-};
 
 template <typename S, typename T>
 class array_zb {
@@ -43,14 +34,16 @@ public:
   constexpr int width() const { return arr2d_.width(); }
   constexpr int height() const { return arr2d_.height(); }
 
-  auto& zb() { return zbuffer_; }
-  constexpr const auto& zb() const { return zbuffer_; }
-  S zb(int x, int y) const { return zbuffer_(x, y); }
+  constexpr auto& zb() & { return zbuffer_; }
+  constexpr const auto& zb() const& { return zbuffer_; }
+  constexpr auto&& zb() && { return zbuffer_; }
+  constexpr S zb(int x, int y) const { return zbuffer_(x, y); }
   constexpr S& zb(int x, int y) { return zbuffer_(x, y); }
 
-  auto& a2d() { return arr2d_; }
-  constexpr const auto& a2d() const { return arr2d_; }
-  T a2d(int x, int y) const { return arr2d_(x, y); }
+  constexpr auto& a2d() & { return arr2d_; }
+  constexpr const auto& a2d() const& { return arr2d_; }
+  constexpr auto&& a2d() && { return arr2d_; }
+  constexpr T a2d(int x, int y) const { return arr2d_(x, y); }
   constexpr T& a2d(int x, int y) { return arr2d_(x, y); }
 
   array_zb operator+(const array_zb& rh) const { return array_zb(*this) += rh; }
@@ -81,15 +74,19 @@ public:
   constexpr int width() const { return width_; }
   constexpr int height() const { return height_; }
 
-  array2D<double>& get_zb() { return buffered_canvas.zb(); }
-  constexpr const array2D<double>& get_zb() const { return buffered_canvas.zb(); }
-  double get_zb(int x, int y) const { return buffered_canvas.zb(x, y); }
-  constexpr double& get_zb(int x, int y) { return buffered_canvas.zb(x, y); }
+  // z buffer
+  auto& zb() & { return buffered_canvas.zb(); }
+  const auto& zb() const& { return buffered_canvas.zb(); }
+  auto&& zb() && { return std::move(buffered_canvas).zb(); }
+  double zb(int x, int y) const { return buffered_canvas.zb(x, y); }
+  constexpr double& zb(int x, int y) { return buffered_canvas.zb(x, y); }
 
-  array2D<int32_t>& get_wc() { return buffered_canvas.a2d(); }
-  constexpr const array2D<int32_t>& get_wc() const { return buffered_canvas.a2d(); }
-  int32_t get_wc(int x, int y) const { return buffered_canvas.a2d(x, y); }
-  constexpr int32_t& get_wc(int x, int y) { return buffered_canvas.a2d(x, y); }
+  // canvas
+  constexpr auto& wc() & { return buffered_canvas.a2d(); }
+  constexpr const auto& wc() const& { return buffered_canvas.a2d(); }
+  constexpr auto&& wc() && { return std::move(buffered_canvas).a2d(); }
+  constexpr int32_t wc(int x, int y) const { return buffered_canvas.a2d(x, y); }
+  constexpr int32_t& wc(int x, int y) { return buffered_canvas.a2d(x, y); }
 
   // for each column, walk from top to bottom and colour a pixel dark if it is
   // much closer than the previous one.  Works only because mountains are
@@ -129,13 +126,13 @@ class canvas {
 private:
   int width_;
   int height_;
-  const array2D<double>& zbuffer;
+  array2D<double> zbuffer;
   std::string filename;
   gdImagePtr img_ptr = nullptr;
 
 public:
-  canvas(std::string fn, const canvas_t& core): width_(core.width()), height_(core.height()), zbuffer(core.get_zb()), filename(std::move(fn)) {
-    const array2D<int32_t>& wc(core.get_wc());
+  canvas(std::string fn, canvas_t core): width_(core.width()), height_(core.height()), zbuffer(std::move(core).zb()), filename(std::move(fn)) {
+    const array2D<int32_t> wc(std::move(core).wc());
     // allocate mem
     img_ptr = gdImageCreateTrueColor(width_, height_);
     for (int x = 0; x < width_; x++)

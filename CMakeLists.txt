@@ -6,7 +6,7 @@ message(STATUS "cmake mod path ${CMAKE_MODULE_PATH}")
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
-set(CMAKE_VERBOSE_MAKEFILE true)
+set(CMAKE_VERBOSE_MAKEFILE false)
 
 # set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-fix")
 
@@ -24,14 +24,13 @@ find_package(GD REQUIRED)
 # message(STATUS "libGD libs ${GD_LIBRARY}")
 
 find_package(Python3 COMPONENTS Development REQUIRED)
-include_directories(${Python3_INCLUDE_DIRS})
 
-include_directories(${glib_INCLUDE_DIR} ${glib_config_INCLUDE_DIR} ${glibmm_INCLUDE_DIR} ${glibmm_config_INCLUDE_DIR} ${libxml++_INCLUDE_DIR} ${libxml++_config_INCLUDE_DIR})
 add_library(ap SHARED
             array2d.hh
             auxiliary.hh
             canvas.cc
             canvas.hh
+            colour.hh
             geometry.cc
             geometry.hh
             labelgroup.cc
@@ -42,6 +41,8 @@ add_library(ap SHARED
             scene.hh
             tile.hh
 )
+target_include_directories(ap SYSTEM PRIVATE ${libxml++_INCLUDE_DIR} ${libxml++_config_INCLUDE_DIR})
+target_include_directories(ap SYSTEM PRIVATE ${glib_INCLUDE_DIR} ${glib_config_INCLUDE_DIR} ${glibmm_INCLUDE_DIR} ${glibmm_config_INCLUDE_DIR})
 target_link_libraries(ap ${libxml++_LIBRARIES})
 target_link_libraries(ap ${GD_LIBRARY})
 target_link_libraries(ap OpenMP::OpenMP_CXX)
@@ -55,10 +56,11 @@ else()
 endif()
 
 add_executable(pano pano.cc)
-target_link_libraries(pano ap)
+target_link_libraries(pano PRIVATE ap)
 
 add_library(artpano SHARED
             interface.cc
 )
-target_link_libraries(artpano ap ${Python3_LIBRARIES})
+target_link_libraries(artpano PRIVATE ap)
+target_link_libraries(artpano PUBLIC Python3::Module)
 

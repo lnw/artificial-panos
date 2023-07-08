@@ -26,7 +26,7 @@ PYBIND11_MODULE(libartpano, m) {
 
   // class canvas
   py::class_<canvas>(m, "canvas")
-      .def(py::init<const std::string, const canvas_t&>())
+      .def(py::init<std::string, canvas_t>())
       .def("draw_coast", &canvas::draw_coast)             // scene
       .def("annotate_peaks", &canvas::annotate_peaks)     // scene
       .def("annotate_islands", &canvas::annotate_islands) // scene

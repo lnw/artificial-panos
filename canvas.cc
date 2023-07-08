@@ -362,7 +362,7 @@ void canvas_t::highlight_edges() {
   for (int x = 0; x < width_; x++) {
     double z_prev = 1000000;
     for (int y = 0; y < height_; y++) {
-      const double z_curr = get_zb(x, y);
+      const double z_curr = zb(x, y);
       if (z_prev / z_curr > thr1 && z_prev - z_curr > 500) {
         write_pixel(x, y, black);
       }
@@ -391,7 +391,7 @@ void canvas_t::bucket_fill(const int r, const int g, const int b) {
   const int32_t col = int32_t(colour(r, g, b));
   for (int y = 0; y < height_; y++) {
     for (int x = 0; x < width_; x++) {
-      get_wc(x, y) = col;
+      wc(x, y) = col;
     }
   }
 }
