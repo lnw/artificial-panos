@@ -31,7 +31,7 @@ public:
     ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try {
       int16_t size_test;
-      ifs.read(reinterpret_cast<char*>(&((*this)(0, 0))), size * sizeof(size_test));
+      ifs.read(std::bit_cast<char*>(this->data().data()), size * sizeof(size_test));
     }
     catch (const std::ifstream::failure& e) {
       std::cout << "Exception opening/reading file";
@@ -60,7 +60,7 @@ public:
     tile<double> A(this->m(), this->n(), dim_, lat_, lon_);
     for (int64_t i = 0; i < this->m(); i++) {
       for (int64_t j = 0; j < this->n(); j++) {
-        A(i, j) = (*this)(i, j) - coeff * std::pow(dists(i, j), 2);
+        A[i, j] = (*this)[i, j] - coeff * std::pow(dists[i, j], 2);
         // std::cout << (*this)(i,j) << ", " << dists(i,j) << " --> " << A(i,j) << std::endl;
       }
     }
@@ -80,8 +80,8 @@ public:
 #pragma omp parallel for
     for (int64_t i = 0; i < this->m(); i++) {
       for (int64_t j = 0; j < this->n(); j++) {
-        A(i, j) = distance_atan<double>(lat_standpoint, lon_standpoint, latitudes[i], longitudes[j]);
-        // A(i, j) = distance_acos(lat_standpoint, lon_standpoint, latitudes[i], longitudes[j]); // worse + slower
+        A[i, j] = distance_atan<double>(lat_standpoint, lon_standpoint, latitudes[i], longitudes[j]);
+        // A[i, j] = distance_acos(lat_standpoint, lon_standpoint, latitudes[i], longitudes[j]); // worse + slower
       }
     }
     return A;
@@ -105,9 +105,9 @@ public:
             jj = j + 1;
     double lon_frac = dim_m1 * (lon_p - lon_) - j;
     double lat_frac = dim_m1 * (lat_p - lat_) - (dim_m1 - i);
-    double aux1_h = (*this)(i, j) * (1 - lon_frac) + (*this)(i, jj) * lon_frac;
+    double aux1_h = (*this)[i, j] * (1 - lon_frac) + (*this)[i, jj] * lon_frac;
     // std::cout << "aux1_h: " << aux1_h << std::endl;
-    double aux2_h = (*this)(ii, j) * (1 - lon_frac) + (*this)(ii, jj) * lon_frac;
+    double aux2_h = (*this)[ii, j] * (1 - lon_frac) + (*this)[ii, jj] * lon_frac;
     // std::cout << "aux2_h: " << aux2_h << std::endl;
     double p_h = aux1_h * (1 - lat_frac) + aux2_h * lat_frac;
     return p_h;
@@ -122,7 +122,7 @@ public:
     for (int64_t i = 0; i < TT.m; i++) {
       S << TT.m - i << " ";
       for (int64_t j = 0; j < TT.n; j++) {
-        S << TT(i, j) << " ";
+        S << TT[i, j] << " ";
       }
       S << std::endl;
     }

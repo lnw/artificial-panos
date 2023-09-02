@@ -20,11 +20,14 @@ public:
 
   constexpr T& operator[](int64_t n) { return dat_[n]; }
   constexpr T operator[](int64_t n) const { return dat_[n]; }
-  constexpr T& operator()(int64_t i, int64_t j) { return dat_[i * n_ + j]; }
-  constexpr T operator()(int64_t i, int64_t j) const { return dat_[i * n_ + j]; }
+  constexpr T& operator[](int64_t i, int64_t j) { return dat_[i * n_ + j]; }
+  constexpr T operator[](int64_t i, int64_t j) const { return dat_[i * n_ + j]; }
 
   constexpr auto n() const { return n_; }
   constexpr auto m() const { return m_; }
+
+  constexpr auto& data() const& { return dat_; }
+  constexpr auto&& data() && { return dat_; }
 
   constexpr auto begin() { return dat_.begin(); }
   constexpr auto begin() const { return dat_.cbegin(); }
@@ -53,7 +56,7 @@ public:
     array2D<T> A(m_, n_);
     for (int64_t i = 0; i < m_; i++) {
       for (int64_t j = 0; j < n_; j++) {
-        A(j, i) = (*this)(i, j);
+        A[j, i] = (*this)[i, j];
       }
     }
     std::swap(*this, A);

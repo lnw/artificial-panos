@@ -20,7 +20,7 @@ PYBIND11_MODULE(libartpano, m) {
   // class canvas_t
   py::class_<canvas_t>(m, "canvas_t")
       .def(py::init<int, int>())
-      .def("bucket_fill", &canvas_t::bucket_fill)   // int, int, int
+      .def("bucket_fill", &canvas_t::bucket_fill)   // int8, int8, int8
       .def("render_scene", &canvas_t::render_scene) // scene
       .def("highlight_edges", &canvas_t::highlight_edges);
 
