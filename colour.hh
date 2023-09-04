@@ -5,7 +5,7 @@
 
 struct colour {
   constexpr colour() = default;
-  constexpr colour(int r, int g, int b): r_(r), g_(g), b_(b) {}
+  constexpr colour(uint8_t r, uint8_t g, uint8_t b): r_(r), g_(g), b_(b) {}
   uint8_t r_ = 0, g_ = 0, b_ = 0;
 
   operator uint32_t() const {

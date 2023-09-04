@@ -14,12 +14,10 @@
 template <typename T>
 class tile: public array2D<T> {
 public:
-  tile(int64_t _m, int64_t _n, int64_t _dim, int64_t _lat, int64_t _lon): array2D<T>(_m, _n), dim_(_dim), lat_(_lat), lon_(_lon) {
-    assert(this->m() == this->n());
+  tile(int64_t xs, int64_t ys, int64_t _dim, int64_t _lat, int64_t _lon): array2D<T>(xs, ys), dim_(_dim), lat_(_lat), lon_(_lon) {
+    assert(array2D<T>::ys() == array2D<T>::xs());
   }
-  tile(array2D<T> A): array2D<T>(std::move(A)) {
-    assert(this->m() == this->n());
-  }
+
   tile(char const* FILENAME, int64_t _dim, int64_t _lat, int64_t _lon): array2D<int16_t>(_dim, _dim), dim_(_dim), lat_(_lat), lon_(_lon) {
     // auto t0 = std::chrono::high_resolution_clock::now();
 
@@ -31,7 +29,7 @@ public:
     ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try {
       int16_t size_test;
-      ifs.read(std::bit_cast<char*>(this->data().data()), size * sizeof(size_test));
+      ifs.read(std::bit_cast<char*>(array2D<T>::data().data()), size * sizeof(size_test));
     }
     catch (const std::ifstream::failure& e) {
       std::cout << "Exception opening/reading file";
@@ -54,14 +52,14 @@ public:
 
   // viewfinder uses drop/m = 0.1695 m * (dist / miles)^2 to account for curvature and refraction
   tile<double> curvature_adjusted_elevations(const tile<double>& dists) const {
-    assert(this->m() == dists.m());
-    assert(this->n() == dists.n());
+    assert(array2D<T>::ys() == dists.ys());
+    assert(array2D<T>::xs() == dists.xs());
     const double coeff = 0.065444 / 1000000.0; // = 0.1695 / 1.609^2  // m
-    tile<double> A(this->m(), this->n(), dim_, lat_, lon_);
-    for (int64_t i = 0; i < this->m(); i++) {
-      for (int64_t j = 0; j < this->n(); j++) {
-        A[i, j] = (*this)[i, j] - coeff * std::pow(dists[i, j], 2);
-        // std::cout << (*this)(i,j) << ", " << dists(i,j) << " --> " << A(i,j) << std::endl;
+    tile<double> A(array2D<T>::xs(), array2D<T>::ys(), dim_, lat_, lon_);
+    for (int64_t y = 0; y < array2D<T>::ys(); y++) {
+      for (int64_t x = 0; x < array2D<T>::xs(); x++) {
+        A[x, y] = (*this)[x, y] - coeff * std::pow(dists[x, y], 2);
+        // std::cout << (*this)(y,x) << ", " << dists(y,x) << " --> " << A(y,x) << std::endl;
       }
     }
     return A;
@@ -70,18 +68,18 @@ public:
 
   // matrix of distances [m] from standpoint to tile
   auto get_distances(const double lat_standpoint, const double lon_standpoint) const {
-    std::vector<double> latitudes(this->m()), longitudes(this->m());
-    for (int64_t i = 0; i < this->m(); i++)
-      latitudes[i] = (lat_ + 1 - i / double(this->m() - 1)) * deg2rad;
-    for (int64_t j = 0; j < this->n(); j++)
-      longitudes[j] = (lon_ + j / double(this->n() - 1)) * deg2rad;
+    std::vector<double> latitudes(array2D<T>::ys()), longitudes(array2D<T>::ys());
+    for (int64_t y = 0; y < array2D<T>::ys(); y++)
+      latitudes[y] = (lat_ + 1 - y / double(array2D<T>::ys() - 1)) * deg2rad;
+    for (int64_t x = 0; x < array2D<T>::xs(); x++)
+      longitudes[x] = (lon_ + x / double(array2D<T>::xs() - 1)) * deg2rad;
 
-    tile<double> A(this->m(), this->n(), dim_, lat_, lon_);
+    tile<double> A(array2D<T>::ys(), array2D<T>::xs(), dim_, lat_, lon_);
 #pragma omp parallel for
-    for (int64_t i = 0; i < this->m(); i++) {
-      for (int64_t j = 0; j < this->n(); j++) {
-        A[i, j] = distance_atan<double>(lat_standpoint, lon_standpoint, latitudes[i], longitudes[j]);
-        // A[i, j] = distance_acos(lat_standpoint, lon_standpoint, latitudes[i], longitudes[j]); // worse + slower
+    for (int64_t y = 0; y < array2D<T>::ys(); y++) {
+      for (int64_t x = 0; x < array2D<T>::xs(); x++) {
+        A[x, y] = distance_atan<double>(lat_standpoint, lon_standpoint, latitudes[y], longitudes[x]);
+        // A[x, y] = distance_acos(lat_standpoint, lon_standpoint, latitudes[y], longitudes[x]); // worse + slower
       }
     }
     return A;
@@ -99,15 +97,15 @@ public:
     assert(std::floor(lat_p) == lat_ && std::floor(lon_p) == lon_); // ie, we are in the right tile
     int64_t dim_m1 = dim_ - 1;                                      // we really need dim_-1 all the time
     // get the surrounding four indices
-    int64_t i = dim_m1 - std::floor((lat_p - lat_) * dim_m1),
-            ii = i - 1,
-            j = std::floor((lon_p - lon_) * dim_m1),
-            jj = j + 1;
-    double lon_frac = dim_m1 * (lon_p - lon_) - j;
-    double lat_frac = dim_m1 * (lat_p - lat_) - (dim_m1 - i);
-    double aux1_h = (*this)[i, j] * (1 - lon_frac) + (*this)[i, jj] * lon_frac;
+    int64_t y = dim_m1 - std::floor((lat_p - lat_) * dim_m1);
+    int64_t yy = y - 1;
+    int64_t x = std::floor((lon_p - lon_) * dim_m1);
+    int64_t xx = x + 1;
+    double lon_frac = dim_m1 * (lon_p - lon_) - x;
+    double lat_frac = dim_m1 * (lat_p - lat_) - (dim_m1 - y);
+    double aux1_h = (*this)[x, y] * (1 - lon_frac) + (*this)[xx, y] * lon_frac;
     // std::cout << "aux1_h: " << aux1_h << std::endl;
-    double aux2_h = (*this)[ii, j] * (1 - lon_frac) + (*this)[ii, jj] * lon_frac;
+    double aux2_h = (*this)[x, yy] * (1 - lon_frac) + (*this)[xx, yy] * lon_frac;
     // std::cout << "aux2_h: " << aux2_h << std::endl;
     double p_h = aux1_h * (1 - lat_frac) + aux2_h * lat_frac;
     return p_h;
@@ -115,14 +113,14 @@ public:
 
 
   friend std::ostream& operator<<(std::ostream& S, const tile& TT) {
-    S << TT.n;
-    for (int64_t i = 0; i < TT.m; i++)
-      S << " " << i + 1;
+    S << TT.xs;
+    for (int64_t y = 0; y < TT.ys; y++)
+      S << " " << y + 1;
     S << std::endl;
-    for (int64_t i = 0; i < TT.m; i++) {
-      S << TT.m - i << " ";
-      for (int64_t j = 0; j < TT.n; j++) {
-        S << TT[i, j] << " ";
+    for (int64_t y = 0; y < TT.ys; y++) {
+      S << TT.ys - y << " ";
+      for (int64_t x = 0; x < TT.xs; x++) {
+        S << TT[x, y] << " ";
       }
       S << std::endl;
     }

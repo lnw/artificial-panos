@@ -25,8 +25,8 @@ linear_feature_on_canvas::linear_feature_on_canvas(const linear_feature& _lf, co
   const double view_dir_v = S.view_dir_v;
   const double view_width = S.view_width;
   const double view_height = S.view_height;
-  const double pixels_per_rad_h = C.width() / view_width;
-  const double pixels_per_rad_v = C.height() / view_height; // [px/rad]
+  const double pixels_per_rad_h = C.xs() / view_width;
+  const double pixels_per_rad_v = C.ys() / view_height; // [px/rad]
 
   // iterate over points in linear feature
   for (std::pair<double, double> point : lf.coords) {
@@ -55,8 +55,8 @@ linear_feature_on_canvas::linear_feature_on_canvas(const linear_feature& _lf, co
     const double y = (view_height / 2.0 + view_dir_v - angle_v(z_ref, z, dist)) * pixels_per_rad_v; // [px]
     std::cout << " y: " << y << std::flush;
     // std::cout << "peak x, y " << x_peak << ", " << y_peak << std::endl;
-    // if(x < 0 || x > C.width ) continue;
-    // if(y < 0 || y > C.height ) continue;
+    // if(x < 0 || x > C.xs ) continue;
+    // if(y < 0 || y > C.ys ) continue;
     xs.push_back(x);
     ys.push_back(y);
     dists.push_back(dist);

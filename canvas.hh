@@ -24,15 +24,11 @@ int64_t get_tile_index(const scene& S, double lat, double lon);
 
 template <typename S, typename T>
 class array_zb {
-private:
-  array2D<S> zbuffer_;
-  array2D<T> arr2d_;
-
 public:
   array_zb(int64_t x, int64_t y): zbuffer_(x, y, std::numeric_limits<int64_t>::max()), arr2d_(x, y, 0) {}
 
-  constexpr int64_t width() const { return arr2d_.width(); }
-  constexpr int64_t height() const { return arr2d_.height(); }
+  constexpr int64_t xs() const { return arr2d_.xs(); }
+  constexpr int64_t ys() const { return arr2d_.ys(); }
 
   constexpr auto& zb() & { return zbuffer_; }
   constexpr const auto& zb() const& { return zbuffer_; }
@@ -48,10 +44,8 @@ public:
 
   array_zb operator+(const array_zb& rh) const { return array_zb(*this) += rh; }
   array_zb& operator+=(const array_zb& rh) {
-    const int64_t width = arr2d_.n();
-    const int64_t height = arr2d_.m();
-    for (int64_t x = 0; x < width; x++) {
-      for (int64_t y = 0; y < height; y++) {
+    for (int64_t y = 0; y < ys(); y++) {
+      for (int64_t x = 0; x < xs(); x++) {
         if (rh.zb(x, y) < zbuffer_[x, y]) { // rh is closer
           arr2d_[x, y] = rh.a2d(x, y);
           zbuffer_[x, y] = rh.zb(x, y);
@@ -60,19 +54,19 @@ public:
     }
     return *this;
   }
+
+private:
+  array2D<S> zbuffer_;
+  array2D<T> arr2d_;
 };
 
 
 class canvas_t {
-private:
-  int64_t width_, height_; // [pixels]
-  array_zb<double, int32_t> buffered_canvas;
-
 public:
-  canvas_t(int64_t x, int64_t y): width_(x), height_(y), buffered_canvas(x, y) {}
+  canvas_t(int64_t xs, int64_t ys): xs_(xs), ys_(ys), buffered_canvas(xs, ys) {}
 
-  constexpr int64_t width() const { return width_; }
-  constexpr int64_t height() const { return height_; }
+  constexpr int64_t xs() const { return xs_; }
+  constexpr int64_t ys() const { return ys_; }
 
   // z buffer
   auto& zb() & { return buffered_canvas.zb(); }
@@ -107,36 +101,29 @@ public:
   }
 
   // true if any pixel was drawn
-  void draw_triangle(const double x1, const double y1,
-                     const double x2, const double y2,
-                     const double x3, const double y3,
-                     const double z,
+  void draw_triangle(double x1, double y1, double x2, double y2, double x3, double y3, double z,
                      const colour& col);
-
 
   void render_scene(const scene& S);
 
   void render_test();
 
-  void bucket_fill(int8_t r, int8_t g, int8_t b);
+  void bucket_fill(uint8_t r, uint8_t g, uint8_t b);
+
+private:
+  int64_t xs_, ys_; // [pixels]
+  array_zb<double, int32_t> buffered_canvas;
 };
 
 
 class canvas {
-private:
-  int64_t width_;
-  int64_t height_;
-  array2D<double> zbuffer;
-  std::string filename;
-  gdImagePtr img_ptr = nullptr;
-
 public:
-  canvas(std::string fn, canvas_t core): width_(core.width()), height_(core.height()), zbuffer(std::move(core).zb()), filename(std::move(fn)) {
+  canvas(std::string fn, canvas_t core): xs_(core.xs()), ys_(core.ys()), zbuffer(std::move(core).zb()), filename(std::move(fn)) {
     const array2D<int32_t> wc(std::move(core).wc());
     // allocate mem
-    img_ptr = gdImageCreateTrueColor(width_, height_);
-    for (int64_t x = 0; x < width_; x++)
-      for (int64_t y = 0; y < height_; y++)
+    img_ptr = gdImageCreateTrueColor(xs_, ys_);
+    for (int64_t y = 0; y < ys_; y++)
+      for (int64_t x = 0; x < xs_; x++)
         img_ptr->tpixels[y][x] = wc[x, y]; // assuming TrueColor
   }
   canvas& operator=(const canvas&) = delete;
@@ -153,8 +140,8 @@ public:
     gdImageDestroy(img_ptr);
   }
 
-  constexpr int64_t width() const { return width_; }
-  constexpr int64_t height() const { return height_; }
+  constexpr int64_t xs() const { return xs_; }
+  constexpr int64_t ys() const { return ys_; }
 
   // just write the pixel
   void write_pixel(const int64_t x, const int64_t y, const colour& col) {
@@ -204,4 +191,11 @@ public:
 
   void annotate_islands(const scene& S);
   void draw_coast(const scene& S);
+
+private:
+  int64_t xs_;
+  int64_t ys_;
+  array2D<double> zbuffer;
+  std::string filename;
+  gdImagePtr img_ptr = nullptr;
 };
