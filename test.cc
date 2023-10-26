@@ -83,9 +83,9 @@ TEST_CASE("rgb2hsl", "rgb2hsl") {
   CHECK(rgb2hsl(20, 20, 20)[1] == Approx(0));
   CHECK(rgb2hsl(20, 20, 20)[2] == Approx(0.078431));
   CHECK(rgb2hsl(255, 255, 255) == vector<double>({0.0, 0.0, 1.0}));
-  CHECK(rgb2hsl(50, 150, 250)[0] == Approx(0.583333)); //h
-  CHECK(rgb2hsl(50, 150, 250)[1] == Approx(0.952380)); //s
-  CHECK(rgb2hsl(50, 150, 250)[2] == Approx(0.588235)); //l
+  CHECK(rgb2hsl(50, 150, 250)[0] == Approx(0.583333)); // h
+  CHECK(rgb2hsl(50, 150, 250)[1] == Approx(0.952380)); // s
+  CHECK(rgb2hsl(50, 150, 250)[2] == Approx(0.588235)); // l
 }
 
 TEST_CASE("hsv2rgb", "hsv2rgb") {
@@ -101,7 +101,7 @@ TEST_CASE("rgb2hsv", "rgb2hsv") {
   CHECK(rgb2hsl(20, 20, 20)[1] == Approx(0));
   CHECK(rgb2hsl(20, 20, 20)[2] == Approx(0.078431));
   CHECK(rgb2hsv(255, 255, 255) == vector<double>({0.0, 0.0, 1.0}));
-  CHECK(rgb2hsv(50, 150, 250)[0] == Approx(0.583333)); //h
-  CHECK(rgb2hsv(50, 150, 250)[1] == Approx(0.8));      //s
-  CHECK(rgb2hsv(50, 150, 250)[2] == Approx(0.980392)); //v
+  CHECK(rgb2hsv(50, 150, 250)[0] == Approx(0.583333)); // h
+  CHECK(rgb2hsv(50, 150, 250)[1] == Approx(0.8));      // s
+  CHECK(rgb2hsv(50, 150, 250)[2] == Approx(0.980392)); // v
 }

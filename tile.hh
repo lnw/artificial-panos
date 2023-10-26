@@ -8,14 +8,17 @@
 #include <fstream>
 
 #include "array2d.hh"
+#include "latlon.hh"
 
 
 // one tile only, without storing the viewpoint
 template <typename T>
 class tile: public array2D<T> {
 public:
-  tile(int64_t xs, int64_t ys, int64_t _dim, int64_t _lat, int64_t _lon): array2D<T>(xs, ys), dim_(_dim), lat_(_lat), lon_(_lon) {
-    assert(array2D<T>::ys() == array2D<T>::xs());
+  using array2D<T>::xs;
+  using array2D<T>::ys;
+  tile(int64_t _xs, int64_t _ys, int64_t _dim, int64_t _lat, int64_t _lon): array2D<T>(_xs, _ys), dim_(_dim), lat_(_lat), lon_(_lon) {
+    assert(ys() == xs());
   }
 
   tile(char const* FILENAME, int64_t _dim, int64_t _lat, int64_t _lon): array2D<int16_t>(_dim, _dim), dim_(_dim), lat_(_lat), lon_(_lon) {
@@ -52,12 +55,12 @@ public:
 
   // viewfinder uses drop/m = 0.1695 m * (dist / miles)^2 to account for curvature and refraction
   tile<double> curvature_adjusted_elevations(const tile<double>& dists) const {
-    assert(array2D<T>::ys() == dists.ys());
-    assert(array2D<T>::xs() == dists.xs());
+    assert(ys() == dists.ys());
+    assert(xs() == dists.xs());
     const double coeff = 0.065444 / 1000000.0; // = 0.1695 / 1.609^2  // m
-    tile<double> A(array2D<T>::xs(), array2D<T>::ys(), dim_, lat_, lon_);
-    for (int64_t y = 0; y < array2D<T>::ys(); y++) {
-      for (int64_t x = 0; x < array2D<T>::xs(); x++) {
+    tile<double> A(xs(), ys(), dim_, lat_, lon_);
+    for (int64_t y = 0; y < ys(); y++) {
+      for (int64_t x = 0; x < xs(); x++) {
         A[x, y] = (*this)[x, y] - coeff * std::pow(dists[x, y], 2);
         // std::cout << (*this)(y,x) << ", " << dists(y,x) << " --> " << A(y,x) << std::endl;
       }
@@ -67,18 +70,19 @@ public:
 
 
   // matrix of distances [m] from standpoint to tile
-  auto get_distances(const double lat_standpoint, const double lon_standpoint) const {
-    std::vector<double> latitudes(array2D<T>::ys()), longitudes(array2D<T>::ys());
-    for (int64_t y = 0; y < array2D<T>::ys(); y++)
-      latitudes[y] = (lat_ + 1 - y / double(array2D<T>::ys() - 1)) * deg2rad;
-    for (int64_t x = 0; x < array2D<T>::xs(); x++)
-      longitudes[x] = (lon_ + x / double(array2D<T>::xs() - 1)) * deg2rad;
+  auto get_distances(const LatLon<double, Unit::rad> standpoint) const {
+    std::vector<double> latitudes(ys()), longitudes(ys());
+    for (int64_t y = 0; y < ys(); y++)
+      latitudes[y] = (lat_ + 1 - y / double(ys() - 1));
+    for (int64_t x = 0; x < xs(); x++)
+      longitudes[x] = (lon_ + x / double(xs() - 1));
 
-    tile<double> A(array2D<T>::ys(), array2D<T>::xs(), dim_, lat_, lon_);
+    tile<double> A(ys(), xs(), dim_, lat_, lon_);
 #pragma omp parallel for
-    for (int64_t y = 0; y < array2D<T>::ys(); y++) {
-      for (int64_t x = 0; x < array2D<T>::xs(); x++) {
-        A[x, y] = distance_atan<double>(lat_standpoint, lon_standpoint, latitudes[y], longitudes[x]);
+    for (int64_t y = 0; y < ys(); y++) {
+      for (int64_t x = 0; x < xs(); x++) {
+        const LatLon<double, Unit::deg> p(latitudes[y], longitudes[x]);
+        A[x, y] = distance_atan(standpoint, p.to_rad());
         // A[x, y] = distance_acos(lat_standpoint, lon_standpoint, latitudes[y], longitudes[x]); // worse + slower
       }
     }
@@ -92,7 +96,8 @@ public:
   //        p
   //        |
   // iij--aux2---iijj
-  constexpr double interpolate(const double lat_p, const double lon_p) const {
+  constexpr double interpolate(LatLon<double, Unit::deg> coord) const {
+    const auto [lat_p, lon_p] = coord;
     // std::cout << lat_p <<", "<< lon_p <<", "<<floor(lat_p) << ", "<< lat_ <<", " << floor(lon_p) <<", "<< lon_ << std::endl;
     assert(std::floor(lat_p) == lat_ && std::floor(lon_p) == lon_); // ie, we are in the right tile
     int64_t dim_m1 = dim_ - 1;                                      // we really need dim_-1 all the time

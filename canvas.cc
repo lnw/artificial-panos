@@ -22,22 +22,17 @@ constexpr colour colour_scheme1(float dist) {
 } // namespace
 
 
-#pragma omp declare reduction(arraymin                                   \
-                              : array2D <double>                         \
-                              : omp_out = omp_out.pointwise_min(omp_in)) \
-    initializer(omp_priv = array2D <double>(omp_orig))
-#pragma omp declare reduction(+                    \
-                              : array2D <int32_t>  \
-                              : omp_out += omp_in) \
-    initializer(omp_priv = array2D <int32_t>(omp_orig))
-#pragma omp declare reduction(+                            \
-                              : array_zb <double, int32_t> \
-                              : omp_out += omp_in)         \
-    initializer(omp_priv = array_zb <double, int32_t>(omp_orig))
+#pragma omp declare reduction(arraymin : array2D<double> : omp_out = omp_out.pointwise_min(omp_in)) \
+    initializer(omp_priv = array2D<double>(omp_orig))
+#pragma omp declare reduction(+ : array2D<int32_t> : omp_out += omp_in) \
+    initializer(omp_priv = array2D<int32_t>(omp_orig))
+#pragma omp declare reduction(+ : array_zb<double, int32_t> : omp_out += omp_in) \
+    initializer(omp_priv = array_zb<double, int32_t>(omp_orig))
 
 // input in deg
-int64_t get_tile_index(const scene& S, const double lat, const double lon) {
-  // find the tile in which the peak is located, continue if none
+int64_t get_tile_index(const scene& S, LatLon<double, Unit::deg> point) {
+  // find the tile in which the point is located, continue if none
+  const auto [lat, lon] = point;
   int64_t tile_index = -1;
   for (size_t t = 0; t < S.tiles.size(); t++) {
     if (S.tiles[t].first.lat() == std::floor(lat) && S.tiles[t].first.lon() == std::floor(lon)) {
@@ -59,10 +54,10 @@ void canvas_t::draw_triangle(const double x1, const double y1,
                              const double z,
                              const colour& col) {
   // find triangle's bb
-  const int64_t xmin = std::min({std::floor(x1), std::floor(x2), std::floor(x3)});
-  const int64_t xmax = std::max({std::ceil(x1), std::ceil(x2), std::ceil(x3)});
-  const int64_t ymin = std::min({std::floor(y1), std::floor(y2), std::floor(y3)});
-  const int64_t ymax = std::max({std::ceil(y1), std::ceil(y2), std::ceil(y3)});
+  const int64_t xmin = std::floor(std::min({x1, x2, x3}));
+  const int64_t xmax = std::ceil(std::max({x1, x2, x3}));
+  const int64_t ymin = std::floor(std::min({y1, y2, y3}));
+  const int64_t ymax = std::ceil(std::max({y1, y2, y3}));
   const int64_t zero = 0;
 
   if (xmax - xmin > xs() / 2.0) { // avoid drawing triangles that wrap around the edge
@@ -85,10 +80,10 @@ bool canvas::would_draw_triangle(const double x1, const double y1,
                                  const double x3, const double y3,
                                  const double z) const {
   // find triangle's bb
-  const int64_t xmin = std::min({std::floor(x1), std::floor(x2), std::floor(x3)});
-  const int64_t xmax = std::max({std::ceil(x1), std::ceil(x2), std::ceil(x3)});
-  const int64_t ymin = std::min({std::floor(y1), std::floor(y2), std::floor(y3)});
-  const int64_t ymax = std::max({std::ceil(y1), std::ceil(y2), std::ceil(y3)});
+  const int64_t xmin = std::floor(std::min({x1, x2, x3}));
+  const int64_t xmax = std::ceil(std::max({x1, x2, x3}));
+  const int64_t ymin = std::floor(std::min({y1, y2, y3}));
+  const int64_t ymax = std::ceil(std::max({y1, y2, y3}));
 
   bool pixel_drawn = false;
   // iterate over grid points in bb, draw the ones in the triangle
@@ -110,23 +105,23 @@ bool canvas::draw_line(const double x1, const double y1,
                        const double x2, const double y2,
                        const double z,
                        const colour& col) {
-  if (z - 30 < zbuffer[x1, y1] && z - 30 < zbuffer[x2, y2]) {
-    const auto [r, g, b] = col;
-    const int32_t c = gdImageColorResolve(img_ptr, r, g, b);
-    gdImageLine(img_ptr, x1, y1, x2, y2, c);
-    return true;
+  if (z - 30 > zbuffer[x1, y1] || z - 30 > zbuffer[x2, y2]) { // one or both of the points are obscured
+    return false;
   }
-  return false;
+  const auto [r, g, b] = col;
+  const int32_t c = gdImageColorResolve(img_ptr, r, g, b);
+  gdImageLine(img_ptr, x1, y1, x2, y2, c);
+  return true;
 }
 
 
 bool canvas::would_draw_line(const double x1, const double y1,
                              const double x2, const double y2,
                              const double z) const {
-  if (z - 30 < zbuffer[x1, y1] && z - 30 < zbuffer[x2, y2]) {
-    return true;
+  if (z - 30 > zbuffer[x1, y1] || z - 30 > zbuffer[x2, y2]) { // one or both of the points are obscured
+    return false;
   }
-  return false;
+  return true;
 }
 
 
@@ -150,7 +145,7 @@ void canvas::draw_tick(int x_tick, int tick_length, const std::string& str1, con
       fprintf(stderr, "%s", err);
       std::cout << "not good" << std::endl;
     }
-    //std::cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << std::endl;
+    // std::cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << std::endl;
 
     int xxx = x_tick - bb[2] / 2;
     int yyy = tick_length + 10 - bb[5];
@@ -192,7 +187,7 @@ void canvas::label_axis(const scene& S) {
   std::cout << "labelling axis ..." << std::flush;
   // const int width = core.get_width();
   const double& view_width = S.view_width;                                                       // [rad]
-  const double pixels_per_deg_h = xs() / (view_width * rad2deg);                              // [px/deg]
+  const double pixels_per_deg_h = xs() / (view_width * rad2deg);                                 // [px/deg]
   const double& view_direction_h = S.view_dir_h;                                                 // [rad]
   const double left_border = std::fmod((view_direction_h + view_width / 2), 2 * M_PI) * rad2deg; // [deg]
   // const double right_border = std::fmod((view_direction_h-view_width/2)+2*M_PI,2*M_PI)*rad2deg; // [deg]
@@ -248,11 +243,11 @@ void canvas::label_axis(const scene& S) {
 void canvas_t::render_scene(const scene& S) {
   std::ofstream debug("debug-render_scene", std::ofstream::out | std::ofstream::app);
   // determine the dimensions, especially pixels/deg
-  const double& view_direction_h = S.view_dir_h;         // [rad]
-  const double& view_width = S.view_width;               // [rad]
-  const double pixels_per_rad_h = xs() / view_width;   // [px/rad]
-  const double& view_direction_v = S.view_dir_v;         // [rad]
-  const double& view_height = S.view_height;             // [rad]
+  const double& view_direction_h = S.view_dir_h;      // [rad]
+  const double& view_width = S.view_width;            // [rad]
+  const double pixels_per_rad_h = xs() / view_width;  // [px/rad]
+  const double& view_direction_v = S.view_dir_v;      // [rad]
+  const double& view_height = S.view_height;          // [rad]
   const double pixels_per_rad_v = ys() / view_height; // [px/rad]
   debug << "view direction_h [rad]: " << view_direction_h << std::endl;
   debug << "view width [rad]: " << view_width << std::endl;
@@ -266,10 +261,9 @@ void canvas_t::render_scene(const scene& S) {
   std::cout << "vertical pixels per rad [px/rad]: " << pixels_per_rad_v << std::endl;
 
   // iterate over tiles in scene
-#pragma omp parallel for default(none)                                                                                                            \
+#pragma omp parallel for default(none)                                                                                                     \
     shared(S, std::cout, debug, xs_, ys_, view_width, view_height, view_direction_h, view_direction_v, pixels_per_rad_h, pixels_per_rad_v) \
-        reduction(+                                                                                                                               \
-                  : buffered_canvas)
+    reduction(+ : buffered_canvas)
   for (size_t t = 0; t < S.tiles.size(); t++) {
     const auto t0 = std::chrono::high_resolution_clock::now();
 
@@ -284,7 +278,7 @@ void canvas_t::render_scene(const scene& S) {
     debug << "xs: " << xst << std::endl;
     debug << (yst - 1) * (xst - 1) * 2 << " triangles in tile " << t << std::endl;
     const double invis_angle = std::max(2 * M_PI - view_width, 0.0);
-    const int64_t inc = 1;  // render fewer triangles
+    const int64_t inc = 1; // render fewer triangles
     for (int64_t y = 0; y < yst - inc; y += inc) {
       for (int64_t x = 0; x < xst - inc; x += inc) {
         if (D[x, y] > S.view_range) // too far
@@ -296,19 +290,19 @@ void canvas_t::render_scene(const scene& S) {
         // get horizontal and vertical angles for all four points of the two triangles
         // translate to image coordinates
         bool visible = false; // anything is visible
-        const double h_ij = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - y / double(yst - 1)) * deg2rad, (H.lon() + x / double(xst - 1)) * deg2rad) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const double h_ij = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - y / double(yst - 1)), (H.lon() + x / double(xst - 1))).to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
         // if(h_ij < 0 || h_ij > xs) continue;
         if (h_ij > 0 || h_ij < xs())
           visible = true;
-        const double h_ijj = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - y / double(yst - 1)) * deg2rad, (H.lon() + (x + inc) / double(xst - 1)) * deg2rad) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const double h_ijj = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - y / double(yst - 1)), (H.lon() + (x + inc) / double(xst - 1))).to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
         // if(h_ijj < 0 || h_ijj > xs) continue;
         if (h_ijj > 0 || h_ijj < xs())
           visible = true;
-        const double h_iij = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - (y + inc) / double(yst - 1)) * deg2rad, (H.lon() + x / double(xst - 1)) * deg2rad) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const double h_iij = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - (y + inc) / double(yst - 1)), (H.lon() + x / double(xst - 1))).to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
         // if(h_iij < 0 || h_iij > xs) continue;
         if (h_iij > 0 || h_iij < xs())
           visible = true;
-        const double h_iijj = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - (y + inc) / double(yst - 1)) * deg2rad, (H.lon() + (x + inc) / double(xst - 1)) * deg2rad) + 1.5 * M_PI + invis_angle / 2.0, 2.0 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const double h_iijj = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - (y + inc) / double(yst - 1)), (H.lon() + (x + inc) / double(xst - 1))).to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2.0 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
         // if(h_iijj < 0 || h_iijj > xs) continue;
         if (h_iijj > 0 || h_iijj < xs())
           visible = true;
@@ -320,7 +314,7 @@ void canvas_t::render_scene(const scene& S) {
         // there could be a check here to avoid triangles to wrap around, but
         // it's only tested in draw_triangle
 
-        //std::cout << S.z_standpoint << ", " << H(y,x) << ", " <<  D(y,x) << std::endl;
+        // std::cout << S.z_standpoint << ", " << H(y,x) << ", " <<  D(y,x) << std::endl;
         const double v_ij = (view_height / 2.0 + view_direction_v - angle_v(S.z_standpoint, H[x, y], D[x, y])) * pixels_per_rad_v; // [px]
         if (v_ij < 0 || v_ij > ys())
           continue;
@@ -334,7 +328,7 @@ void canvas_t::render_scene(const scene& S) {
         if (v_iijj < 0 || v_iijj > ys())
           continue;
         // debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << std::endl;
-        //std::cout << v_ij << std::endl;
+        // std::cout << v_ij << std::endl;
 
         const double dist1 = (D[x, y] + D[x, y + inc] + D[x + inc, y]) / 3.0;
         draw_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, colour_scheme1(dist1));
@@ -433,17 +427,17 @@ void canvas::annotate_peaks(const scene& S) {
 
 
 bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const double dist_peak, const int64_t tile_index) const {
-  const double view_direction_h = S.view_dir_h;          // [rad]
-  const double view_width = S.view_width;                // [rad]
-  const double pixels_per_rad_h = xs() / view_width;   // [px/rad]
-  const double view_direction_v = S.view_dir_v;          // [rad]
-  const double view_height = S.view_height;              // [rad]
+  const double view_direction_h = S.view_dir_h;       // [rad]
+  const double view_width = S.view_width;             // [rad]
+  const double pixels_per_rad_h = xs() / view_width;  // [px/rad]
+  const double view_direction_v = S.view_dir_v;       // [rad]
+  const double view_height = S.view_height;           // [rad]
   const double pixels_per_rad_v = ys() / view_height; // [px/rad]
 
   // integral and fractal part of the point
   double intpart_i, intpart_j;
-  const double fractpart_i = std::modf(peak.lat, &intpart_i);
-  const double fractpart_j = std::modf(peak.lon, &intpart_j);
+  const double fractpart_i = std::modf(peak.lat(), &intpart_i);
+  const double fractpart_j = std::modf(peak.lon(), &intpart_j);
 
   const tile<double>& H = S.tiles[tile_index].first;
   const tile<double>& D = S.tiles[tile_index].second;
@@ -477,20 +471,20 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
     for (int64_t x = xx; x < xx + diameter; x++) {
       if (x < 0 || x > tile_size_m1)
         continue; // FIXME
-      const double h_ij = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - y / double(yst - 1)) * deg2rad, (H.lon() + x / double(xst - 1)) * deg2rad) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
+      const double h_ij = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - y / double(yst - 1)), (H.lon() + x / double(xst - 1))).to_rad()) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
       if (h_ij < 0 || h_ij > xs())
         continue;
-      const double h_ijj = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - y / double(yst - 1)) * deg2rad, (H.lon() + (x + inc) / double(xst - 1)) * deg2rad) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
+      const double h_ijj = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - y / double(yst - 1)), (H.lon() + (x + inc) / double(xst - 1))).to_rad()) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
       if (h_ijj < 0 || h_ijj > xs())
         continue;
-      const double h_iij = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - (y + inc) / double(yst - 1)) * deg2rad, (H.lon() + x / double(xst - 1)) * deg2rad) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
+      const double h_iij = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - (y + inc) / double(yst - 1)), (H.lon() + x / double(xst - 1))).to_rad()) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
       if (h_iij < 0 || h_iij > xs())
         continue;
-      const double h_iijj = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, (H.lat() + 1 - (y + inc) / double(yst - 1)) * deg2rad, (H.lon() + (x + inc) / double(xst - 1)) * deg2rad) + 1.5 * M_PI, 2.0 * M_PI) * pixels_per_rad_h;
+      const double h_iijj = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - (y + inc) / double(yst - 1)), (H.lon() + (x + inc) / double(xst - 1))).to_rad()) + 1.5 * M_PI, 2.0 * M_PI) * pixels_per_rad_h;
       if (h_iijj < 0 || h_iijj > xs())
         continue;
 
-      //std::cout << S.z_standpoint << ", " << H(y,x) << ", " <<  D(y,x) << std::endl;
+      // std::cout << S.z_standpoint << ", " << H(y,x) << ", " <<  D(y,x) << std::endl;
       const double v_ij = (view_height / 2.0 + view_direction_v - angle_v(S.z_standpoint, H[x, y], D[x, y])) * pixels_per_rad_v; // [px]
       if (v_ij < 0 || v_ij > ys())
         continue;
@@ -503,7 +497,7 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
       const double v_iijj = (view_height / 2.0 + view_direction_v - angle_v(S.z_standpoint, H[x + inc, y + inc], D[x + inc, y + inc])) * pixels_per_rad_v; // [px]
       if (v_iijj < 0 || v_iijj > ys())
         continue;
-      //debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << std::endl;
+      // debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << std::endl;
 
       const double dist1 = (D[x, y] + D[x, y + inc] + D[x + inc, y]) / 3.0 - 2;
       const double dist2 = (D[x, y + inc] + D[x + inc, y] + D[x + inc, y + inc]) / 3.0 - 2;
@@ -538,18 +532,18 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
 // peak visible.  This avoids the problem of flat topped mountains and works
 // only under the condition that mountains don't float in midair.
 bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const double dist_peak) const {
-  const double& view_direction_h = S.view_dir_h;         // [rad]
-  const double& view_width = S.view_width;               // [rad]
-  const double pixels_per_rad_h = xs() / view_width;   // [px/rad]
-  const double& view_direction_v = S.view_dir_v;         // [rad]
-  const double& view_height = S.view_height;             // [rad]
+  const double& view_direction_h = S.view_dir_h;      // [rad]
+  const double& view_width = S.view_width;            // [rad]
+  const double pixels_per_rad_h = xs() / view_width;  // [px/rad]
+  const double& view_direction_v = S.view_dir_v;      // [rad]
+  const double& view_height = S.view_height;          // [rad]
   const double pixels_per_rad_v = ys() / view_height; // [px/rad]
-  const double ref_lat = S.lat_standpoint;
-  const double ref_lon = S.lon_standpoint;
+  // const double ref_lat = S.lat_standpoint;
+  // const double ref_lon = S.lon_standpoint;
 
   // bearing to peak
   // std::cout << ref_lat << "," << ref_lon <<", "<< peak.lat() <<","<< peak.lon() << std::endl;
-  const double bearing_rad = bearing(ref_lat, ref_lon, peak.lat * deg2rad, peak.lon * deg2rad);
+  const double bearing_rad = bearing(S.standpoint, peak.coords.to_rad());
   // std::cout << "bearing " << bearing_rad << " / " << bearing_rad*rad2deg << std::endl;
 
   // chose increment, calc number of steps
@@ -567,16 +561,16 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
     // std::cout << "seg no: " << seg << std::endl;
     // get coords of segment endpoints
     const double dist_point = dist_peak - seg_length * seg;
-    const auto [point_lat, point_lon] = destination(ref_lat, ref_lon, dist_point, bearing_rad);
+    const auto dest_coord = destination(S.standpoint, dist_point, bearing_rad);
 
     // find tile in which the point lies
-    const int64_t tile_index = get_tile_index(S, point_lat * rad2deg, point_lon * rad2deg);
+    const int64_t tile_index = get_tile_index(S, dest_coord.to_deg());
     // std::cout << "point coord: " << point_lat*rad2deg << ", " <<  point_lon*rad2deg << std::endl;
     // std::cout << "tile index: " << tile_index << std::endl;
     const tile<double>& H = S.tiles[tile_index].first;
 
     // interpolate to get elevation
-    const double height_point = H.interpolate(point_lat * rad2deg, point_lon * rad2deg);
+    const double height_point = H.interpolate(dest_coord.to_deg());
     // std::cout << "height: " << height_point << std::endl;
     // if uphill, but allow for slightly wrong peak location
     if (height_point > prev_height && seg > 2) {
@@ -607,7 +601,7 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
   }
 
 #ifdef GRAPHICS_DEBUG
-  //std::cout << "visible true" << std::endl;
+  // std::cout << "visible true" << std::endl;
   if (visible)
     return true;
 #endif
@@ -618,11 +612,11 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
 // test if a peak is visible by attempting to draw a few triangles around it,
 // if the zbuffer admits any pixel to be drawn, the peak is visible
 std::tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_canvas>> canvas::get_visible_peaks(std::vector<point_feature>& peaks, const scene& S) {
-  const double view_direction_h = S.view_dir_h;          // [rad]
-  const double view_width = S.view_width;                // [rad]
-  const double pixels_per_rad_h = xs() / view_width;   // [px/rad]
-  const double view_direction_v = S.view_dir_v;          // [rad]
-  const double view_height = S.view_height;              // [rad]
+  const double view_direction_h = S.view_dir_h;       // [rad]
+  const double view_width = S.view_width;             // [rad]
+  const double pixels_per_rad_h = xs() / view_width;  // [px/rad]
+  const double view_direction_v = S.view_dir_v;       // [rad]
+  const double view_height = S.view_height;           // [rad]
   const double pixels_per_rad_v = ys() / view_height; // [px/rad]
   // std::cout << "pprh: " << pixels_per_rad_h << std::endl;
 
@@ -631,11 +625,11 @@ std::tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_ca
   for (size_t p = 0; p < peaks.size(); p++) {
     // std::cout << "--- p=" << p << " ---" << std::endl;
     // distance from the peak
-    const double dist_peak = distance_atan(S.lat_standpoint, S.lon_standpoint, peaks[p].lat * deg2rad, peaks[p].lon * deg2rad);
+    const double dist_peak = distance_atan(S.standpoint, peaks[p].coords.to_rad());
     if (dist_peak > S.view_range || dist_peak < 1000)
       continue;
 
-    const int64_t tile_index = get_tile_index(S, peaks[p].lat, peaks[p].lon);
+    const int64_t tile_index = get_tile_index(S, peaks[p].coords);
     if (tile_index == -1) {
       std::cout << "skip" << std::endl;
       continue;
@@ -644,7 +638,7 @@ std::tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_ca
     const tile<double>& H = S.tiles[tile_index].first;
 
     // height of the peak, according to elevation data
-    const double height_peak = H.interpolate(peaks[p].lat, peaks[p].lon);
+    const double height_peak = H.interpolate(peaks[p].coords);
     // std::cout << "peak height and dist: " << height_peak << ", " << dist_peak << std::endl;
     // if the osm doesn't know the height, take from elevation data
     const double coeff = 0.065444 / 1000000.0; // = 0.1695 / 1.609^2  // m
@@ -652,7 +646,7 @@ std::tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_ca
       peaks[p].elev = height_peak + coeff * dist_peak * dist_peak; // revert earth's curvature
 
     // get position of peak on canvas, continue if outside
-    const double x_peak = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.lat_standpoint, S.lon_standpoint, peaks[p].lat * deg2rad, peaks[p].lon * deg2rad) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
+    const double x_peak = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, peaks[p].coords.to_rad()) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
     const double y_peak = (view_direction_v + view_height / 2.0 - angle_v(S.z_standpoint, height_peak, dist_peak)) * pixels_per_rad_v; // [px]
     // std::cout << "peak x, y " << x_peak << ", " << y_peak << std::endl;
     if (x_peak < 0 || x_peak > xs())
@@ -660,7 +654,7 @@ std::tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_ca
     if (y_peak < 0 || y_peak > ys())
       continue;
 
-    //if(peak_is_visible_v1(S, peaks[p], dist_peak, tile_index))
+    // if(peak_is_visible_v1(S, peaks[p], dist_peak, tile_index))
     if (peak_is_visible_v2(S, peaks[p], dist_peak))
       visible_peaks.emplace_back(peaks[p], x_peak, y_peak, dist_peak);
     else
@@ -671,7 +665,7 @@ std::tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_ca
 
 
 std::vector<point_feature_on_canvas> canvas::draw_visible_peaks(const std::vector<point_feature_on_canvas>& peaks_vis) {
-  //int n_labels = peaks_vis.size();
+  // int n_labels = peaks_vis.size();
 
   LabelGroups lgs(peaks_vis, xs());
 
@@ -699,7 +693,7 @@ std::vector<point_feature_on_canvas> canvas::draw_visible_peaks(const std::vecto
     name += std::to_string(lgs[p].pf.elev) + "m, " + std::to_string(int(std::round(dist_peak / 1000))) + "km";
     char* s = const_cast<char*>(name.c_str());
     const double fontsize = 12.;
-    //char font[] = "./palatino-59330a4da3d64.ttf";
+    // char font[] = "./palatino-59330a4da3d64.ttf";
     char font[] = "./fonts/vera.ttf";
     const double text_orientation = M_PI / 2;
 
@@ -797,17 +791,10 @@ void canvas::draw_coast(const scene& S) {
       const int64_t z = coast_oc.dists[p];
       const int64_t x2 = coast_oc.xs[p + 1]; // z2 = coast.dists[p+1];
       const int64_t y2 = coast_oc.ys[p + 1]; // z2 = coast.dists[p+1];
-      std::cout << x1 << ", " << y1 << ", " << x2 << ", " << y2 << std::endl;
-      //      std::cout << x1 << ", " << y1 << ", " << x2 << ", " << y2 << ", " << z << std::endl;
-      if (x1 < 0 || x1 > xs())
+      // std::cout << x1 << ", " << y1 << ", " << x2 << ", " << y2 << ", " << z << std::endl;
+      if (x1 < 0 || x1 > xs() || x2 < 0 || x2 > xs() || y1 < 0 || y1 > ys() || y2 < 0 || y2 > ys())
         continue;
-      if (x2 < 0 || x2 > xs())
-        continue;
-      if (y1 < 0 || y1 > ys())
-        continue;
-      if (y2 < 0 || y2 > ys())
-        continue;
-      std::cout << " drawing line" << std::endl;
+      // std::cout << " drawing line" << std::endl;
       draw_line(x1, y1, x2, y2, z, col);
     }
   }

@@ -19,7 +19,7 @@ struct point_feature;
 struct point_feature_on_canvas;
 
 
-int64_t get_tile_index(const scene& S, double lat, double lon);
+int64_t get_tile_index(const scene& S, LatLon<double, Unit::deg> point);
 
 
 template <typename S, typename T>

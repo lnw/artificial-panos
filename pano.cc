@@ -23,7 +23,7 @@ int main(int ac, char** av) {
 
   const vector<string> source({"view1", "srtm1", "view3", "srtm3"});
 
-  scene S(pos_lat, pos_lon, pos_z, view_direction_h, view_width, view_direction_v, view_height, range, source);
+  scene S({pos_lat, pos_lon}, pos_z, view_direction_h, view_width, view_direction_v, view_height, range, source);
 
   const string filename = "out.png";
   const int view_x(10000), view_y(1500); // pixels

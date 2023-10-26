@@ -9,7 +9,6 @@ from argparse import ArgumentParser
 
 sys.path.append('build')
 import libartpano as ap
-# import ap
 
 deg2rad = math.pi/180.0
 rad2deg = 180.0/math.pi
@@ -52,20 +51,20 @@ def parseCommandline():
     argparse.view_height *= deg2rad
     return argparse
 
-def getElevationTiles(requiredTiles,sources):
+def getElevationTiles(requiredTiles, sources):
     # from http://katze.tfiu.de/projects/phyghtmap/index.html
     folder = {'srtm1':'SRTM1v3.0', 'srtm3':'SRTM3v3.0', 'view1':'VIEW1', 'view3':'VIEW3'}
-    for south,west in requiredTiles:
+    for south, west in requiredTiles:
       for source in sources:
         # print(south, west)
-        path = 'hgt/'+folder[source]+'/N{:02}E{:03}.hgt'.format(south,west)
+        path = 'hgt/' + folder[source] + '/N{:02}E{:03}.hgt'.format(south,west)
         if (os.path.isfile(path)):
           print(path + " already exists")
           break
         else:
-          subprocess.run(["phyghtmap", "--download-only", "--source={}".format(folder[source]), "-a {:03}:{:02}:{:03}:{:02}".format(west,south,west+1,south+1)])
-          inpath = 'hgt/'+folder[source]+'/N{:02}E{:03}.tif'.format(south,west)
-          outpath = 'hgt/'+folder[source]+'/N{:02}E{:03}.hgt'.format(south,west)
+          subprocess.run(["phyghtmap", "--earthexplorer-user=lnwz", "--earthexplorer-password=f73x8qGFzmwT", "--download-only", "--source={}".format(folder[source]), "-a {:03}:{:02}:{:03}:{:02}".format(west,south,west+1,south+1)])
+          inpath = 'hgt/' + folder[source] + '/N{:02}E{:03}.tif'.format(south,west)
+          outpath = 'hgt/' + folder[source] + '/N{:02}E{:03}.hgt'.format(south,west)
           if (os.path.isfile(outpath)): # loaded hgt
               break
           if (os.path.isfile(inpath)): # loaded geotif
@@ -76,7 +75,7 @@ def getElevationTiles(requiredTiles,sources):
 def getOSMTiles(requiredTiles):
     # from github.com:mvexel/overpass-api-python-wrapper.git
     import overpass
-    for north,east in requiredTiles: # which are the south-west corners of respective tiles
+    for north, east in requiredTiles: # which are the south-west corners of respective tiles
       # print(west, south)
       path_peak = 'osm/{}{:02}{}{:03}_peak.osm'.format('N' if north>=0 else 'S', abs(north), 'E' if east>=0 else 'W', abs(east))
       path_coast = 'osm/{}{:02}{}{:03}_coast.osm'.format('N' if north>=0 else 'S', abs(north), 'E' if east>=0 else 'W', abs(east))
@@ -131,13 +130,15 @@ def main():
     # signal.signal(signal.SIGINT, signal_handler)
     args = parseCommandline()
     print(args)
-    requiredTiles = ap.scene.determine_required_tiles(args.view_width, args.range, args.view_dir_h, args.pos_lat, args.pos_lon)
+    pos = ap.latlondouble(args.pos_lat, args.pos_lon)
+    requiredTiles_ll = ap.scene.determine_required_tiles(args.view_width, args.range, args.view_dir_h, pos)
+    requiredTiles = ap.vll2vp_int64(requiredTiles_ll)
     print("required tiles: " + str(requiredTiles))
-    getElevationTiles(requiredTiles,args.source)
+    getElevationTiles(requiredTiles, args.source)
     getOSMTiles(requiredTiles)
     # print('init S:')
     # print(args.source)
-    S = ap.scene(args.pos_lat, args.pos_lon, args.pos_ele, args.view_dir_h, args.view_width, args.view_dir_v, args.view_height, args.range, args.source)
+    S = ap.scene(pos, args.pos_ele, args.view_dir_h, args.view_width, args.view_dir_v, args.view_height, args.range, args.source)
     # print(S)
     C = ap.canvas_t(args.canvas_width, args.canvas_height)
     C.bucket_fill(100,100,100)

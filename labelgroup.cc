@@ -15,8 +15,8 @@ const int label_width = 18;
 
 LabelGroups::LabelGroups(const vector<point_feature_on_canvas>& _pfocs, int cw): pfocs(_pfocs), canvas_width(cw) {
   // sort by x from left to right
-  sort(pfocs.begin(), pfocs.end(),
-       [](const point_feature_on_canvas& pfoc1, const point_feature_on_canvas& pfoc2) { return pfoc1.x < pfoc2.x; });
+  std::sort(pfocs.begin(), pfocs.end(),
+            [](const point_feature_on_canvas& pfoc1, const point_feature_on_canvas& pfoc2) { return pfoc1.x < pfoc2.x; });
   // one new group for each label
   g.resize(pfocs.size());
   for (size_t i = 0; i < g.size(); i++) {
@@ -47,7 +47,7 @@ int LabelGroups::gather_groups(int first, int last) {
   assert(first <= static_cast<int>(last));
   if (last == first)
     return 1; // one element
-  //cout << "gather " << first << " to " << last << " (from " << g.size()<< ")" << endl;
+  // cout << "gather " << first << " to " << last << " (from " << g.size()<< ")" << endl;
   bool converged = false;
   while (!converged) {
     converged = true;
@@ -139,7 +139,7 @@ vector<point_feature_on_canvas> LabelGroups::prune() {
         break;
       }
       else {
-        //cout << "one or more labels should be removed from group " << lg << endl;
+        // cout << "one or more labels should be removed from group " << lg << endl;
       }
 
       if (delete_something) {
@@ -150,11 +150,9 @@ vector<point_feature_on_canvas> LabelGroups::prune() {
             const double e1 = pfocs[m].pf.elev,
                          e2 = pfocs[n].pf.elev;
             const double d_ele = e1 - e2;
-            const double lat1 = pfocs[m].pf.lat,
-                         lon1 = pfocs[m].pf.lon,
-                         lat2 = pfocs[n].pf.lat,
-                         lon2 = pfocs[n].pf.lon;
-            const double d_dist = distance_atan(lat1, lon1, lat2, lon2);
+            const LatLon<double, Unit::rad> pos1 = pfocs[m].pf.coords.to_rad(); /// FIXME rad/deg?
+            const LatLon<double, Unit::rad> pos2 = pfocs[n].pf.coords.to_rad();
+            const double d_dist = distance_atan(pos1, pos2);
             if (d_ele / d_dist > slope) {
               slope = d_ele / d_dist;
               ind_lower = n;

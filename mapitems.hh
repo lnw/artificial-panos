@@ -6,31 +6,34 @@
 #include <vector>
 
 #include "auxiliary.hh"
+#include "latlon.hh"
 
 #define NO_DEPR_DECL_WARNINGS_START _Pragma("GCC diagnostic push")
 _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
 #define NO_DEPR_DECL_WARNINGS_END _Pragma("GCC diagnostic pop")
 
-NO_DEPR_DECL_WARNINGS_START
+    NO_DEPR_DECL_WARNINGS_START
 #include <libxml++/libxml++.h>
-NO_DEPR_DECL_WARNINGS_END
+    NO_DEPR_DECL_WARNINGS_END
 
 
-class scene;
+    class scene;
 class canvas;
 
 struct point_feature {
-  double lat;
-  double lon;
+  LatLon<double, Unit::deg> coords;
   std::string name;
   int elev; // provided by osm data, otherwise interpolated from elevation data
 
-  point_feature(double la, double lo, std::string n, int e): lat(la), lon(lo), name(std::move(n)), elev(e) {}
-  point_feature(double la, double lo, int e): lat(la), lon(lo), name(""), elev(e) {}
-  point_feature(double la, double lo, std::string n): lat(la), lon(lo), name(std::move(n)), elev() {}
+  point_feature(LatLon<double, Unit::deg> ll, std::string n, int e): coords(ll), name(std::move(n)), elev(e) {}
+  point_feature(LatLon<double, Unit::deg> ll, int e): coords(ll), name(""), elev(e) {}
+  point_feature(LatLon<double, Unit::deg> ll, std::string n): coords(ll), name(std::move(n)), elev() {}
+
+  constexpr auto lat() const { return coords.lat(); }
+  constexpr auto lon() const { return coords.lon(); }
 
   friend std::ostream& operator<<(std::ostream& S, const point_feature& pf) {
-    S << "{(" << pf.lat << ", " << pf.lon << "), " << pf.name << ", " << pf.elev << "}";
+    S << "{(" << pf.coords.lat() << ", " << pf.coords.lon() << "), " << pf.name << ", " << pf.elev << "}";
     return S;
   }
 };
@@ -49,7 +52,7 @@ struct point_feature_on_canvas {
 };
 
 struct linear_feature {
-  std::vector<std::pair<double, double>> coords; // lat, lon
+  std::vector<LatLon<double, Unit::deg>> coords;
   std::string name;
   size_t id;   // so we can deduplicate between tiles
   bool closed; // detect by comparing first and last element
@@ -60,7 +63,7 @@ struct linear_feature {
   bool operator<(const linear_feature& lf) const { return this->id < lf.id; };
 
   size_t size() const { return coords.size(); }
-  void append(const std::pair<double, double>& p) {
+  void append(const LatLon<double, Unit::deg>& p) {
     coords.push_back(p);
   }
 

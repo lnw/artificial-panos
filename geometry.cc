@@ -51,8 +51,9 @@ double angle_h(const double latA, const double lonA,
   return std::acos(numerator / denominator); // [rad]
 }
 
-double horizontal_direction(const double ref_lat, const double ref_lon,
-                            const double lat, const double lon) {
+double horizontal_direction(LatLon<double, Unit::rad> ref, LatLon<double, Unit::rad> dest) {
+  const auto [ref_lat, ref_lon] = ref;
+  const auto [lat, lon] = dest;
   const double north_lat(90), north_lon(0);
   const double a = central_angle_atan(lat, lon, ref_lat, ref_lon);
   const double b = central_angle_atan(north_lat, north_lon, lat, lon);
@@ -73,8 +74,9 @@ double horizontal_direction(const double ref_lat, const double ref_lon,
 
 // bearing, starting from ref
 // where N: 0, E:90, S:+/-180, W:-90
-double bearing(const double ref_lat, const double ref_lon,
-               const double lat, const double lon) {
+double bearing(const LatLon<double, Unit::rad> point_ref, const LatLon<double, Unit::rad> point) {
+  const auto [ref_lat, ref_lon] = point_ref;
+  const auto [lat, lon] = point;
   const double Dlon = lon - ref_lon;
   const double x = std::cos(lat) * std::sin(Dlon);
   const double y = std::cos(ref_lat) * std::sin(lat) - std::sin(ref_lat) * std::cos(lat) * std::cos(Dlon);
@@ -83,7 +85,8 @@ double bearing(const double ref_lat, const double ref_lon,
 
 // destination when going from (lat/lon) a distance dist with bearing b
 // bearing from -pi .. pi, 0 is north
-std::pair<double, double> destination(const double ref_lat, const double ref_lon, const double dist, const double b) {
+LatLon<double, Unit::rad> destination(LatLon<double, Unit::rad> point_ref, const double dist, const double b) {
+  const auto [ref_lat, ref_lon] = point_ref;
   const double c_angle = dist / average_radius_earth; // central angle
   const double lat = std::asin(std::sin(ref_lat) * std::cos(c_angle) + std::cos(ref_lat) * std::sin(c_angle) * std::cos(b));
   const double lon = ref_lon + std::atan2(std::sin(b) * std::sin(c_angle) * std::cos(ref_lat),

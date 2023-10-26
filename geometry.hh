@@ -1,11 +1,12 @@
 #pragma once
 
 #include <cmath>
+#include <numbers>
 
 #include "auxiliary.hh"
+#include "degrad.hh"
+#include "latlon.hh"
 
-constexpr double deg2rad = M_PI / 180;
-constexpr double rad2deg = 180 / M_PI;
 // angle = (2*a + b)/3
 constexpr double average_radius_earth = (2 * 6378.137 + 6356.752) / 3.0 * 1000; // 6371.009 km [m]
 
@@ -15,7 +16,9 @@ constexpr double average_radius_earth = (2 * 6378.137 + 6356.752) / 3.0 * 1000; 
 // double distance_acos(const double latA, const double lonA, const double latB, const double lonB);
 
 template <typename T>
-inline T distance_atan(const T latA, const T lonA, const T latB, const T lonB) {
+inline T distance_atan(const LatLon<T, Unit::rad> A, const LatLon<T, Unit::rad> B) {
+  const auto [latA, lonA] = A;
+  const auto [latB, lonB] = B;
   const T latDiff_half = (latA - latB) / 2.0;
   const T longDiff_half = (lonA - lonB) / 2.0;
   const T a = std::sin(latDiff_half) * std::sin(latDiff_half) + std::sin(longDiff_half) * std::sin(longDiff_half) * std::cos(latB) * std::cos(latA);
@@ -23,26 +26,22 @@ inline T distance_atan(const T latA, const T lonA, const T latB, const T lonB) {
   return average_radius_earth * angle; // [m]
 }
 
-double central_angle_acos(const double latA, const double lonA, const double latB, const double lonB);
-
-double central_angle_atan(const double latA, const double lonA, const double latB, const double lonB);
+double central_angle_acos(LatLon<double, Unit::rad> pointA, LatLon<double, Unit::rad> pointB);
+double central_angle_atan(LatLon<double, Unit::rad> pointA, LatLon<double, Unit::rad> pointB);
 
 // horizontal angle, ie, angle between two great circles
-double angle_h(const double latA, const double lonA,
-               const double latB, const double lonB,
-               const double latC, const double lonC);
+double angle_h(LatLon<double, Unit::rad> pointA, LatLon<double, Unit::rad> pointB, LatLon<double, Unit::rad> pointC);
 
-double horizontal_direction(const double ref_lat, const double ref_lon,
-                            const double lat, const double lon);
+double horizontal_direction(LatLon<double, Unit::rad> ref, LatLon<double, Unit::rad> dest);
 
 // bearing, starting from ref
 // where N: 0, E:90, S:+/-180, W:-90
 // input and output in rad
-double bearing(double ref_lat, double ref_lon, double lat, double lon);
+double bearing(const LatLon<double, Unit::rad> point_ref, const LatLon<double, Unit::rad> point);
 
 // destination when going from (lat/lon) a distance dist with bearing b
 // bearing from -pi .. pi, 0 is north
-std::pair<double, double> destination(double ref_lat, double ref_lon, double dist, double b);
+LatLon<double, Unit::rad> destination(LatLon<double, Unit::rad> point_ref, double dist, double b);
 
 // vertical angle, using distance and elevation difference
 // positive is up, negative is down

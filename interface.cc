@@ -5,6 +5,7 @@
 #include <pybind11/stl.h>
 
 #include "canvas.hh"
+#include "latlon.hh"
 #include "scene.hh"
 
 namespace py = pybind11;
@@ -12,10 +13,17 @@ namespace py = pybind11;
 PYBIND11_MODULE(libartpano, m) {
   m.doc() = "documentation string"; // optional
 
+  py::class_<LatLon<double, Unit::rad>>(m, "latlondouble")
+      .def(py::init<double, double>());
+  py::class_<LatLon<int64_t, Unit::deg>>(m, "latlonint")
+      .def(py::init<int64_t, int64_t>());
+
+  m.def("vll2vp_int64", &vll2vp);
+
   // class scene
   py::class_<scene>(m, "scene")
-      .def(py::init<double, double, double, double, double, double, double, double, std::vector<std::string>>())
-      .def_static("determine_required_tiles", &scene::determine_required_tiles); // double, double, double, double, double
+      .def(py::init<LatLon<double, Unit::rad>, double, double, double, double, double, double, std::vector<std::string>>())
+      .def_static("determine_required_tiles", &scene::determine_required_tiles_v); // double, double, double, latlon
 
   // class canvas_t
   py::class_<canvas_t>(m, "canvas_t")
