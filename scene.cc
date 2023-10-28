@@ -78,7 +78,7 @@ scene::scene(LatLon<double, Unit::rad> coords, double z, double vdirh, double vw
     // FIXME the case when points from neighbouring tiles are required
     // find the tile in which we are standing
     auto it = std::find_if(tiles.begin(), tiles.end(),
-                           [&](const std::pair<tile<double>, tile<double>>& p) { return (p.first.lat() == floor(standpoint.lat() * rad2deg)) && (p.first.lon() == floor(standpoint.lon() * rad2deg)); });
+                           [&](const auto& p) { return (p.first.lat() == std::floor(standpoint.to_deg().lat())) && (p.first.lon() == std::floor(standpoint.to_deg().lon())); });
     z_standpoint = (it->first).interpolate(standpoint.to_deg()) + z_offset;
     std::cout << "overwriting the elevation: " << z_standpoint << std::endl;
   }

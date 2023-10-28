@@ -46,9 +46,9 @@ public:
   void remove_label(int index, int lg);
 
   // subscript for the point feature, ignores groups etc
-  point_feature_on_canvas& operator[](unsigned int i) { return pfocs[i]; }
-  point_feature_on_canvas operator[](unsigned int i) const { return pfocs[i]; }
-  size_t size() { return pfocs.size(); } // number of point features only
+  point_feature_on_canvas& operator[](int64_t i) { return pfocs[i]; }
+  point_feature_on_canvas operator[](int64_t i) const { return pfocs[i]; }
+  int64_t size() { return std::ssize(pfocs); } // number of point features only
 
   friend std::ostream& operator<<(std::ostream& S, const LabelGroups& lg) {
     S << "[" << lg.pfocs << ", " << lg.g << "]";

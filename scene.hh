@@ -54,7 +54,7 @@ public:
     // auto t2 = std::chrono::high_resolution_clock::now();
     // fp_ms = t2 - t1;
     // cout << "    curvature took " << fp_ms.count() << " ms" << endl;
-    tiles.push_back(std::make_pair(H, D));
+    tiles.push_back(std::make_pair(std::move(H), std::move(D)));
     // auto t3 = std::chrono::high_resolution_clock::now();
     // fp_ms = t3 - t2;
     // cout << "    pair took " << fp_ms.count() << " ms" << endl;

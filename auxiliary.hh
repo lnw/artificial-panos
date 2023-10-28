@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cmath>
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
@@ -29,7 +28,6 @@ std::ostream& operator<<(std::ostream& s, const container<T>& v) {          \
 }
 
 container_output(std::vector)
-container_output(std::set)
 
 template <typename To, typename From>
 auto to_stringish_with_precision(const From val, const int p = 4) {
@@ -57,4 +55,10 @@ auto convert_from_stringish(const From& s) {
   ss << s;
   ss >> result;
   return result;
+}
+
+// is t in [b, e[ ?
+template <class T1, class T2, class T3>
+constexpr bool is_in_range(T1 t, T2 b, T3 e) noexcept {
+  return b <= t && t < e;
 }

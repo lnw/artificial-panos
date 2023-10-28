@@ -31,8 +31,7 @@ public:
     std::ifstream ifs(FILENAME, std::ios::in | std::ios::binary);
     ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try {
-      int16_t size_test;
-      ifs.read(std::bit_cast<char*>(array2D<T>::data().data()), size * sizeof(size_test));
+      ifs.read(std::bit_cast<char*>(array2D<T>::data().data()), size * sizeof(int16_t));
     }
     catch (const std::ifstream::failure& e) {
       std::cout << "Exception opening/reading file";
@@ -71,7 +70,8 @@ public:
 
   // matrix of distances [m] from standpoint to tile
   auto get_distances(const LatLon<double, Unit::rad> standpoint) const {
-    std::vector<double> latitudes(ys()), longitudes(ys());
+    std::vector<double> longitudes(xs());
+    std::vector<double> latitudes(ys());
     for (int64_t y = 0; y < ys(); y++)
       latitudes[y] = (lat_ + 1 - y / double(ys() - 1));
     for (int64_t x = 0; x < xs(); x++)
