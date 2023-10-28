@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <iostream>
 #include <vector>
@@ -12,19 +13,20 @@
 template <typename T>
 class array2D {
 public:
-  array2D(int64_t xs, int64_t ys, const std::vector<T>& A): xs_(xs), ys_(ys), dat_(A.begin(), A.end()) { assert(A.size() == ys * xs); }
-  array2D(int64_t xs, int64_t ys, T init = 0): xs_(xs), ys_(ys), dat_(ys * xs, init) {}
+  array2D(int64_t xs, int64_t ys, const std::vector<T>& A): size_{xs, ys}, dat_(A.begin(), A.end()) { assert(A.size() == ys * xs); }
+  array2D(int64_t xs, int64_t ys, T init = 0): size_{xs, ys}, dat_(ys * xs, init) {}
 
   template <typename S>
-  array2D(const array2D<S>& A): xs_(A.xs()), ys_(A.ys()), dat_(A.begin(), A.end()) {}
+  array2D(const array2D<S>& A): size_{A.xs(), A.ys()}, dat_(A.begin(), A.end()) {}
 
   constexpr T& operator[](int64_t n) noexcept { return dat_[n]; }
   constexpr T operator[](int64_t n) const noexcept { return dat_[n]; }
-  constexpr T& operator[](int64_t x, int64_t y) noexcept { return dat_[y * xs_ + x]; }
-  constexpr T operator[](int64_t x, int64_t y) const noexcept { return dat_[y * xs_ + x]; }
+  constexpr T& operator[](int64_t x, int64_t y) noexcept { return dat_[y * xs() + x]; }
+  constexpr T operator[](int64_t x, int64_t y) const noexcept { return dat_[y * xs() + x]; }
 
-  constexpr auto xs() const { return xs_; }
-  constexpr auto ys() const { return ys_; }
+  constexpr auto xs() const { return size_[0]; }
+  constexpr auto ys() const { return size_[1]; }
+  constexpr auto size() const { return size_; }
 
   constexpr auto& data() const& { return dat_; }
   constexpr auto&& data() && { return dat_; }
@@ -52,10 +54,10 @@ public:
   }
 
   constexpr void transpose() {
-    std::swap(ys_, xs_);
-    array2D<T> A(ys_, xs_);
-    for (int64_t y = 0; y < ys_; y++) {
-      for (int64_t x = 0; x < xs_; x++) {
+    std::swap(size_[0], size_[1]);
+    array2D<T> A(ys(), xs());
+    for (int64_t y = 0; y < ys(); y++) {
+      for (int64_t x = 0; x < xs(); x++) {
         A[x, y] = (*this)[y, x];
       }
     }
@@ -75,7 +77,6 @@ public:
 protected:
   // n: number of columns (j->n)  // x
   // m: number of rows (i->m)  // y
-  int64_t xs_;
-  int64_t ys_;
+  std::array<int64_t, 2> size_;
   std::vector<T> dat_;
 };

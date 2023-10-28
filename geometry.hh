@@ -77,17 +77,17 @@ constexpr T horizontal_direction(LatLon<T, Unit::rad> ref, LatLon<T, Unit::rad> 
 // where N: 0, E:90, S:+/-180, W:-90
 // input and output in rad
 template <typename T>
-constexpr T bearing(const LatLon<T, Unit::rad> point_ref, const LatLon<T, Unit::rad> point) {
-  const auto [ref_lat, ref_lon] = point_ref;
-  const auto [lat, lon] = point;
-  const T Dlon = lon - ref_lon;
-  const T x = std::cos(lat) * std::sin(Dlon);
-  const T y = std::cos(ref_lat) * std::sin(lat) - std::sin(ref_lat) * std::cos(lat) * std::cos(Dlon);
+constexpr T bearing(const LatLon<T, Unit::rad> ref, const LatLon<T, Unit::rad> dest) {
+  const auto [ref_lat, ref_lon] = ref;
+  const auto [dest_lat, dest_lon] = dest;
+  const T diff_lon = dest_lon - ref_lon;
+  const T x = std::cos(dest_lat) * std::sin(diff_lon);
+  const T y = std::cos(ref_lat) * std::sin(dest_lat) - std::sin(ref_lat) * std::cos(dest_lat) * std::cos(diff_lon);
   return std::atan2(x, y);
 }
 
 
-// destination when going from (lat/lon) a distance dist with bearing b
+// destination point when going from (lat/lon) a distance dist with bearing b
 // bearing from -pi .. pi, 0 is north
 template <typename T>
 constexpr LatLon<T, Unit::rad> destination(LatLon<T, Unit::rad> point_ref, const T dist, const T b) {
@@ -100,7 +100,7 @@ constexpr LatLon<T, Unit::rad> destination(LatLon<T, Unit::rad> point_ref, const
 }
 
 
-// vertical angle, using distance and elevation difference
+// vertical angle between two points, using distance and elevation difference
 // positive is up, negative is down
 template <typename T>
 T angle_v(const T elevation_ref /* [m] */, const T elevation /* [m] */, const T dist /* [m] */) {

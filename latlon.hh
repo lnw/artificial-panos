@@ -7,9 +7,6 @@
 
 #include "degrad.hh"
 
-enum class Unit { deg,
-                  rad };
-
 
 template <typename T, Unit UU>
 class LatLon {
@@ -18,7 +15,7 @@ public:
 
   constexpr LatLon() noexcept = default;
   constexpr LatLon(T lat, T lon) noexcept: dat_{lat, lon} {}
-  explicit constexpr LatLon(std::pair<T, T> p) noexcept: dat_{p.first, p.second} {}
+  // explicit constexpr LatLon(std::pair<T, T> p) noexcept: dat_{p.first, p.second} {}
 
   template <typename V>
   constexpr LatLon(LatLon<V, UU> p) noexcept: dat_{static_cast<T>(p.lat()), static_cast<T>(p.lon())} {}

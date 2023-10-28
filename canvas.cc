@@ -243,11 +243,11 @@ void canvas::label_axis(const scene& S) {
 void canvas_t::render_scene(const scene& S) {
   std::ofstream debug("debug-render_scene", std::ofstream::out | std::ofstream::app);
   // determine the dimensions, especially pixels/deg
-  const double& view_direction_h = S.view_dir_h;      // [rad]
-  const double& view_width = S.view_width;            // [rad]
+  const double view_direction_h = S.view_dir_h;       // [rad]
+  const double view_width = S.view_width;             // [rad]
   const double pixels_per_rad_h = xs() / view_width;  // [px/rad]
-  const double& view_direction_v = S.view_dir_v;      // [rad]
-  const double& view_height = S.view_height;          // [rad]
+  const double view_direction_v = S.view_dir_v;       // [rad]
+  const double view_height = S.view_height;           // [rad]
   const double pixels_per_rad_v = ys() / view_height; // [px/rad]
   debug << "view direction_h [rad]: " << view_direction_h << std::endl;
   debug << "view width [rad]: " << view_width << std::endl;
@@ -269,8 +269,7 @@ void canvas_t::render_scene(const scene& S) {
 
     const tile<double>& H = S.tiles[t].first;
     const tile<double>& D = S.tiles[t].second;
-    const int64_t yst = H.ys();
-    const int64_t xst = H.xs();
+    const auto [xst, yst] = H.size();
     // debug << "H: " << H << std::endl;
     // debug << "D: " << D << std::endl;
 
@@ -290,19 +289,23 @@ void canvas_t::render_scene(const scene& S) {
         // get horizontal and vertical angles for all four points of the two triangles
         // translate to image coordinates
         bool visible = false; // anything is visible
-        const double h_ij = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - y / double(yst - 1)), (H.lon() + x / double(xst - 1))).to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const LatLon<double, Unit::deg> target_ij(H.lat() + 1 - y / double(yst - 1), H.lon() + x / double(xst - 1));
+        const double h_ij = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_ij.to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
         // if(h_ij < 0 || h_ij > xs) continue;
         if (h_ij > 0 || h_ij < xs())
           visible = true;
-        const double h_ijj = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - y / double(yst - 1)), (H.lon() + (x + inc) / double(xst - 1))).to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const LatLon<double, Unit::deg> target_ijj(H.lat() + 1 - y / double(yst - 1), H.lon() + (x + inc) / double(xst - 1));
+        const double h_ijj = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_ijj.to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
         // if(h_ijj < 0 || h_ijj > xs) continue;
         if (h_ijj > 0 || h_ijj < xs())
           visible = true;
-        const double h_iij = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - (y + inc) / double(yst - 1)), (H.lon() + x / double(xst - 1))).to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const LatLon<double, Unit::deg> target_iij(H.lat() + 1 - (y + inc) / double(yst - 1), H.lon() + x / double(xst - 1));
+        const double h_iij = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_iij.to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
         // if(h_iij < 0 || h_iij > xs) continue;
         if (h_iij > 0 || h_iij < xs())
           visible = true;
-        const double h_iijj = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - (y + inc) / double(yst - 1)), (H.lon() + (x + inc) / double(xst - 1))).to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2.0 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const LatLon<double, Unit::deg> target_iijj(H.lat() + 1 - (y + inc) / double(yst - 1), H.lon() + (x + inc) / double(xst - 1));
+        const double h_iijj = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_iijj.to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2.0 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
         // if(h_iijj < 0 || h_iijj > xs) continue;
         if (h_iijj > 0 || h_iijj < xs())
           visible = true;
@@ -441,8 +444,7 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
 
   const tile<double>& H = S.tiles[tile_index].first;
   const tile<double>& D = S.tiles[tile_index].second;
-  const int64_t yst = H.ys();
-  const int64_t xst = H.xs();
+  const auto [xst, yst] = H.size();
 
   // get a few triangles around the peak, we're interested in 25 squares around the peak, between y-rad/x-rad and y+rad/x+rad
   // the test-patch should be larger for large distances because there are less pixels per ground area
@@ -471,16 +473,20 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
     for (int64_t x = xx; x < xx + diameter; x++) {
       if (x < 0 || x > tile_size_m1)
         continue; // FIXME
-      const double h_ij = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - y / double(yst - 1)), (H.lon() + x / double(xst - 1))).to_rad()) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
+      const LatLon<double, Unit::deg> target_ij(H.lat() + 1 - y / double(yst - 1), H.lon() + x / double(xst - 1));
+      const double h_ij = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_ij.to_rad()) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
       if (h_ij < 0 || h_ij > xs())
         continue;
-      const double h_ijj = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - y / double(yst - 1)), (H.lon() + (x + inc) / double(xst - 1))).to_rad()) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
+      const LatLon<double, Unit::deg> target_ijj(H.lat() + 1 - y / double(yst - 1), H.lon() + (x + inc) / double(xst - 1));
+      const double h_ijj = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_ijj.to_rad()) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
       if (h_ijj < 0 || h_ijj > xs())
         continue;
-      const double h_iij = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - (y + inc) / double(yst - 1)), (H.lon() + x / double(xst - 1))).to_rad()) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
+      const LatLon<double, Unit::deg> target_iij(H.lat() + 1 - (y + inc) / double(yst - 1), H.lon() + x / double(xst - 1));
+      const double h_iij = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_iij.to_rad()) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
       if (h_iij < 0 || h_iij > xs())
         continue;
-      const double h_iijj = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, LatLon<double, Unit::deg>((H.lat() + 1 - (y + inc) / double(yst - 1)), (H.lon() + (x + inc) / double(xst - 1))).to_rad()) + 1.5 * M_PI, 2.0 * M_PI) * pixels_per_rad_h;
+      const LatLon<double, Unit::deg> target_iijj(H.lat() + 1 - (y + inc) / double(yst - 1), H.lon() + (x + inc) / double(xst - 1));
+      const double h_iijj = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_iijj.to_rad()) + 1.5 * M_PI, 2.0 * M_PI) * pixels_per_rad_h;
       if (h_iijj < 0 || h_iijj > xs())
         continue;
 
@@ -532,11 +538,11 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
 // peak visible.  This avoids the problem of flat topped mountains and works
 // only under the condition that mountains don't float in midair.
 bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const double dist_peak) const {
-  const double& view_direction_h = S.view_dir_h;      // [rad]
-  const double& view_width = S.view_width;            // [rad]
+  const double view_direction_h = S.view_dir_h;       // [rad]
+  const double view_width = S.view_width;             // [rad]
   const double pixels_per_rad_h = xs() / view_width;  // [px/rad]
-  const double& view_direction_v = S.view_dir_v;      // [rad]
-  const double& view_height = S.view_height;          // [rad]
+  const double view_direction_v = S.view_dir_v;       // [rad]
+  const double view_height = S.view_height;           // [rad]
   const double pixels_per_rad_v = ys() / view_height; // [px/rad]
   // const double ref_lat = S.lat_standpoint;
   // const double ref_lon = S.lon_standpoint;
