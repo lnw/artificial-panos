@@ -31,7 +31,6 @@ add_library(ap SHARED
             canvas.cc
             canvas.hh
             colour.hh
-            geometry.cc
             geometry.hh
             labelgroup.cc
             labelgroup.hh

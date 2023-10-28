@@ -13,43 +13,110 @@ constexpr double average_radius_earth = (2 * 6378.137 + 6356.752) / 3.0 * 1000; 
 // distance between two points on a sphere, without elevation
 // phi is the latitude, theta the longitude
 // Vincenty's formulae might be better (to take into account earth's oblation)
-// double distance_acos(const double latA, const double lonA, const double latB, const double lonB);
 
 template <typename T>
-inline T distance_atan(const LatLon<T, Unit::rad> A, const LatLon<T, Unit::rad> B) {
+constexpr T distance_acos(const LatLon<T, Unit::rad> A, const LatLon<T, Unit::rad> B) {
+  const T angle = central_angle_acos(A, B);
+  return average_radius_earth * angle; // [m]
+}
+
+template <typename T>
+constexpr T distance_atan(const LatLon<T, Unit::rad> A, const LatLon<T, Unit::rad> B) {
+  const T angle = central_angle_atan(A, B);
+  return average_radius_earth * angle; // [m]
+}
+
+template <typename T>
+constexpr T central_angle_acos(LatLon<T, Unit::rad> A, LatLon<T, Unit::rad> B) {
+  const auto [latA, lonA] = A;
+  const auto [latB, lonB] = B;
+  return std::acos(std::sin(latA) * std::sin(latB) + std::cos(latA) * std::cos(latB) * std::cos(lonA - lonB)); // [rad]
+}
+
+template <typename T>
+constexpr T central_angle_atan(LatLon<T, Unit::rad> A, LatLon<T, Unit::rad> B) {
   const auto [latA, lonA] = A;
   const auto [latB, lonB] = B;
   const T latDiff_half = (latA - latB) / 2.0;
   const T longDiff_half = (lonA - lonB) / 2.0;
   const T a = std::sin(latDiff_half) * std::sin(latDiff_half) + std::sin(longDiff_half) * std::sin(longDiff_half) * std::cos(latB) * std::cos(latA);
-  const T angle = 2 * std::atan2(std::sqrt(a), std::sqrt(1 - a));
-  return average_radius_earth * angle; // [m]
+  return 2 * std::atan2(std::sqrt(a), std::sqrt(1 - a)); // [rad]
 }
 
-double central_angle_acos(LatLon<double, Unit::rad> pointA, LatLon<double, Unit::rad> pointB);
-double central_angle_atan(LatLon<double, Unit::rad> pointA, LatLon<double, Unit::rad> pointB);
+// horizontal angle at B, ie, angle between two great circles
+template <typename T>
+constexpr T angle_h(LatLon<T, Unit::rad> A, LatLon<T, Unit::rad> B, LatLon<T, Unit::rad> C) {
+  // Convert real distances to unit sphere distances
+  const T a = central_angle_atan(B, C);
+  const T b = central_angle_atan(A, C);
+  const T c = central_angle_atan(A, B);
+  // Use the Spherical law of cosines to get at the angle between a and b
+  const T numerator = std::cos(b) - std::cos(a) * std::cos(c);
+  const T denominator = std::sin(a) * std::sin(c);
+  return std::acos(numerator / denominator); // [rad]
+}
 
-// horizontal angle, ie, angle between two great circles
-double angle_h(LatLon<double, Unit::rad> pointA, LatLon<double, Unit::rad> pointB, LatLon<double, Unit::rad> pointC);
-
-double horizontal_direction(LatLon<double, Unit::rad> ref, LatLon<double, Unit::rad> dest);
+// horizontal angle north--ref--dest
+template <typename T>
+constexpr T horizontal_direction(LatLon<T, Unit::rad> ref, LatLon<T, Unit::rad> dest) {
+  const auto [ref_lat, ref_lon] = ref;
+  const auto [lat, lon] = dest;
+  const LatLon<T, Unit::rad> north(M_PI / 2, 0);
+  const T angle = angle_h(north, ref, dest);
+  if (lat > ref_lat && lon > ref_lon)
+    return M_PI / 2 - angle; // looking North East
+  if (lat > ref_lat && lon < ref_lon)
+    return M_PI / 2 + angle; // looking North West
+  if (lat < ref_lat && lon < ref_lon)
+    return 3 * M_PI / 2 - angle; // looking South West
+  // (lat<ref_lat && lon>ref_lon)
+  return 3 * M_PI / 2 + angle; // looking South East
+}
 
 // bearing, starting from ref
 // where N: 0, E:90, S:+/-180, W:-90
 // input and output in rad
-double bearing(const LatLon<double, Unit::rad> point_ref, const LatLon<double, Unit::rad> point);
+template <typename T>
+constexpr T bearing(const LatLon<T, Unit::rad> point_ref, const LatLon<T, Unit::rad> point) {
+  const auto [ref_lat, ref_lon] = point_ref;
+  const auto [lat, lon] = point;
+  const T Dlon = lon - ref_lon;
+  const T x = std::cos(lat) * std::sin(Dlon);
+  const T y = std::cos(ref_lat) * std::sin(lat) - std::sin(ref_lat) * std::cos(lat) * std::cos(Dlon);
+  return std::atan2(x, y);
+}
+
 
 // destination when going from (lat/lon) a distance dist with bearing b
 // bearing from -pi .. pi, 0 is north
-LatLon<double, Unit::rad> destination(LatLon<double, Unit::rad> point_ref, double dist, double b);
+template <typename T>
+constexpr LatLon<T, Unit::rad> destination(LatLon<T, Unit::rad> point_ref, const T dist, const T b) {
+  const auto [ref_lat, ref_lon] = point_ref;
+  const T central_angle = dist / average_radius_earth; // central angle
+  const T lat = std::asin(std::sin(ref_lat) * std::cos(central_angle) + std::cos(ref_lat) * std::sin(central_angle) * std::cos(b));
+  const T lon = ref_lon + std::atan2(std::sin(b) * std::sin(central_angle) * std::cos(ref_lat),
+                                     std::cos(central_angle) - std::sin(ref_lat) * std::sin(lat));
+  return {lat, lon};
+}
+
 
 // vertical angle, using distance and elevation difference
 // positive is up, negative is down
 template <typename T>
-T angle_v(T el_ref /* [m] */, T el /* [m] */, T dist /* [m] */);
+T angle_v(const T elevation_ref /* [m] */, const T elevation /* [m] */, const T dist /* [m] */) {
+  const int up = elevation - elevation_ref > 0 ? 1 : -1;
+  const T diff_el = std::abs(elevation - elevation_ref); // [m]
+  const T angle = std::atan(diff_el / dist);             // [rad]
+  return up * angle;                                     // [rad]
+}
 
 template <typename T>
-T angle_v_scaled(T el_ref, T el, T dist);
+T angle_v_scaled(const T elevation_ref, const T elevation, const T dist, float factor) {
+  auto angle = angle_v(elevation_ref, elevation, dist); // [rad]
+  if (angle < 0)
+    angle *= factor;
+  return angle; // [rad]
+}
 
 // check if two line segments intersect
 template <typename T>
