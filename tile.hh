@@ -19,6 +19,7 @@ class tile: public array2D<T> {
 public:
   using array2D<T>::xs;
   using array2D<T>::ys;
+  tile() = default;
   tile(int64_t _xs, int64_t _ys, int64_t _dim, LatLon<int64_t, Unit::deg> _coord): array2D<T>(_xs, _ys), dim_(_dim), coord_(_coord) {
     assert(ys() == xs());
   }

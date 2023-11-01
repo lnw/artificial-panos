@@ -14,6 +14,7 @@ template <typename T>
 class array2D {
 public:
   using value_type = T;
+  array2D() = default;
   array2D(int64_t xs, int64_t ys, const std::vector<T>& A): size_{xs, ys}, dat_(A.begin(), A.end()) { assert(A.size() == ys * xs); }
   array2D(int64_t xs, int64_t ys, T init = 0): size_{xs, ys}, dat_(ys * xs, init) {}
 

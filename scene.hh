@@ -2,11 +2,13 @@
 
 #include <algorithm>
 #include <cmath>
-#include <fstream>
+#include <filesystem>
 #include <utility>
 
 #include "latlon.hh"
 #include "tile.hh"
+
+namespace fs = std::filesystem;
 
 enum class elevation_source { srtm1 = 0,
                               srtm3,
@@ -37,7 +39,7 @@ public:
       const double dist = i * view_range / (samples_per_ray - 1);
       for (int j = 0; j < n_ray; j++) {
         const double bearing = std::fmod(-view_dir_h - view_width / 2 + M_PI / 2 + j * view_width / (n_ray - 1) + 3 * M_PI, 2 * M_PI) - M_PI;
-        LatLon<double, Unit::rad> dest = destination(standpoint, dist, bearing);
+        const LatLon<double, Unit::rad> dest = destination(standpoint, dist, bearing);
         rt.insert(floor(dest.to_deg()));
       }
     }
@@ -51,20 +53,6 @@ public:
     return rt_v;
   }
 
-  template <typename T>
-  void add_tile(const tile<T>& Tile) {
-    // auto t0 = std::chrono::high_resolution_clock::now();
-    tile<double> D(Tile.get_distances(standpoint));
-    // auto t1 = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
-    // cout << "    distances took " << fp_ms.count() << " ms" << endl;
-    tile<double> H(Tile.curvature_adjusted_elevations(D));
-    // auto t2 = std::chrono::high_resolution_clock::now();
-    // fp_ms = t2 - t1;
-    // cout << "    curvature took " << fp_ms.count() << " ms" << endl;
-    tiles.push_back(std::make_pair(std::move(H), std::move(D)));
-    // auto t3 = std::chrono::high_resolution_clock::now();
-    // fp_ms = t3 - t2;
-    // cout << "    pair took " << fp_ms.count() << " ms" << endl;
-  }
+  std::vector<std::pair<tile<double>, tile<double>>> read_elevation_data(const std::vector<LatLon<int64_t, Unit::deg>>& required_tiles) const;
+  double elevation_at_standpoint() const;
 };
