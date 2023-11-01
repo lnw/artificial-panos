@@ -20,13 +20,13 @@ int main(int ac, char** av) {
   // const double pos_lat(49.38002*deg2rad), pos_lon(8.66683*deg2rad), pos_z(130), view_direction_h(0*deg2rad), view_width(355*deg2rad), view_height(30*deg2rad), view_direction_v(5*deg2rad), range(100000); // kirchheim
   // const double pos_lat(49.4105*deg2rad), pos_lon(8.6766*deg2rad), pos_z(130), view_direction_h(0*deg2rad), view_width(355*deg2rad), view_height(30*deg2rad    ), view_direction_v(5*deg2rad), range(100000); // bruecke
   // const double pos_lat(58.2477 * deg2rad), pos_lon(6.5597 * deg2rad), pos_z(-1), view_direction_h(280 * deg2rad), view_width(280 * deg2rad), view_height(40 * deg2rad), view_direction_v(0), range(10000); // south norway
-  const double pos_lat(44.85029 * deg2rad), pos_lon(7.19331 * deg2rad), pos_z(2000), view_direction_h(120 * deg2rad), view_width(210 * deg2rad), view_height(60 * deg2rad), view_direction_v(0), range(30000); // near turin
+  const double pos_lat(44.85029 * deg2rad), pos_lon(7.19331 * deg2rad), pos_z(2000), view_direction_h(120 * deg2rad), view_width(210 * deg2rad), view_height(60 * deg2rad), view_direction_v(0), range(50000); // near turin
 
-  const vector<string> source({"view1", "srtm1", "view3", "srtm3"});
+  const std::vector<elevation_source> sources_to_consider({elevation_source::view1, elevation_source::srtm1, elevation_source::view3, elevation_source::srtm3});
 
-  scene S({pos_lat, pos_lon}, pos_z, view_direction_h, view_width, view_direction_v, view_height, range, source);
+  scene S({pos_lat, pos_lon}, pos_z, view_direction_h, view_width, view_direction_v, view_height, range, sources_to_consider);
 
-  const string filename = "out.png";
+  const std::string filename = "out.png";
   const int view_x(10000), view_y(1500); // pixels
 
   canvas_t V(view_x, view_y);

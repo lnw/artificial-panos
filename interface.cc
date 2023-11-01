@@ -20,9 +20,15 @@ PYBIND11_MODULE(libartpano, m) {
 
   m.def("vll2vp_int64", &vll2vp);
 
+  py::enum_<elevation_source>(m, "elevation_source")
+      .value("srtm1", elevation_source::srtm1)
+      .value("srtm3", elevation_source::srtm3)
+      .value("view1", elevation_source::view1)
+      .value("view3", elevation_source::view3);
+
   // class scene
   py::class_<scene>(m, "scene")
-      .def(py::init<LatLon<double, Unit::rad>, double, double, double, double, double, double, std::vector<std::string>>())
+      .def(py::init<LatLon<double, Unit::rad>, double, double, double, double, double, double, std::vector<elevation_source>>())
       .def_static("determine_required_tiles", &scene::determine_required_tiles_v); // double, double, double, latlon
 
   // class canvas_t

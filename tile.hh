@@ -5,11 +5,13 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <filesystem>
 #include <fstream>
 
 #include "array2d.hh"
 #include "latlon.hh"
 
+namespace fs = std::filesystem;
 
 // one tile only, without storing the viewpoint
 template <typename T>
@@ -17,18 +19,18 @@ class tile: public array2D<T> {
 public:
   using array2D<T>::xs;
   using array2D<T>::ys;
-  tile(int64_t _xs, int64_t _ys, int64_t _dim, int64_t _lat, int64_t _lon): array2D<T>(_xs, _ys), dim_(_dim), lat_(_lat), lon_(_lon) {
+  tile(int64_t _xs, int64_t _ys, int64_t _dim, LatLon<int64_t, Unit::deg> _coord): array2D<T>(_xs, _ys), dim_(_dim), coord_(_coord) {
     assert(ys() == xs());
   }
 
-  tile(char const* FILENAME, int64_t _dim, int64_t _lat, int64_t _lon): array2D<int16_t>(_dim, _dim), dim_(_dim), lat_(_lat), lon_(_lon) {
+  tile(const fs::path& fn, int64_t _dim, LatLon<int64_t, Unit::deg> _coord): array2D<int16_t>(_dim, _dim), dim_(_dim), coord_(_coord) {
     // auto t0 = std::chrono::high_resolution_clock::now();
 
     assert(dim_ > 0);
     // std::cout << " dimension in tile: " << dim_ << std::endl;
     const int64_t size = dim_ * dim_;
 
-    std::ifstream ifs(FILENAME, std::ios::in | std::ios::binary);
+    std::ifstream ifs(fn.string(), std::ios::in | std::ios::binary);
     ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try {
       ifs.read(std::bit_cast<char*>(array2D<T>::data().data()), size * sizeof(int16_t));
@@ -48,16 +50,17 @@ public:
     // std::cout << "reading tile took " << fp_ms.count() << " ms" << std::endl;
   }
 
-  constexpr auto lat() const { return lat_; }
-  constexpr auto lon() const { return lon_; }
-  constexpr auto dim() const { return dim_; }
+  constexpr auto lat() const noexcept { return coord_.lat(); }
+  constexpr auto lon() const noexcept { return coord_.lon(); }
+  constexpr auto coord() const noexcept { return coord_; }
+  constexpr auto dim() const noexcept { return dim_; }
 
   // viewfinder uses drop/m = 0.1695 m * (dist / miles)^2 to account for curvature and refraction
   tile<double> curvature_adjusted_elevations(const tile<double>& dists) const {
     assert(ys() == dists.ys());
     assert(xs() == dists.xs());
     const double coeff = 0.065444 / 1000000.0; // = 0.1695 / 1.609^2  // m
-    tile<double> A(xs(), ys(), dim_, lat_, lon_);
+    tile<double> A(xs(), ys(), dim(), coord());
     for (int64_t y = 0; y < ys(); y++) {
       for (int64_t x = 0; x < xs(); x++) {
         A[x, y] = (*this)[x, y] - coeff * std::pow(dists[x, y], 2);
@@ -73,11 +76,11 @@ public:
     std::vector<double> longitudes(xs());
     std::vector<double> latitudes(ys());
     for (int64_t y = 0; y < ys(); y++)
-      latitudes[y] = (lat_ + 1 - y / double(ys() - 1));
+      latitudes[y] = (lat() + 1 - y / double(ys() - 1));
     for (int64_t x = 0; x < xs(); x++)
-      longitudes[x] = (lon_ + x / double(xs() - 1));
+      longitudes[x] = (lon() + x / double(xs() - 1));
 
-    tile<double> A(ys(), xs(), dim_, lat_, lon_);
+    tile<double> A(ys(), xs(), dim(), coord());
 #pragma omp parallel for
     for (int64_t y = 0; y < ys(); y++) {
       for (int64_t x = 0; x < xs(); x++) {
@@ -96,18 +99,18 @@ public:
   //        p
   //        |
   // iij--aux2---iijj
-  constexpr double interpolate(LatLon<double, Unit::deg> coord) const {
+  constexpr auto interpolate(LatLon<double, Unit::deg> coord) const {
     const auto [lat_p, lon_p] = coord;
-    // std::cout << lat_p <<", "<< lon_p <<", "<<floor(lat_p) << ", "<< lat_ <<", " << floor(lon_p) <<", "<< lon_ << std::endl;
-    assert(std::floor(lat_p) == lat_ && std::floor(lon_p) == lon_); // ie, we are in the right tile
-    int64_t dim_m1 = dim_ - 1;                                      // we really need dim_-1 all the time
+    // std::cout << lat_p <<", "<< lon_p <<", "<<floor(lat_p) << ", "<< lat() <<", " << floor(lon_p) <<", "<< lon_ << std::endl;
+    assert(std::floor(lat_p) == lat() && std::floor(lon_p) == lon_); // ie, we are in the right tile
+    int64_t dim_m1 = dim() - 1;                                      // we really need dim_-1 all the time
     // get the surrounding four indices
-    int64_t y = dim_m1 - std::floor((lat_p - lat_) * dim_m1);
+    int64_t y = dim_m1 - std::floor((lat_p - lat()) * dim_m1);
     int64_t yy = y - 1;
-    int64_t x = std::floor((lon_p - lon_) * dim_m1);
+    int64_t x = std::floor((lon_p - lon()) * dim_m1);
     int64_t xx = x + 1;
-    double lon_frac = dim_m1 * (lon_p - lon_) - x;
-    double lat_frac = dim_m1 * (lat_p - lat_) - (dim_m1 - y);
+    double lon_frac = dim_m1 * (lon_p - lon()) - x;
+    double lat_frac = dim_m1 * (lat_p - lat()) - (dim_m1 - y);
     double aux1_h = (*this)[x, y] * (1 - lon_frac) + (*this)[xx, y] * lon_frac;
     // std::cout << "aux1_h: " << aux1_h << std::endl;
     double aux2_h = (*this)[x, yy] * (1 - lon_frac) + (*this)[xx, yy] * lon_frac;
@@ -138,6 +141,5 @@ private:
   // west: 1..180.  however, the array stores everything starting from the
   // top/left corner, row major.
   int64_t dim_; // we expect either 3601 (1'') or 1201 (3'')
-  int64_t lat_;
-  int64_t lon_;
+  LatLon<int64_t, Unit::deg> coord_;
 };

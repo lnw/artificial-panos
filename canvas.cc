@@ -336,14 +336,16 @@ void canvas_t::render_scene(const scene& S) {
 // much closer than the previous one.  Works only because mountains are
 // rarely overhanging or floating in mid-air
 void canvas_t::highlight_edges() {
+  using D = std::remove_reference_t<decltype(zb())>::value_type;
   const auto t0 = std::chrono::high_resolution_clock::now();
   const colour black = {0, 0, 0};
   const colour dark_gray = {30, 30, 30};
-  const double thr1 = 1.15, thr2 = 1.05;
+  const D thr1 = 1.15;
+  const D thr2 = 1.05;
   for (int64_t x = 0; x < xs(); x++) {
-    double z_prev = 1000000;
+    D z_prev = std::numeric_limits<D>::max();
     for (int64_t y = 0; y < ys(); y++) {
-      const double z_curr = zb(x, y);
+      const D z_curr = zb(x, y);
       if (z_prev / z_curr > thr1 && z_prev - z_curr > 500) {
         write_pixel(x, y, black);
       }

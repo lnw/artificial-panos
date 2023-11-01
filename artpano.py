@@ -126,6 +126,18 @@ def getOSMTiles(requiredTiles):
 #     print('You pressed Ctrl+C!')
 #     sys.exit(0)
 
+def strings2enums(sources):
+    res = []
+    if "srtm1" in sources:
+        res.append(ap.elevation_source.srtm1)
+    if "srtm3" in sources:
+        res.append(ap.elevation_source.srtm3)
+    if "view1" in sources:
+        res.append(ap.elevation_source.view1)
+    if "view3" in sources:
+        res.append(ap.elevation_source.view3)
+    return res
+
 def main():
     # signal.signal(signal.SIGINT, signal_handler)
     args = parseCommandline()
@@ -138,7 +150,7 @@ def main():
     getOSMTiles(requiredTiles)
     # print('init S:')
     # print(args.source)
-    S = ap.scene(pos, args.pos_ele, args.view_dir_h, args.view_width, args.view_dir_v, args.view_height, args.range, args.source)
+    S = ap.scene(pos, args.pos_ele, args.view_dir_h, args.view_width, args.view_dir_v, args.view_height, args.range, strings2enums(args.source))
     # print(S)
     C = ap.canvas_t(args.canvas_width, args.canvas_height)
     C.bucket_fill(100,100,100)

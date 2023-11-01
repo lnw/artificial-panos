@@ -1,20 +1,23 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
-#include <unordered_map>
 #include <utility>
 
 #include "scene.hh"
 #include "tile.hh"
 
+namespace fs = std::filesystem;
 
-inline bool file_accessable(const std::string& fn) {
-  std::ifstream f(fn.c_str());
+inline bool file_accessable(const fs::path& fp) {
+  if (!exists(fp))
+    return false;
+  std::ifstream f(fp.string().c_str());
   return f.good();
 }
 
-scene::scene(LatLon<double, Unit::rad> coords, double z, double vdirh, double vw, double vdirv, double vh, double vdist, const std::vector<std::string>& _source): standpoint(coords), z_standpoint(z), view_dir_h(vdirh), view_width(vw), view_dir_v(vdirv), view_height(vh), view_range(vdist), source(_source) {
+scene::scene(LatLon<double, Unit::rad> coords, double z, double vdirh, double vw, double vdirv, double vh, double vdist, const std::vector<elevation_source>& _sources): standpoint(coords), z_standpoint(z), view_dir_h(vdirh), view_width(vw), view_dir_v(vdirv), view_height(vh), view_range(vdist), sources(_sources) {
   std::ofstream debug("debug-render_scene", std::ofstream::out | std::ofstream::app);
   debug << "standpoint: " << standpoint.to_deg() << std::endl;
 
@@ -23,24 +26,22 @@ scene::scene(LatLon<double, Unit::rad> coords, double z, double vdirh, double vw
   std::vector<LatLon<int64_t, Unit::deg>> required_tiles = determine_required_tiles_v(view_width, view_range, view_dir_h, standpoint);
   std::cout << "required_tiles: " << required_tiles << std::endl;
 #pragma omp parallel for shared(tiles)
-  for (auto it = required_tiles.begin(); it != required_tiles.end(); it++) {
-    const auto [ref_lat, ref_lon] = *it;
-    std::string path("hgt");
-    std::string fn(std::string(ref_lat < 0 ? "S" : "N") + to_stringish_fixedwidth<std::string>(std::abs(ref_lat), 2) +
-                   std::string(ref_lon < 0 ? "W" : "E") + to_stringish_fixedwidth<std::string>(std::abs(ref_lon), 3) + ".hgt");
+  for (const auto& required_tile : required_tiles) {
+    const auto [ref_lat, ref_lon] = required_tile;
+    fs::path path("hgt");
+    fs::path fn(std::string(ref_lat < 0 ? "S" : "N") + to_stringish_fixedwidth<std::string>(std::abs(ref_lat), 2) +
+                std::string(ref_lon < 0 ? "W" : "E") + to_stringish_fixedwidth<std::string>(std::abs(ref_lon), 3) + ".hgt");
     bool source_found = false;
-    std::unordered_map<std::string, std::string> folder = {{"srtm1", "SRTM1v3.0"}, {"srtm3", "SRTM3v3.0"}, {"view1", "VIEW1"}, {"view3", "VIEW3"}};
-    for (auto sit = source.begin(), sot = source.end(); sit != sot; sit++) {
-      std::string fn_full = path + "/" + folder[*sit] + "/" + fn;
+    for (const auto& source : sources) {
+      fs::path filename_rel = path / elevation_source_folder[std::to_underlying(source)] / fn;
       // std::cout << fn_full << std::endl;
-      if (file_accessable(fn_full)) {
+      if (file_accessable(filename_rel)) {
         const auto t0 = std::chrono::high_resolution_clock::now();
 
         // get tiles, add them
         int tile_size = 0;
         try {
-          tile_size = 3600 / stoi(std::string(&sit->back())) + 1;
-          // tile_size = 3600/int(sit->back()-'0') + 1; // also works ... chars are horrible ...
+          tile_size = 3600 / elevation_source_resolution[std::to_underlying(source)] + 1;
         }
         catch (const std::invalid_argument& ia) {
           std::cerr << "Invalid argument: " << ia.what() << std::endl;
@@ -51,9 +52,8 @@ scene::scene(LatLon<double, Unit::rad> coords, double z, double vdirh, double vw
         // auto t1 = std::chrono::high_resolution_clock::now();
         // std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
         // std::cout << "  preperation took " << fp_ms.count() << " ms" << std::endl;
-        std::cout << "trying to read: " << fn_full << " with dimension " << tile_size << " ..." << std::endl; // flush;
-        char const* FILENAME = fn_full.c_str();
-        tile<int16_t> A(tile<int16_t>(FILENAME, tile_size, ref_lat, ref_lon));
+        std::cout << "trying to read: " << filename_rel.string() << " with dimension " << tile_size << " ..." << std::endl; // flush;
+        tile<int16_t> A(tile<int16_t>(filename_rel, tile_size, required_tile));
         // auto t2 = std::chrono::high_resolution_clock::now();
         // fp_ms = t2 - t1;
         // std::cout << "  reading " << std::string(FILENAME) << " took " << fp_ms.count() << " ms" << std::endl;
@@ -65,16 +65,16 @@ scene::scene(LatLon<double, Unit::rad> coords, double z, double vdirh, double vw
         // std::chrono::duration<double, std::milli>  fp_ms_2 = t3 - t2;
         std::chrono::duration<double, std::milli> fp_ms_tot = t3 - t0;
         // std::cout << "  adding tile took " << fp_ms_2.count() << " ms" << std::endl;
-        std::cout << "  reading + processing tile " << std::string(FILENAME) << " took " << fp_ms_tot.count() << " ms" << std::endl;
+        std::cout << "  reading + processing tile " << filename_rel.string() << " took " << fp_ms_tot.count() << " ms" << std::endl;
 
         break; // add only one version of each tile
       }
     }
     if (!source_found)
-      std::cerr << " no source for " + fn + " found, ignoring it" << std::endl;
+      std::cerr << " no source for " + fn.string() + " found, ignoring it" << std::endl;
   }
   if (z_standpoint == -1) {
-    const double z_offset = 10; // asssume we are floating in midair to avoid artefacts
+    const double z_offset = 10; // assume we are floating in some metres above ground to avoid artefacts
     // FIXME the case when points from neighbouring tiles are required
     // find the tile in which we are standing
     auto it = std::find_if(tiles.begin(), tiles.end(),
