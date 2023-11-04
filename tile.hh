@@ -7,6 +7,10 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <ranges>
+#include <string>
+#include <vector>
 
 #include "array2d.hh"
 #include "latlon.hh"
@@ -37,14 +41,17 @@ public:
       ifs.read(std::bit_cast<char*>(array2D<T>::data().data()), size * sizeof(int16_t));
     }
     catch (const std::ifstream::failure& e) {
-      std::cout << "Exception opening/reading file";
+      std::cout << "Exception opening/reading file"
+                << " " << fn.string();
     }
     ifs.close();
 
     // assuming the file is big endian:
-    if (std::endian::native == std::endian::little)
-      for (auto& v : *this)
+    if (std::endian::native == std::endian::little) {
+      for (auto& v : *this) {
         v = std::byteswap(v);
+      }
+    }
 
     // auto t1 = std::chrono::high_resolution_clock::now();
     // std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
@@ -62,12 +69,7 @@ public:
     assert(xs() == dists.xs());
     const double coeff = 0.065444 / 1000000.0; // = 0.1695 / 1.609^2  // m
     tile<double> A(xs(), ys(), dim(), coord());
-    for (int64_t y = 0; y < ys(); y++) {
-      for (int64_t x = 0; x < xs(); x++) {
-        A[x, y] = (*this)[x, y] - coeff * std::pow(dists[x, y], 2);
-        // std::cout << (*this)(y,x) << ", " << dists(y,x) << " --> " << A(y,x) << std::endl;
-      }
-    }
+    std::transform(this->begin(), this->end(), dists.begin(), A.begin(), [coeff](auto el, auto dist) { return el - coeff * dist * dist; });
     return A;
   }
 
@@ -82,7 +84,7 @@ public:
       longitudes[x] = (lon() + x / double(xs() - 1));
 
     tile<double> A(ys(), xs(), dim(), coord());
-#pragma omp parallel for
+#if 1
     for (int64_t y = 0; y < ys(); y++) {
       for (int64_t x = 0; x < xs(); x++) {
         const LatLon<double, Unit::deg> p(latitudes[y], longitudes[x]);
@@ -90,6 +92,11 @@ public:
         // A[x, y] = distance_acos(lat_standpoint, lon_standpoint, latitudes[y], longitudes[x]); // worse + slower
       }
     }
+#else
+    for (const auto [index, coord] : std::ranges::views::enumerate(std::ranges::views::cartesian_product(latitudes, longitudes))) {
+      A[index] = distance_atan(standpoint, LatLon<double, Unit::deg>(coord).to_rad());
+    }
+#endif
     return A;
   }
 

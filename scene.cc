@@ -46,17 +46,8 @@ std::vector<std::pair<tile<double>, tile<double>>> scene::read_elevation_data(co
 
       const auto t0 = std::chrono::high_resolution_clock::now();
 
-      // get tiles, add them
-      int tile_size = 0;
-      try {
-        tile_size = 3600 / elevation_source_resolution[std::to_underlying(source)] + 1;
-      }
-      catch (const std::invalid_argument& ia) {
-        std::cerr << "Invalid argument: " << ia.what() << std::endl;
-      }
-      catch (const std::out_of_range& oor) {
-        std::cerr << "Out of Range error: " << oor.what() << std::endl;
-      }
+      int64_t tile_size = 3600 / elevation_source_resolution[std::to_underlying(source)] + 1;
+
       // auto t1 = std::chrono::high_resolution_clock::now();
       // std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
       // std::cout << "  preperation took " << fp_ms.count() << " ms" << std::endl;
@@ -65,7 +56,6 @@ std::vector<std::pair<tile<double>, tile<double>>> scene::read_elevation_data(co
       // auto t2 = std::chrono::high_resolution_clock::now();
       // fp_ms = t2 - t1;
       // std::cout << "  reading " << std::string(FILENAME) << " took " << fp_ms.count() << " ms" << std::endl;
-      // add_tile(A);
       tile<double> dists(A.get_distances(standpoint));
       tile<double> heights(A.curvature_adjusted_elevations(dists));
       res[tile_index] = std::make_pair(std::move(heights), std::move(dists));
