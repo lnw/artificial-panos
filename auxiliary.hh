@@ -30,9 +30,9 @@ std::ostream& operator<<(std::ostream& s, const container<T>& v) {          \
 container_output(std::vector)
 
 template <typename To, typename From>
-auto to_stringish_with_precision(const From val, const int p = 4) {
+auto to_stringish_with_precision(const From val, const int precision) {
   std::stringstream ss;
-  ss.precision(p);
+  ss.precision(precision);
   To result;
   ss << val;
   ss >> result;
@@ -40,10 +40,10 @@ auto to_stringish_with_precision(const From val, const int p = 4) {
 }
 
 template <typename To, typename From>
-auto to_stringish_fixedwidth(const From val, const int n = 3) {
+auto to_stringish_fixedwidth(const From val, const int width) {
   std::stringstream ss;
   To result;
-  ss << std::setw(n) << std::setfill('0') << val;
+  ss << std::setw(width) << std::setfill('0') << val;
   ss >> result;
   return result;
 }

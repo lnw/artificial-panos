@@ -251,10 +251,8 @@ void canvas_t::render_scene(const scene& S) {
   debug << "view height [rad]: " << view_height << std::endl;
   debug << "canvas width: " << xs() << std::endl;
   debug << "canvas height: " << ys() << std::endl;
-  debug << "horizantal pixels per rad [px/rad]: " << pixels_per_rad_h << std::endl;
-  debug << "vertical pixels per rad [px/rad]: " << pixels_per_rad_v << std::endl;
-  std::cout << "horizantal pixels per rad [px/rad]: " << pixels_per_rad_h << std::endl;
-  std::cout << "vertical pixels per rad [px/rad]: " << pixels_per_rad_v << std::endl;
+  std::cout << "horizantal resolution [px/rad]: " << pixels_per_rad_h << std::endl;
+  std::cout << "vertical resolution [px/rad]: " << pixels_per_rad_v << std::endl;
 
   // iterate over tiles in scene
 #pragma omp parallel for default(none)                                                                                                     \

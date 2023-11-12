@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstring>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <ranges>
@@ -43,24 +44,21 @@ std::vector<std::pair<tile<double>, tile<double>>> scene::read_elevation_data(co
       // std::cout << fn_full << std::endl;
       if (!file_accessable(filename_rel))
         continue;
+      source_found = true;
 
       const auto t0 = std::chrono::high_resolution_clock::now();
 
       int64_t tile_size = 3600 / elevation_source_resolution[std::to_underlying(source)] + 1;
 
-      // auto t1 = std::chrono::high_resolution_clock::now();
-      // std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
-      // std::cout << "  preperation took " << fp_ms.count() << " ms" << std::endl;
       std::cout << "trying to read: " << filename_rel.string() << " with dimension " << tile_size << " ..." << std::endl; // flush;
       const tile<int16_t> A(filename_rel, tile_size, required_tile);
       // auto t2 = std::chrono::high_resolution_clock::now();
       // fp_ms = t2 - t1;
       // std::cout << "  reading " << std::string(FILENAME) << " took " << fp_ms.count() << " ms" << std::endl;
-      tile<double> dists(A.get_distances(standpoint));
-      tile<double> heights(A.curvature_adjusted_elevations(dists));
+      auto dists = A.get_distances(standpoint);
+      auto heights = A.curvature_adjusted_elevations(dists);
       res[tile_index] = std::make_pair(std::move(heights), std::move(dists));
       // std::cout << " done" << std::endl;
-      source_found = true;
 
       auto t3 = std::chrono::high_resolution_clock::now();
       // std::chrono::duration<double, std::milli>  fp_ms_2 = t3 - t2;
@@ -70,8 +68,9 @@ std::vector<std::pair<tile<double>, tile<double>>> scene::read_elevation_data(co
 
       break; // add only one version of each tile
     }
-    if (!source_found)
-      std::cerr << " no source for " + fn.string() + " found, ignoring it" << std::endl;
+    if (!source_found) {
+      throw std::runtime_error("no source for " + fn.string() + " found");
+    }
   }
   return res;
 }
@@ -80,5 +79,8 @@ std::vector<std::pair<tile<double>, tile<double>>> scene::read_elevation_data(co
 double scene::elevation_at_standpoint() const {
   auto it = std::find_if(tiles.begin(), tiles.end(),
                          [&](const auto& p) { return (p.first.lat() == std::floor(standpoint.to_deg().lat())) && (p.first.lon() == std::floor(standpoint.to_deg().lon())); });
+  if (it == tiles.end()) {
+    throw std::runtime_error("The tile containing the standpoint hasn't been loaded.");
+  }
   return (it->first).interpolate(standpoint.to_deg());
 }

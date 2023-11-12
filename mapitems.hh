@@ -53,12 +53,12 @@ struct point_feature_on_canvas {
 
 struct linear_feature {
   std::vector<LatLon<double, Unit::deg>> coords;
-  std::string name;
-  size_t id;   // so we can deduplicate between tiles
-  bool closed; // detect by comparing first and last element
+  std::string name = "";
+  size_t id = 0;   // so we can deduplicate between tiles
+  bool closed = false; // detect by comparing first and last element
 
-  linear_feature(): coords(), name(""), id(0), closed(false){};
-  explicit linear_feature(int N): coords(N), name(""), id(0), closed(false){};
+  linear_feature(): coords(){};
+  explicit linear_feature(int N): coords(N){};
 
   bool operator<(const linear_feature& lf) const { return this->id < lf.id; };
 

@@ -64,37 +64,41 @@ public:
   constexpr auto dim() const noexcept { return dim_; }
 
   // viewfinder uses drop/m = 0.1695 m * (dist / miles)^2 to account for curvature and refraction
-  tile<double> curvature_adjusted_elevations(const tile<double>& dists) const {
+  template <typename U>
+  requires std::floating_point<U>
+  auto curvature_adjusted_elevations(const tile<U>& dists) const {
     assert(ys() == dists.ys());
     assert(xs() == dists.xs());
-    const double coeff = 0.065444 / 1000000.0; // = 0.1695 / 1.609^2  // m
-    tile<double> A(xs(), ys(), dim(), coord());
+    const U coeff = 0.065444 / 1000000.0; // = 0.1695 / 1.609^2  // m
+    tile<U> A(xs(), ys(), dim(), coord());
     std::transform(this->begin(), this->end(), dists.begin(), A.begin(), [coeff](auto el, auto dist) { return el - coeff * dist * dist; });
     return A;
   }
 
 
   // matrix of distances [m] from standpoint to tile
-  auto get_distances(const LatLon<double, Unit::rad> standpoint) const {
-    std::vector<double> longitudes(xs());
-    std::vector<double> latitudes(ys());
+  template <typename U>
+  requires std::floating_point<U>
+  auto get_distances(const LatLon<U, Unit::rad> standpoint) const {
+    std::vector<U> longitudes(xs());
+    std::vector<U> latitudes(ys());
     for (int64_t y = 0; y < ys(); y++)
-      latitudes[y] = (lat() + 1 - y / double(ys() - 1));
+      latitudes[y] = lat() + 1 - y / U(ys() - 1);
     for (int64_t x = 0; x < xs(); x++)
-      longitudes[x] = (lon() + x / double(xs() - 1));
+      longitudes[x] = lon() + x / U(xs() - 1);
 
-    tile<double> A(ys(), xs(), dim(), coord());
+    tile<U> A(ys(), xs(), dim(), coord());
 #if 1
     for (int64_t y = 0; y < ys(); y++) {
       for (int64_t x = 0; x < xs(); x++) {
-        const LatLon<double, Unit::deg> p(latitudes[y], longitudes[x]);
+        const LatLon<U, Unit::deg> p(latitudes[y], longitudes[x]);
         A[x, y] = distance_atan(standpoint, p.to_rad());
         // A[x, y] = distance_acos(lat_standpoint, lon_standpoint, latitudes[y], longitudes[x]); // worse + slower
       }
     }
 #else
     for (const auto [index, coord] : std::ranges::views::enumerate(std::ranges::views::cartesian_product(latitudes, longitudes))) {
-      A[index] = distance_atan(standpoint, LatLon<double, Unit::deg>(coord).to_rad());
+      A[index] = distance_atan(standpoint, LatLon<U, Unit::deg>(coord).to_rad());
     }
 #endif
     return A;
@@ -107,7 +111,8 @@ public:
   //        p
   //        |
   // iij--aux2---iijj
-  constexpr auto interpolate(LatLon<double, Unit::deg> coord) const {
+  template <typename U>
+  constexpr auto interpolate(LatLon<U, Unit::deg> coord) const {
     const auto [lat_p, lon_p] = coord;
     // std::cout << lat_p <<", "<< lon_p <<", "<<floor(lat_p) << ", "<< lat() <<", " << floor(lon_p) <<", "<< lon_ << std::endl;
     assert(std::floor(lat_p) == lat() && std::floor(lon_p) == lon_); // ie, we are in the right tile
@@ -117,13 +122,13 @@ public:
     int64_t yy = y - 1;
     int64_t x = std::floor((lon_p - lon()) * dim_m1);
     int64_t xx = x + 1;
-    double lon_frac = dim_m1 * (lon_p - lon()) - x;
-    double lat_frac = dim_m1 * (lat_p - lat()) - (dim_m1 - y);
-    double aux1_h = (*this)[x, y] * (1 - lon_frac) + (*this)[xx, y] * lon_frac;
+    U lon_frac = dim_m1 * (lon_p - lon()) - x;
+    U lat_frac = dim_m1 * (lat_p - lat()) - (dim_m1 - y);
+    U aux1_h = (*this)[x, y] * (U(1) - lon_frac) + (*this)[xx, y] * lon_frac;
     // std::cout << "aux1_h: " << aux1_h << std::endl;
-    double aux2_h = (*this)[x, yy] * (1 - lon_frac) + (*this)[xx, yy] * lon_frac;
+    U aux2_h = (*this)[x, yy] * (U(1) - lon_frac) + (*this)[xx, yy] * lon_frac;
     // std::cout << "aux2_h: " << aux2_h << std::endl;
-    double p_h = aux1_h * (1 - lat_frac) + aux2_h * lat_frac;
+    U p_h = aux1_h * (U(1) - lat_frac) + aux2_h * lat_frac;
     return p_h;
   }
 
@@ -144,10 +149,10 @@ public:
   }
 
 private:
+  int64_t dim_; // we expect either 3601 (1'') or 1201 (3'')
   // [deg], specifying the lower left corner of the tile.  Hence, northern
   // tiles go from 0..89 while southern tiles go from 1..90, east: 0..179,
   // west: 1..180.  however, the array stores everything starting from the
   // top/left corner, row major.
-  int64_t dim_; // we expect either 3601 (1'') or 1201 (3'')
   LatLon<int64_t, Unit::deg> coord_;
 };
