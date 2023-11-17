@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -25,7 +26,7 @@ int64_t get_tile_index(const scene& S, LatLon<double, Unit::deg> point);
 template <typename S, typename T>
 class array_zb {
 public:
-  array_zb(int64_t x, int64_t y): zbuffer_(x, y, std::numeric_limits<int64_t>::max()), arr2d_(x, y, 0) {}
+  array_zb(int64_t x, int64_t y): zbuffer_(x, y, std::numeric_limits<S>::max()), arr2d_(x, y, 0) {}
 
   constexpr int64_t xs() const { return arr2d_.xs(); }
   constexpr int64_t ys() const { return arr2d_.ys(); }
@@ -91,13 +92,13 @@ public:
   void write_pixel_zb(const int64_t x, const int64_t y, const double z, const colour& col) {
     if (z < buffered_canvas.zb(x, y)) {
       buffered_canvas.zb(x, y) = z;
-      buffered_canvas.a2d(x, y) = uint32_t(col);
+      buffered_canvas.a2d(x, y) = int32_t(col);
     }
   }
 
   // just write the pixel
   void write_pixel(const int64_t x, const int64_t y, const colour& col) {
-    buffered_canvas.a2d(x, y) = uint32_t(col);
+    buffered_canvas.a2d(x, y) = int32_t(col);
   }
 
   // true if any pixel was drawn
@@ -117,27 +118,35 @@ private:
 
 
 class canvas {
+  class gdDel_t {
+  public:
+    void operator()(gdImage* p) const {
+      if (p)
+        gdImageDestroy(p);
+    }
+  };
+
+  class close_t {
+  public:
+    void operator()(FILE* p) const {
+      if (p)
+        fclose(p);
+    }
+  };
+
 public:
-  canvas(std::string fn, canvas_t core): xs_(core.xs()), ys_(core.ys()), zbuffer(std::move(core).zb()), filename(std::move(fn)) {
+  canvas(std::string fn, canvas_t core): xs_(core.xs()), ys_(core.ys()), zbuffer(std::move(core).zb()), filename(std::move(fn)), img_ptr(gdImageCreateTrueColor(xs_, ys_), gdDel_t{}) {
     const array2D<int32_t> wc(std::move(core).wc());
     // allocate mem
-    img_ptr = gdImageCreateTrueColor(xs_, ys_);
     for (int64_t y = 0; y < ys_; y++)
       for (int64_t x = 0; x < xs_; x++)
         img_ptr->tpixels[y][x] = wc[x, y]; // assuming TrueColor
   }
-  canvas& operator=(const canvas&) = delete;
-  canvas& operator=(canvas&&) = default;
-  canvas(const canvas&) = delete;
-  canvas(canvas&&) = default;
 
-  ~canvas() {
-    // actually the file is only opened here
-    FILE* png_ptr = fopen(filename.c_str(), "wb");
+  void write_png() {
+    std::unique_ptr<FILE, close_t> png_ptr(fopen(filename.c_str(), "wb"), close_t{});
     // write to disk
-    gdImagePng(img_ptr, png_ptr);
-    fclose(png_ptr);
-    gdImageDestroy(img_ptr);
+    gdImagePng(img_ptr.get(), png_ptr.get());
   }
 
   constexpr int64_t xs() const { return xs_; }
@@ -197,5 +206,5 @@ private:
   int64_t ys_;
   array2D<double> zbuffer;
   std::string filename;
-  gdImagePtr img_ptr = nullptr;
+  std::unique_ptr<gdImage, gdDel_t> img_ptr; // which contains: int** tpixels
 };

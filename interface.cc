@@ -44,5 +44,6 @@ PYBIND11_MODULE(libartpano, m) {
       .def("draw_coast", &canvas::draw_coast)             // scene
       .def("annotate_peaks", &canvas::annotate_peaks)     // scene
       .def("annotate_islands", &canvas::annotate_islands) // scene
-      .def("label_axis", &canvas::label_axis);            // scene
+      .def("label_axis", &canvas::label_axis)             // scene
+      .def("write_png", &canvas::write_png);
 }

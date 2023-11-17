@@ -53,7 +53,6 @@ void canvas_t::draw_triangle(const double x1, const double y1,
   const int64_t xmax = std::min<int64_t>(std::ceil(std::max({x1, x2, x3})), xs());
   const int64_t ymin = std::max<int64_t>(0, std::floor(std::min({y1, y2, y3})));
   const int64_t ymax = std::min<int64_t>(std::ceil(std::max({y1, y2, y3})), ys());
-  const int64_t zero = 0;
 
   if (xmax - xmin > xs() / 2.0) { // avoid drawing triangles that wrap around the edge
     return;
@@ -104,8 +103,8 @@ bool canvas::draw_line(const double x1, const double y1,
     return false;
   }
   const auto [r, g, b] = col;
-  const int32_t c = gdImageColorResolve(img_ptr, r, g, b);
-  gdImageLine(img_ptr, x1, y1, x2, y2, c);
+  const int32_t c = gdImageColorResolve(img_ptr.get(), r, g, b);
+  gdImageLine(img_ptr.get(), x1, y1, x2, y2, c);
   return true;
 }
 
@@ -121,14 +120,14 @@ bool canvas::would_draw_line(const double x1, const double y1,
 
 
 void canvas::draw_tick(int x_tick, int tick_length, const std::string& str1, const std::string& str2) {
-  const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
+  const int black = gdImageColorResolve(img_ptr.get(), 0, 0, 0);
   const double fontsize = 20.;
   const double text_orientation = 0;
 
   // std::cout << "deg90: " << deg << std::endl;
-  gdImageLine(img_ptr, x_tick - 1, 0, x_tick - 1, tick_length, black);
-  gdImageLine(img_ptr, x_tick, 0, x_tick, tick_length, black);
-  gdImageLine(img_ptr, x_tick + 1, 0, x_tick + 1, tick_length, black);
+  gdImageLine(img_ptr.get(), x_tick - 1, 0, x_tick - 1, tick_length, black);
+  gdImageLine(img_ptr.get(), x_tick, 0, x_tick, tick_length, black);
+  gdImageLine(img_ptr.get(), x_tick + 1, 0, x_tick + 1, tick_length, black);
 
   if (!str1.empty()) {
     char font[] = "./fonts/vera.ttf";
@@ -144,7 +143,7 @@ void canvas::draw_tick(int x_tick, int tick_length, const std::string& str1, con
 
     int xxx = x_tick - bb[2] / 2;
     int yyy = tick_length + 10 - bb[5];
-    err = gdImageStringFT(img_ptr, &bb[0],
+    err = gdImageStringFT(img_ptr.get(), &bb[0],
                           black, font, fontsize, text_orientation,
                           xxx,
                           yyy, s1);
@@ -162,7 +161,7 @@ void canvas::draw_tick(int x_tick, int tick_length, const std::string& str1, con
       }
       xxx = x_tick - bb[2] / 2;
       yyy = tick_length + 10 + 20 + 10 - bb[5];
-      err = gdImageStringFT(img_ptr, &bb[0],
+      err = gdImageStringFT(img_ptr.get(), &bb[0],
                             black, font, fontsize, text_orientation,
                             xxx,
                             yyy, s2);
@@ -673,8 +672,8 @@ std::vector<point_feature_on_canvas> canvas::draw_visible_peaks(const std::vecto
     // const int x_offset=0;
     const int y_offset = 100;
 
-    const int black = gdImageColorResolve(img_ptr, 0, 0, 0);
-    gdImageLine(img_ptr, x_peak, y_peak - 2, x_peak + lgs[p].xshift, y_peak - y_offset + 5, black);
+    const int black = gdImageColorResolve(img_ptr.get(), 0, 0, 0);
+    gdImageLine(img_ptr.get(), x_peak, y_peak - 2, x_peak + lgs[p].xshift, y_peak - y_offset + 5, black);
 
     std::string name(lgs[p].pf.name);
     if (!lgs[p].pf.name.empty())
@@ -695,7 +694,7 @@ std::vector<point_feature_on_canvas> canvas::draw_visible_peaks(const std::vecto
     }
     //      std::cout << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << " " << bb[6] << " " << bb[7] << std::endl;
 
-    err = gdImageStringFT(img_ptr, &bb[0],
+    err = gdImageStringFT(img_ptr.get(), &bb[0],
                           black, font, fontsize, text_orientation,
                           x_peak + lgs[p].xshift + fontsize / 2.0,
                           y_peak - y_offset, s);

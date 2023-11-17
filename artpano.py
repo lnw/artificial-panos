@@ -162,6 +162,7 @@ def main():
     CC.annotate_peaks(S)
 #    CC.annotate_islands(S)
     CC.label_axis(S)
+    CC.write_png()
 
 if __name__ == "__main__":
     main()

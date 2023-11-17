@@ -38,6 +38,7 @@ int main(int ac, char** av) {
   // VV.draw_coast(S);
   VV.annotate_peaks(S);
   VV.label_axis(S);
+  VV.write_png();
 
   return 0;
 }

@@ -69,7 +69,9 @@ std::vector<std::pair<tile<double>, tile<double>>> scene::read_elevation_data(co
       break; // add only one version of each tile
     }
     if (!source_found) {
-      throw std::runtime_error("no source for " + fn.string() + " found");
+      const std::string err{"no source for " + fn.string() + " found"};
+      std::cerr << err << std::endl;
+      throw std::runtime_error(err);
     }
   }
   return res;

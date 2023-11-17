@@ -115,7 +115,7 @@ public:
   constexpr auto interpolate(LatLon<U, Unit::deg> coord) const {
     const auto [lat_p, lon_p] = coord;
     // std::cout << lat_p <<", "<< lon_p <<", "<<floor(lat_p) << ", "<< lat() <<", " << floor(lon_p) <<", "<< lon_ << std::endl;
-    assert(std::floor(lat_p) == lat() && std::floor(lon_p) == lon_); // ie, we are in the right tile
+    assert(std::floor(lat_p) == lat() && std::floor(lon_p) == lon()); // ie, we are in the right tile
     int64_t dim_m1 = dim() - 1;                                      // we really need dim_-1 all the time
     // get the surrounding four indices
     int64_t y = dim_m1 - std::floor((lat_p - lat()) * dim_m1);
