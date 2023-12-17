@@ -12,13 +12,18 @@
 #include "scene.hh"
 #include "tile.hh"
 
+#define NO_DEPR_DECL_WARNINGS_START _Pragma("GCC diagnostic push")
+_Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
+#define NO_DEPR_DECL_WARNINGS_END _Pragma("GCC diagnostic pop")
+
 NO_DEPR_DECL_WARNINGS_START
 #include <libxml++/libxml++.h>
 NO_DEPR_DECL_WARNINGS_END
 
 
-linear_feature_on_canvas::linear_feature_on_canvas(const linear_feature& _lf, const canvas& C, const scene& S): lf(_lf) {
-  const double z_ref = S.z_standpoint;
+template <typename dist_t>
+linear_feature_on_canvas<dist_t>::linear_feature_on_canvas(const linear_feature& _lf, const canvas<dist_t>& C, const scene& S): lf(_lf) {
+  const dist_t z_ref = S.z_standpoint;
   const double view_dir_h = S.view_dir_h;
   const double view_dir_v = S.view_dir_v;
   const double view_width = S.view_width;
@@ -27,7 +32,7 @@ linear_feature_on_canvas::linear_feature_on_canvas(const linear_feature& _lf, co
   const double pixels_per_rad_v = C.ys() / view_height; // [px/rad]
 
   // iterate over points in linear feature
-  for (LatLon<double, Unit::deg>& point_d : lf.coords) {
+  for (const auto& point_d : lf.coords) {
     const auto point_r = point_d.to_rad();
     const int tile_index = get_tile_index(S, point_d);
     if (tile_index < 0) {
@@ -37,13 +42,13 @@ linear_feature_on_canvas::linear_feature_on_canvas(const linear_feature& _lf, co
       std::cout << "nope" << std::endl;
       continue;
     }
-    const tile<double>& H = S.tiles[tile_index].first;
+    const auto& H = S.tiles[tile_index].first;
     std::cout << "H " << std::flush;
-    const double z = H.tile<double>::interpolate(point_d);
+    const dist_t z = H.interpolate(point_d);
     std::cout << " z: " << z << std::flush;
     // get position on canvas, continue if outside
     // std::cout << "lat/lon: " << lat_ref<<", "<< lon_ref<<", "<< lat_r << ", " << lon_r << std::endl;
-    const double dist = distance_atan(S.standpoint, point_r);
+    const dist_t dist = distance_atan<dist_t>(S.standpoint, point_r);
     std::cout << " dist: " << dist << std::flush;
     const double x = fmod(view_dir_h + view_width / 2.0 + bearing(S.standpoint, point_r) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
     std::cout << " x: " << x << std::flush;
@@ -58,6 +63,8 @@ linear_feature_on_canvas::linear_feature_on_canvas(const linear_feature& _lf, co
     std::cout << "end" << std::endl;
   }
 }
+template linear_feature_on_canvas<float>::linear_feature_on_canvas(const linear_feature& _lf, const canvas<float>& C, const scene& S);
+template linear_feature_on_canvas<double>::linear_feature_on_canvas(const linear_feature& _lf, const canvas<double>& C, const scene& S);
 
 // parses the xml object, appends peaks
 void parse_peaks_gpx(const xmlpp::Node* node, std::vector<point_feature>& peaks) {

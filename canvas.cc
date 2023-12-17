@@ -22,12 +22,16 @@ constexpr colour colour_scheme1(float dist) {
 } // namespace
 
 
+#pragma omp declare reduction(arraymin : array2D<float> : omp_out = omp_out.pointwise_min(omp_in)) \
+    initializer(omp_priv = array2D<float>(omp_orig))
 #pragma omp declare reduction(arraymin : array2D<double> : omp_out = omp_out.pointwise_min(omp_in)) \
     initializer(omp_priv = array2D<double>(omp_orig))
 #pragma omp declare reduction(+ : array2D<int32_t> : omp_out += omp_in) \
     initializer(omp_priv = array2D<int32_t>(omp_orig))
-#pragma omp declare reduction(+ : array_zb<double, int32_t> : omp_out += omp_in) \
-    initializer(omp_priv = array_zb<double, int32_t>(omp_orig))
+#pragma omp declare reduction(+ : zbuffered_array<float> : omp_out += omp_in) \
+    initializer(omp_priv = zbuffered_array<float>(omp_orig))
+#pragma omp declare reduction(+ : zbuffered_array<double> : omp_out += omp_in) \
+    initializer(omp_priv = zbuffered_array<double>(omp_orig))
 
 // input in deg
 int64_t get_tile_index(const scene& S, LatLon<double, Unit::deg> point) {
@@ -43,11 +47,12 @@ int64_t get_tile_index(const scene& S, LatLon<double, Unit::deg> point) {
 
 
 // draw that part of a triangle which is visible
-void canvas_t::draw_triangle(const double x1, const double y1,
-                             const double x2, const double y2,
-                             const double x3, const double y3,
-                             const double z,
-                             const colour& col) {
+template <typename dist_t>
+void canvas_t<dist_t>::draw_triangle(const double x1, const double y1,
+                                     const double x2, const double y2,
+                                     const double x3, const double y3,
+                                     const dist_t z,
+                                     const colour& col) {
   // find triangle's bb
   const int64_t xmin = std::max<int64_t>(0, std::floor(std::min({x1, x2, x3})));
   const int64_t xmax = std::min<int64_t>(std::ceil(std::max({x1, x2, x3})), xs());
@@ -69,10 +74,11 @@ void canvas_t::draw_triangle(const double x1, const double y1,
 }
 
 // true if any pixel was drawn
-bool canvas::would_draw_triangle(const double x1, const double y1,
-                                 const double x2, const double y2,
-                                 const double x3, const double y3,
-                                 const double z) const {
+template <typename dist_t>
+bool canvas<dist_t>::would_draw_triangle(const double x1, const double y1,
+                                         const double x2, const double y2,
+                                         const double x3, const double y3,
+                                         const dist_t z) const {
   // find triangle's bb
   const int64_t xmin = std::floor(std::min({x1, x2, x3}));
   const int64_t xmax = std::ceil(std::max({x1, x2, x3}));
@@ -95,10 +101,11 @@ bool canvas::would_draw_triangle(const double x1, const double y1,
 
 // draw line if both endpoints are visible,
 // return true if drawn
-bool canvas::draw_line(const double x1, const double y1,
-                       const double x2, const double y2,
-                       const double z,
-                       const colour& col) {
+template <typename dist_t>
+bool canvas<dist_t>::draw_line(const double x1, const double y1,
+                               const double x2, const double y2,
+                               const dist_t z,
+                               const colour& col) {
   if (z - 30 > zbuffer[x1, y1] || z - 30 > zbuffer[x2, y2]) { // one or both of the points are obscured
     return false;
   }
@@ -109,9 +116,10 @@ bool canvas::draw_line(const double x1, const double y1,
 }
 
 
-bool canvas::would_draw_line(const double x1, const double y1,
-                             const double x2, const double y2,
-                             const double z) const {
+template <typename dist_t>
+bool canvas<dist_t>::would_draw_line(const double x1, const double y1,
+                                     const double x2, const double y2,
+                                     const dist_t z) const {
   if (z - 30 > zbuffer[x1, y1] || z - 30 > zbuffer[x2, y2]) { // one or both of the points are obscured
     return false;
   }
@@ -119,7 +127,8 @@ bool canvas::would_draw_line(const double x1, const double y1,
 }
 
 
-void canvas::draw_tick(int x_tick, int tick_length, const std::string& str1, const std::string& str2) {
+template <typename dist_t>
+void canvas<dist_t>::draw_tick(int x_tick, int tick_length, const std::string& str1, const std::string& str2) {
   const int black = gdImageColorResolve(img_ptr.get(), 0, 0, 0);
   const double fontsize = 20.;
   const double text_orientation = 0;
@@ -177,7 +186,8 @@ void canvas::draw_tick(int x_tick, int tick_length, const std::string& str1, con
 // every 10 deg (always)
 // every 5 deg if there are less than 45 deg
 // every deg if there are less than 10 deg
-void canvas::label_axis(const scene& S) {
+template <typename dist_t>
+void canvas<dist_t>::label_axis(const scene& S) {
   std::cout << "labelling axis ..." << std::flush;
   // const int width = core.get_width();
   const double view_width = S.view_width;                                                        // [rad]
@@ -233,9 +243,12 @@ void canvas::label_axis(const scene& S) {
   }
   std::cout << " done" << std::endl;
 }
+template void canvas<float>::label_axis(const scene& S);
+template void canvas<double>::label_axis(const scene& S);
 
 
-void canvas_t::render_scene(const scene& S) {
+template <typename dist_t>
+void canvas_t<dist_t>::render_scene(const scene& S) {
   std::ofstream debug("debug-render_scene", std::ofstream::out | std::ofstream::app);
   // determine the dimensions, especially pixels/deg
   const double view_direction_h = S.view_dir_h;       // [rad]
@@ -311,12 +324,12 @@ void canvas_t::render_scene(const scene& S) {
         }
 
         if (is_in_range(v_ij, 0, ys())) {
-          const double dist = (D[x, y] + D[x, y + inc] + D[x + inc, y]) / 3.0;
+          const dist_t dist = (D[x, y] + D[x, y + inc] + D[x + inc, y]) / 3.0;
           draw_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist, colour_scheme1(dist));
         }
 
         if (is_in_range(v_iijj, 0, ys())) {
-          const double dist = (D[x, y + inc] + D[x + inc, y] + D[x + inc, y + inc]) / 3.0;
+          const dist_t dist = (D[x, y + inc] + D[x + inc, y] + D[x + inc, y + inc]) / 3.0;
           draw_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist, colour_scheme1(dist));
         }
       }
@@ -328,21 +341,23 @@ void canvas_t::render_scene(const scene& S) {
   }
   debug.close();
 }
+template void canvas_t<float>::render_scene(const scene& S);
+template void canvas_t<double>::render_scene(const scene& S);
 
 // for each column, walk from top to bottom and colour a pixel dark if it is
 // much closer than the previous one.  Works only because mountains are
 // rarely overhanging or floating in mid-air
-void canvas_t::highlight_edges() {
-  using D = std::remove_reference_t<decltype(zb())>::value_type;
+template <typename dist_t>
+void canvas_t<dist_t>::highlight_edges() {
   const auto t0 = std::chrono::high_resolution_clock::now();
   const colour black = {0, 0, 0};
   const colour dark_gray = {30, 30, 30};
-  const D thr1 = 1.15;
-  const D thr2 = 1.05;
+  const dist_t thr1 = 1.15;
+  const dist_t thr2 = 1.05;
   for (int64_t x = 0; x < xs(); x++) {
-    D z_prev = std::numeric_limits<D>::max();
+    dist_t z_prev = std::numeric_limits<dist_t>::max();
     for (int64_t y = 0; y < ys(); y++) {
-      const D z_curr = zb(x, y);
+      const dist_t z_curr = zb(x, y);
       if (z_prev / z_curr > thr1 && z_prev - z_curr > 500) {
         write_pixel(x, y, black);
       }
@@ -357,8 +372,11 @@ void canvas_t::highlight_edges() {
   std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
   std::cout << "  edge highlighting took " << fp_ms.count() << " ms" << std::endl;
 }
+template void canvas_t<float>::highlight_edges();
+template void canvas_t<double>::highlight_edges();
 
-void canvas_t::render_test() {
+template <typename dist_t>
+void canvas_t<dist_t>::render_test() {
   for (int64_t y = 0; y < ys(); y++) {
     for (int64_t x = 0; x < xs(); x++) {
       const colour col = {uint8_t(x), uint8_t(0.1 * x), uint8_t(y)};
@@ -367,16 +385,20 @@ void canvas_t::render_test() {
   }
 }
 
-void canvas_t::bucket_fill(const uint8_t r, const uint8_t g, const uint8_t b) {
-  const uint32_t col = uint32_t(colour(r, g, b));
+template <typename dist_t>
+void canvas_t<dist_t>::bucket_fill(const uint8_t r, const uint8_t g, const uint8_t b) {
+  const int32_t col = int32_t(colour(r, g, b));
   for (int64_t y = 0; y < ys(); y++) {
     for (int64_t x = 0; x < xs(); x++) {
       wc(x, y) = col;
     }
   }
 }
+template void canvas_t<float>::bucket_fill(const uint8_t r, const uint8_t g, const uint8_t b);
+template void canvas_t<double>::bucket_fill(const uint8_t r, const uint8_t g, const uint8_t b);
 
-void canvas::annotate_peaks(const scene& S) {
+template <typename dist_t>
+void canvas<dist_t>::annotate_peaks(const scene& S) {
   const auto t0 = std::chrono::high_resolution_clock::now();
   // read all peaks from all tiles in S
   std::vector<point_feature> peaks;
@@ -390,7 +412,7 @@ void canvas::annotate_peaks(const scene& S) {
   }
   std::cout << "peaks in db: " << peaks.size() << std::endl;
   // which of those are visible?
-  std::vector<point_feature_on_canvas> omitted_peaks;
+  std::vector<point_feature_on_canvas<dist_t>> omitted_peaks;
   auto [visible_peaks, obscured_peaks] = get_visible_peaks(peaks, S);
   std::cout << "number of visible peaks: " << visible_peaks.size() << std::endl;
   std::cout << "number of obscured peaks: " << obscured_peaks.size() << std::endl;
@@ -410,9 +432,12 @@ void canvas::annotate_peaks(const scene& S) {
   std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
   std::cout << "  labelling peaks took " << fp_ms.count() << " ms" << std::endl;
 }
+template void canvas<float>::annotate_peaks(const scene& S);
+template void canvas<double>::annotate_peaks(const scene& S);
 
 
-bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const double dist_peak, const int64_t tile_index) const {
+template <typename dist_t>
+bool canvas<dist_t>::peak_is_visible_v1(const scene& S, const point_feature& peak, const dist_t dist_peak, const int64_t tile_index) const {
   const double view_direction_h = S.view_dir_h;       // [rad]
   const double view_width = S.view_width;             // [rad]
   const double pixels_per_rad_h = xs() / view_width;  // [px/rad]
@@ -488,8 +513,8 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
         continue;
       // debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << std::endl;
 
-      const double dist1 = (D[x, y] + D[x, y + inc] + D[x + inc, y]) / 3.0 - 2;
-      const double dist2 = (D[x, y + inc] + D[x + inc, y] + D[x + inc, y + inc]) / 3.0 - 2;
+      const dist_t dist1 = (D[x, y] + D[x, y + inc] + D[x + inc, y]) / 3.0; // -2 ???
+      const dist_t dist2 = (D[x, y + inc] + D[x + inc, y] + D[x + inc, y + inc]) / 3.0;
       if (would_draw_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1))
 #ifdef GRAPHICS_DEBUG
         visible = true;
@@ -503,8 +528,10 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
         return true;
 #endif
 #ifdef GRAPHICS_DEBUG
-      draw_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, {5 * std::cbrt(dist1), H[x, y] * (255.0 / 3500), 50});
-      draw_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, {5 * std::cbrt(dist2), H[x, y] * (255.0 / 3500), 250});
+      const auto colour_map1 = [&](dist_t d) -> colour { return {5 * std::cbrt(d), H[x, y] * (255.0 / 3500), 50}; };
+      const auto colour_map2 = [&](dist_t d) -> colour { return {5 * std::cbrt(d), H[x, y] * (255.0 / 3500), 250}; };
+      draw_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1, colour_map1(dist1));
+      draw_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist2, colour_map2(dist2));
 #endif
     }
   }
@@ -520,15 +547,14 @@ bool canvas::peak_is_visible_v1(const scene& S, const point_feature& peak, const
 // the viewer, but only downhill.  If any part of the line is drawn, I call the
 // peak visible.  This avoids the problem of flat topped mountains and works
 // only under the condition that mountains don't float in midair.
-bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const double dist_peak) const {
+template <typename dist_t>
+bool canvas<dist_t>::peak_is_visible_v2(const scene& S, const point_feature& peak, const dist_t dist_peak) const {
   const double view_direction_h = S.view_dir_h;       // [rad]
   const double view_width = S.view_width;             // [rad]
   const double pixels_per_rad_h = xs() / view_width;  // [px/rad]
   const double view_direction_v = S.view_dir_v;       // [rad]
   const double view_height = S.view_height;           // [rad]
   const double pixels_per_rad_v = ys() / view_height; // [px/rad]
-  // const double ref_lat = S.lat_standpoint;
-  // const double ref_lon = S.lon_standpoint;
 
   // bearing to peak
   // std::cout << ref_lat << "," << ref_lon <<", "<< peak.lat() <<","<< peak.lon() << std::endl;
@@ -540,7 +566,7 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
   const double n_segs = dist_peak / seg_length;
   // std::cout << "seg no/length: " << n_segs << ", " << seg_length << std::endl;
 
-  double prev_height = 10000.0;  // [m]
+  dist_t prev_height = 10000.0;  // [m]
   double prev_x = 1, prev_y = 1; // [px]
 
 #ifdef GRAPHICS_DEBUG
@@ -549,8 +575,8 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
   for (int seg = 0; seg < n_segs; seg++) {
     // std::cout << "seg no: " << seg << std::endl;
     // get coords of segment endpoints
-    const double dist_point = dist_peak - seg_length * seg;
-    const auto dest_coord = destination(S.standpoint, dist_point, bearing_rad);
+    const dist_t dist_point = dist_peak - seg_length * seg;
+    const auto dest_coord = destination<dist_t>(S.standpoint, dist_point, bearing_rad);
 
     // find tile in which the point lies
     const int64_t tile_index = get_tile_index(S, dest_coord.to_deg());
@@ -559,7 +585,7 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
     const tile<double>& H = S.tiles[tile_index].first;
 
     // interpolate to get elevation
-    const double height_point = H.interpolate(dest_coord.to_deg());
+    const dist_t height_point = H.interpolate(dest_coord.to_deg());
     // std::cout << "height: " << height_point << std::endl;
     // if uphill, but allow for slightly wrong peak location
     if (height_point > prev_height && seg > 2) {
@@ -570,7 +596,7 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
     // get coords on canvas
     // std::cout << view_direction_h << ", " <<  view_width/2.0 << ", " <<  bearing_rad << ", " << 1.5*M_PI << std::endl;
     const double x_point = std::fmod(view_direction_h + view_width / 2.0 + bearing_rad + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;        // [px]
-    const double y_point = (view_direction_v + view_height / 2.0 - angle_v(S.z_standpoint, height_point, dist_point)) * pixels_per_rad_v; // [px]
+    const double y_point = (view_direction_v + view_height / 2.0 - angle_v<double>(S.z_standpoint, height_point, dist_point)) * pixels_per_rad_v; // [px]
 
     // draw?
     // std::cout << prev_x << ", " << prev_y << ", " << x_point << ", " << y_point << ", " << dist_point+seg_length/2.0 << std::endl;
@@ -599,7 +625,8 @@ bool canvas::peak_is_visible_v2(const scene& S, const point_feature& peak, const
 
 // test if a peak is visible by attempting to draw a few triangles around it,
 // if the zbuffer admits any pixel to be drawn, the peak is visible
-std::tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_canvas>> canvas::get_visible_peaks(std::vector<point_feature>& peaks, const scene& S) {
+template <typename dist_t>
+std::tuple<std::vector<point_feature_on_canvas<dist_t>>, std::vector<point_feature_on_canvas<dist_t>>> canvas<dist_t>::get_visible_peaks(std::vector<point_feature>& peaks, const scene& S) {
   const double view_direction_h = S.view_dir_h;       // [rad]
   const double view_width = S.view_width;             // [rad]
   const double pixels_per_rad_h = xs() / view_width;  // [px/rad]
@@ -608,8 +635,8 @@ std::tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_ca
   const double pixels_per_rad_v = ys() / view_height; // [px/rad]
   // std::cout << "pprh: " << pixels_per_rad_h << std::endl;
 
-  std::vector<point_feature_on_canvas> visible_peaks;
-  std::vector<point_feature_on_canvas> obscured_peaks;
+  std::vector<point_feature_on_canvas<dist_t>> visible_peaks;
+  std::vector<point_feature_on_canvas<dist_t>> obscured_peaks;
   for (int64_t p = 0; p < std::ssize(peaks); p++) {
     // std::cout << "--- p=" << p << " ---" << std::endl;
     // distance from the peak
@@ -623,7 +650,7 @@ std::tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_ca
       continue;
     }
 
-    const tile<double>& H = S.tiles[tile_index].first;
+    const auto& H = S.tiles[tile_index].first;
 
     // height of the peak, according to elevation data
     const double height_peak = H.interpolate(peaks[p].coords);
@@ -652,13 +679,12 @@ std::tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_ca
 }
 
 
-std::vector<point_feature_on_canvas> canvas::draw_visible_peaks(const std::vector<point_feature_on_canvas>& peaks_vis) {
-  // int n_labels = peaks_vis.size();
-
-  LabelGroups lgs(peaks_vis, xs());
+template <typename dist_t>
+std::vector<point_feature_on_canvas<dist_t>> canvas<dist_t>::draw_visible_peaks(const std::vector<point_feature_on_canvas<dist_t>>& peaks_vis) {
+  LabelGroups<dist_t> lgs(peaks_vis, xs());
 
   // prune ... if the offsets in one group get too large, some of the lower peaks should be omitted
-  std::vector<point_feature_on_canvas> omitted_peaks = lgs.prune();
+  std::vector<point_feature_on_canvas<dist_t>> omitted_peaks = lgs.prune();
   const colour red = {255, 0, 0};
 
   for (int64_t p = 0; p < lgs.size(); p++) {
@@ -708,9 +734,9 @@ std::vector<point_feature_on_canvas> canvas::draw_visible_peaks(const std::vecto
   return omitted_peaks;
 }
 
-
-void canvas::draw_invisible_peaks(const std::vector<point_feature_on_canvas>& peaks_invis,
-                                  const colour& col) {
+template <typename dist_t>
+void canvas<dist_t>::draw_invisible_peaks(const std::vector<point_feature_on_canvas<dist_t>>& peaks_invis,
+                                          const colour& col) {
   for (const auto& peak : peaks_invis) {
     std::cout << peak.pf.name << " is invisible" << std::endl;
     std::cout << "pixel will be written at : " << peak.x << ", " << peak.y << std::endl;
@@ -718,7 +744,8 @@ void canvas::draw_invisible_peaks(const std::vector<point_feature_on_canvas>& pe
   }
 }
 
-void canvas::annotate_islands(const scene& S) {
+template <typename dist_t>
+void canvas<dist_t>::annotate_islands(const scene& S) {
   // read all peaks from all tiles in S
   std::vector<linear_feature> islands;
   // for (auto it=S.tiles.begin(), to=S.tiles.end(); it!=to; it++){
@@ -730,8 +757,11 @@ void canvas::annotate_islands(const scene& S) {
   //   islands.insert(std::end(islands), std::begin(tmp), std::end(tmp));
   // }
 }
+template void canvas<float>::annotate_islands(const scene& S);
+template void canvas<double>::annotate_islands(const scene& S);
 
-void canvas::draw_coast(const scene& S) {
+template <typename dist_t>
+void canvas<dist_t>::draw_coast(const scene& S) {
   // const int width(core.get_width()),
   //     height(core.get_height());
   // read all peaks from all tiles in S
@@ -759,10 +789,10 @@ void canvas::draw_coast(const scene& S) {
   }
 
   // get linear feature on canvas
-  std::set<linear_feature_on_canvas> coasts_oc;
+  std::set<linear_feature_on_canvas<dist_t>> coasts_oc;
   for (const linear_feature& coast : coasts) {
 
-    linear_feature_on_canvas lfoc_tmp(coast, *this, S);
+    linear_feature_on_canvas<dist_t> lfoc_tmp(coast, *this, S);
     std::cout << lfoc_tmp.lf.id << std::endl;
     coasts_oc.insert(lfoc_tmp);
     std::cout << "b" << std::endl;
@@ -771,7 +801,7 @@ void canvas::draw_coast(const scene& S) {
   const colour col = {0, 255, 0};
 
   // do the actual drawing
-  for (const linear_feature_on_canvas& coast_oc : coasts_oc) {
+  for (const linear_feature_on_canvas<dist_t>& coast_oc : coasts_oc) {
     std::cout << "new line feature" << std::endl;
     for (int64_t p = 0; p < std::ssize(coast_oc) - 1; p++) {
       const int64_t x1 = coast_oc.xs[p];
@@ -787,3 +817,5 @@ void canvas::draw_coast(const scene& S) {
     }
   }
 }
+template void canvas<float>::draw_coast(const scene& S) ;
+template void canvas<double>::draw_coast(const scene& S);

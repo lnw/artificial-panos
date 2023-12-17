@@ -8,16 +8,12 @@
 #include "auxiliary.hh"
 #include "latlon.hh"
 
-#define NO_DEPR_DECL_WARNINGS_START _Pragma("GCC diagnostic push")
-_Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
-#define NO_DEPR_DECL_WARNINGS_END _Pragma("GCC diagnostic pop")
+namespace xmlpp {
+class Node;
+}
 
-    NO_DEPR_DECL_WARNINGS_START
-#include <libxml++/libxml++.h>
-    NO_DEPR_DECL_WARNINGS_END
-
-
-    class scene;
+class scene;
+template <typename dist_t>
 class canvas;
 
 struct point_feature {
@@ -26,7 +22,7 @@ struct point_feature {
   int elev; // provided by osm data, otherwise interpolated from elevation data
 
   point_feature(LatLon<double, Unit::deg> ll, std::string n, int e): coords(ll), name(std::move(n)), elev(e) {}
-  point_feature(LatLon<double, Unit::deg> ll, int e): coords(ll), name(""), elev(e) {}
+  point_feature(LatLon<double, Unit::deg> ll, int e): coords(ll), elev(e) {}
   point_feature(LatLon<double, Unit::deg> ll, std::string n): coords(ll), name(std::move(n)), elev() {}
 
   constexpr auto lat() const { return coords.lat(); }
@@ -38,12 +34,14 @@ struct point_feature {
   }
 };
 
+template <typename dist_t>
 struct point_feature_on_canvas {
   point_feature pf;
-  int x, y, dist;
+  int x, y;
+  dist_t dist;
   int xshift;
 
-  point_feature_on_canvas(point_feature _pf, int _x, int _y, int _dist): pf(std::move(_pf)), x(_x), y(_y), dist(_dist), xshift(0) {}
+  point_feature_on_canvas(point_feature _pf, int _x, int _y, dist_t _dist): pf(std::move(_pf)), x(_x), y(_y), dist(_dist), xshift(0) {}
 
   friend std::ostream& operator<<(std::ostream& S, const point_feature_on_canvas& pfc) {
     S << pfc.pf << " at (" << pfc.x << ", " << pfc.y << ", " << pfc.dist << ")";
@@ -53,8 +51,8 @@ struct point_feature_on_canvas {
 
 struct linear_feature {
   std::vector<LatLon<double, Unit::deg>> coords;
-  std::string name = "";
-  size_t id = 0;   // so we can deduplicate between tiles
+  std::string name;
+  size_t id = 0;       // so we can deduplicate between tiles
   bool closed = false; // detect by comparing first and last element
 
   linear_feature(): coords(){};
@@ -73,11 +71,13 @@ struct linear_feature {
   }
 };
 
+template <typename dist_t>
 struct linear_feature_on_canvas {
   linear_feature lf;
-  std::vector<double> xs, ys, dists;
+  std::vector<double> xs, ys;
+  std::vector<dist_t> dists;
 
-  linear_feature_on_canvas(const linear_feature& _lf, const canvas& C, const scene& S);
+  linear_feature_on_canvas(const linear_feature& _lf, const canvas<dist_t>& C, const scene& S);
 
   size_t size() const { return lf.size(); }
 

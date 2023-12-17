@@ -32,18 +32,20 @@ PYBIND11_MODULE(libartpano, m) {
       .def_static("determine_required_tiles", &scene::determine_required_tiles_v); // double, double, double, latlon
 
   // class canvas_t
-  py::class_<canvas_t>(m, "canvas_t")
+  using canvas_t_type = canvas_t<double>;
+  py::class_<canvas_t_type>(m, "canvas_t")
       .def(py::init<int, int>())
-      .def("bucket_fill", &canvas_t::bucket_fill)   // int8, int8, int8
-      .def("render_scene", &canvas_t::render_scene) // scene
-      .def("highlight_edges", &canvas_t::highlight_edges);
+      .def("bucket_fill", &canvas_t_type::bucket_fill)   // int8, int8, int8
+      .def("render_scene", &canvas_t_type::render_scene) // scene
+      .def("highlight_edges", &canvas_t_type::highlight_edges);
 
   // class canvas
-  py::class_<canvas>(m, "canvas")
-      .def(py::init<std::string, canvas_t>())
-      .def("draw_coast", &canvas::draw_coast)             // scene
-      .def("annotate_peaks", &canvas::annotate_peaks)     // scene
-      .def("annotate_islands", &canvas::annotate_islands) // scene
-      .def("label_axis", &canvas::label_axis)             // scene
-      .def("write_png", &canvas::write_png);
+  using canvas_type = canvas<double>;
+  py::class_<canvas_type>(m, "canvas")
+      .def(py::init<std::string, canvas_t_type>())
+      .def("draw_coast", &canvas_type::draw_coast)             // scene
+      .def("annotate_peaks", &canvas_type::annotate_peaks)     // scene
+      .def("annotate_islands", &canvas_type::annotate_islands) // scene
+      .def("label_axis", &canvas_type::label_axis)             // scene
+      .def("write_png", &canvas_type::write_png);
 }

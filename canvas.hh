@@ -17,16 +17,17 @@
 
 class scene;
 struct point_feature;
+template <typename dist_t>
 struct point_feature_on_canvas;
 
 
 int64_t get_tile_index(const scene& S, LatLon<double, Unit::deg> point);
 
 
-template <typename S, typename T>
-class array_zb {
+template <typename dist_t>
+class zbuffered_array {
 public:
-  array_zb(int64_t x, int64_t y): zbuffer_(x, y, std::numeric_limits<S>::max()), arr2d_(x, y, 0) {}
+  zbuffered_array(int64_t x, int64_t y): zbuffer_(x, y, std::numeric_limits<dist_t>::max()), arr2d_(x, y, 0) {}
 
   constexpr int64_t xs() const { return arr2d_.xs(); }
   constexpr int64_t ys() const { return arr2d_.ys(); }
@@ -34,17 +35,17 @@ public:
   constexpr auto& zb() & { return zbuffer_; }
   constexpr const auto& zb() const& { return zbuffer_; }
   constexpr auto&& zb() && { return zbuffer_; }
-  constexpr S zb(int64_t x, int64_t y) const { return zbuffer_[x, y]; }
-  constexpr S& zb(int64_t x, int64_t y) { return zbuffer_[x, y]; }
+  constexpr dist_t zb(int64_t x, int64_t y) const { return zbuffer_[x, y]; }
+  constexpr dist_t& zb(int64_t x, int64_t y) { return zbuffer_[x, y]; }
 
   constexpr auto& a2d() & { return arr2d_; }
   constexpr const auto& a2d() const& { return arr2d_; }
   constexpr auto&& a2d() && { return arr2d_; }
-  constexpr T a2d(int64_t x, int64_t y) const { return arr2d_[x, y]; }
-  constexpr T& a2d(int64_t x, int64_t y) { return arr2d_[x, y]; }
+  constexpr int32_t a2d(int64_t x, int64_t y) const { return arr2d_[x, y]; }
+  constexpr int32_t& a2d(int64_t x, int64_t y) { return arr2d_[x, y]; }
 
-  array_zb operator+(const array_zb& rh) const { return array_zb(*this) += rh; }
-  array_zb& operator+=(const array_zb& rh) {
+  zbuffered_array operator+(const zbuffered_array& rh) const { return zbuffered_array(*this) += rh; }
+  zbuffered_array& operator+=(const zbuffered_array& rh) {
     for (int64_t y = 0; y < ys(); y++) {
       for (int64_t x = 0; x < xs(); x++) {
         if (rh.zb(x, y) < zbuffer_[x, y]) { // rh is closer
@@ -57,11 +58,12 @@ public:
   }
 
 private:
-  array2D<S> zbuffer_;
-  array2D<T> arr2d_;
+  array2D<dist_t> zbuffer_;
+  array2D<int32_t> arr2d_;
 };
 
 
+template <typename dist_t>
 class canvas_t {
 public:
   canvas_t(int64_t xs, int64_t ys): xs_(xs), ys_(ys), buffered_canvas(xs, ys) {}
@@ -73,8 +75,8 @@ public:
   auto& zb() & { return buffered_canvas.zb(); }
   const auto& zb() const& { return buffered_canvas.zb(); }
   auto&& zb() && { return std::move(buffered_canvas).zb(); }
-  double zb(int64_t x, int64_t y) const { return buffered_canvas.zb(x, y); }
-  constexpr double& zb(int64_t x, int64_t y) { return buffered_canvas.zb(x, y); }
+  auto zb(int64_t x, int64_t y) const { return buffered_canvas.zb(x, y); }
+  constexpr auto& zb(int64_t x, int64_t y) { return buffered_canvas.zb(x, y); }
 
   // canvas
   constexpr auto& wc() & { return buffered_canvas.a2d(); }
@@ -89,7 +91,7 @@ public:
   void highlight_edges();
 
   // just write the pixel taking into account the zbuffer
-  void write_pixel_zb(const int64_t x, const int64_t y, const double z, const colour& col) {
+  void write_pixel_zb(const int64_t x, const int64_t y, const dist_t z, const colour& col) {
     if (z < buffered_canvas.zb(x, y)) {
       buffered_canvas.zb(x, y) = z;
       buffered_canvas.a2d(x, y) = int32_t(col);
@@ -102,21 +104,20 @@ public:
   }
 
   // true if any pixel was drawn
-  void draw_triangle(double x1, double y1, double x2, double y2, double x3, double y3, double z,
+  void draw_triangle(double x1, double y1, double x2, double y2, double x3, double y3, dist_t z,
                      const colour& col);
 
   void render_scene(const scene& S);
-
   void render_test();
-
   void bucket_fill(uint8_t r, uint8_t g, uint8_t b);
 
 private:
   int64_t xs_, ys_; // [pixels]
-  array_zb<double, int32_t> buffered_canvas;
+  zbuffered_array<dist_t> buffered_canvas;
 };
 
 
+template <typename dist_t>
 class canvas {
   class gdDel_t {
   public:
@@ -135,7 +136,7 @@ class canvas {
   };
 
 public:
-  canvas(std::string fn, canvas_t core): xs_(core.xs()), ys_(core.ys()), zbuffer(std::move(core).zb()), filename(std::move(fn)), img_ptr(gdImageCreateTrueColor(xs_, ys_), gdDel_t{}) {
+  canvas(std::string fn, canvas_t<dist_t> core): xs_(core.xs()), ys_(core.ys()), zbuffer(std::move(core).zb()), filename(std::move(fn)), img_ptr(gdImageCreateTrueColor(xs_, ys_), gdDel_t{}) {
     const array2D<int32_t> wc(std::move(core).wc());
     // allocate mem
     for (int64_t y = 0; y < ys_; y++)
@@ -158,7 +159,7 @@ public:
   }
 
   // read the zbuffer, return true if the pixel would be drawn
-  constexpr bool would_write_pixel_zb(const int64_t x, const int64_t y, const double z) const {
+  constexpr bool would_write_pixel_zb(const int64_t x, const int64_t y, const dist_t z) const {
     return z < zbuffer[x, y];
   }
 
@@ -166,15 +167,15 @@ public:
   bool would_draw_triangle(double x1, double y1,
                            double x2, double y2,
                            double x3, double y3,
-                           double z) const;
+                           dist_t z) const;
 
   bool draw_line(double x1, double y1,
                  double x2, double y2,
-                 double z,
+                 dist_t z,
                  const colour& col);
   bool would_draw_line(double x1, double y1,
                        double x2, double y2,
-                       double z) const;
+                       dist_t z) const;
 
   void draw_tick(int x_tick, int tick_length, const std::string& str1, const std::string& str2 = "");
 
@@ -186,16 +187,16 @@ public:
 
   void annotate_peaks(const scene& S);
 
-  bool peak_is_visible_v1(const scene& S, const point_feature& peak, double dist_peak, int64_t tile_index) const;
-  bool peak_is_visible_v2(const scene& S, const point_feature& peak, double dist_peak) const;
+  bool peak_is_visible_v1(const scene& S, const point_feature& peak, dist_t dist_peak, int64_t tile_index) const;
+  bool peak_is_visible_v2(const scene& S, const point_feature& peak, dist_t dist_peak) const;
 
   // test if a peak is visible by attempting to draw a few triangles around it,
   // if the zbuffer admits any pixel to be drawn, the peak is visible
-  std::tuple<std::vector<point_feature_on_canvas>, std::vector<point_feature_on_canvas>> get_visible_peaks(std::vector<point_feature>& peaks, const scene& S);
+  std::tuple<std::vector<point_feature_on_canvas<dist_t>>, std::vector<point_feature_on_canvas<dist_t>>> get_visible_peaks(std::vector<point_feature>& peaks, const scene& S);
 
-  std::vector<point_feature_on_canvas> draw_visible_peaks(const std::vector<point_feature_on_canvas>& peaks_vis);
+  std::vector<point_feature_on_canvas<dist_t>> draw_visible_peaks(const std::vector<point_feature_on_canvas<dist_t>>& peaks_vis);
 
-  void draw_invisible_peaks(const std::vector<point_feature_on_canvas>& peaks_invis,
+  void draw_invisible_peaks(const std::vector<point_feature_on_canvas<dist_t>>& peaks_invis,
                             const colour& col);
 
   void annotate_islands(const scene& S);
@@ -204,7 +205,7 @@ public:
 private:
   int64_t xs_;
   int64_t ys_;
-  array2D<double> zbuffer;
+  array2D<dist_t> zbuffer;
   std::string filename;
   std::unique_ptr<gdImage, gdDel_t> img_ptr; // which contains: int** tpixels
 };

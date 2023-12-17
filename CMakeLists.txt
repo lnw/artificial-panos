@@ -31,15 +31,18 @@ add_library(ap SHARED
             canvas.cc
             canvas.hh
             colour.hh
+            degrad.hh
             geometry.hh
             labelgroup.cc
             labelgroup.hh
+            latlon.hh
             mapitems.cc
             mapitems.hh
             scene.cc
             scene.hh
             tile.hh
 )
+# target_compile_definitions(ap PRIVATE GRAPHICS_DEBUG)
 target_include_directories(ap SYSTEM PRIVATE ${libxml++_INCLUDE_DIR} ${libxml++_config_INCLUDE_DIR})
 target_include_directories(ap SYSTEM PRIVATE ${glib_INCLUDE_DIR} ${glib_config_INCLUDE_DIR} ${glibmm_INCLUDE_DIR} ${glibmm_config_INCLUDE_DIR})
 target_link_libraries(ap ${libxml++_LIBRARIES})
