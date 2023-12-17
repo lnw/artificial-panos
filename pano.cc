@@ -24,17 +24,17 @@ int main(int ac, char** av) {
 
   const std::vector<elevation_source> sources_to_consider({elevation_source::view1, elevation_source::srtm1, elevation_source::view3, elevation_source::srtm3});
 
-  scene S({pos_lat, pos_lon}, pos_z, view_direction_h, view_width, view_direction_v, view_height, range, sources_to_consider);
+  scene<float> S({pos_lat, pos_lon}, pos_z, view_direction_h, view_width, view_direction_v, view_height, range, sources_to_consider);
 
   const std::string filename = "out.png";
   const int view_x(10000), view_y(1500); // pixels
 
-  canvas_t<double> V(view_x, view_y);
+  canvas_t<float> V(view_x, view_y);
   V.bucket_fill(100, 100, 100);
   V.render_scene(S);
   V.highlight_edges();
 
-  canvas<double> VV(filename, std::move(V));
+  canvas<float> VV(filename, std::move(V));
   // VV.draw_coast(S);
   VV.annotate_peaks(S);
   VV.label_axis(S);

@@ -17,16 +17,16 @@ struct group {
 };
 
 // all labels are organised in groups, where all labels in one group touch each other
-template <typename dist_t>
+template <typename T>
 class LabelGroups {
   // a vector of all point features, ordered from left to right
-  std::vector<point_feature_on_canvas<dist_t>> pfocs;
+  std::vector<point_feature_on_canvas<T>> pfocs;
   // one entry per group, also ordered from left to right, so g[n].last_index + 1 = g[n+1].first_index
   std::vector<group> g;
   int canvas_width;
 
 public:
-  LabelGroups(const std::vector<point_feature_on_canvas<dist_t>>& _pfocs, int cw);
+  LabelGroups(const std::vector<point_feature_on_canvas<T>>& _pfocs, int cw);
 
   // gather groups from indices 'first' through 'last', in a selfconsistent way
   // first and last are indices of groups (not pfocs)
@@ -41,7 +41,7 @@ public:
   void dissociate_group(const int64_t ind);
 
   // removes labels and returns them such that we have a list of which are omitted
-  std::vector<point_feature_on_canvas<dist_t>> prune();
+  std::vector<point_feature_on_canvas<T>> prune();
 
   // remove label 'index' which is in labelgroup 'lg' from LabelGroups
   void remove_label(int index, int lg);

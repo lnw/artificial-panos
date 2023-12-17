@@ -12,18 +12,20 @@ namespace xmlpp {
 class Node;
 }
 
+template <typename T>
 class scene;
-template <typename dist_t>
+template <typename T>
 class canvas;
 
+template <typename T>
 struct point_feature {
-  LatLon<double, Unit::deg> coords;
+  LatLon<T, Unit::deg> coords;
   std::string name;
   int elev; // provided by osm data, otherwise interpolated from elevation data
 
-  point_feature(LatLon<double, Unit::deg> ll, std::string n, int e): coords(ll), name(std::move(n)), elev(e) {}
-  point_feature(LatLon<double, Unit::deg> ll, int e): coords(ll), elev(e) {}
-  point_feature(LatLon<double, Unit::deg> ll, std::string n): coords(ll), name(std::move(n)), elev() {}
+  point_feature(LatLon<T, Unit::deg> ll, std::string n, int e): coords(ll), name(std::move(n)), elev(e) {}
+  point_feature(LatLon<T, Unit::deg> ll, int e): coords(ll), elev(e) {}
+  point_feature(LatLon<T, Unit::deg> ll, std::string n): coords(ll), name(std::move(n)), elev() {}
 
   constexpr auto lat() const { return coords.lat(); }
   constexpr auto lon() const { return coords.lon(); }
@@ -34,14 +36,14 @@ struct point_feature {
   }
 };
 
-template <typename dist_t>
+template <typename T>
 struct point_feature_on_canvas {
-  point_feature pf;
+  point_feature<T> pf;
   int x, y;
-  dist_t dist;
-  int xshift;
+  T dist;
+  int64_t xshift = 0;
 
-  point_feature_on_canvas(point_feature _pf, int _x, int _y, dist_t _dist): pf(std::move(_pf)), x(_x), y(_y), dist(_dist), xshift(0) {}
+  point_feature_on_canvas(point_feature<T> _pf, int _x, int _y, T _dist): pf(std::move(_pf)), x(_x), y(_y), dist(_dist) {}
 
   friend std::ostream& operator<<(std::ostream& S, const point_feature_on_canvas& pfc) {
     S << pfc.pf << " at (" << pfc.x << ", " << pfc.y << ", " << pfc.dist << ")";
@@ -49,19 +51,20 @@ struct point_feature_on_canvas {
   }
 };
 
+template <typename T>
 struct linear_feature {
-  std::vector<LatLon<double, Unit::deg>> coords;
+  std::vector<LatLon<T, Unit::deg>> coords;
   std::string name;
   size_t id = 0;       // so we can deduplicate between tiles
   bool closed = false; // detect by comparing first and last element
 
-  linear_feature(): coords(){};
+  linear_feature() = default;
   explicit linear_feature(int N): coords(N){};
 
   bool operator<(const linear_feature& lf) const { return this->id < lf.id; };
 
   size_t size() const { return coords.size(); }
-  void append(const LatLon<double, Unit::deg>& p) {
+  void append(const LatLon<T, Unit::deg>& p) {
     coords.push_back(p);
   }
 
@@ -71,13 +74,13 @@ struct linear_feature {
   }
 };
 
-template <typename dist_t>
+template <typename T>
 struct linear_feature_on_canvas {
-  linear_feature lf;
-  std::vector<double> xs, ys;
-  std::vector<dist_t> dists;
+  linear_feature<T> lf;
+  std::vector<T> xs, ys;
+  std::vector<T> dists;
 
-  linear_feature_on_canvas(const linear_feature& _lf, const canvas<dist_t>& C, const scene& S);
+  linear_feature_on_canvas(const linear_feature<T>& _lf, const canvas<T>& C, const scene<T>& S);
 
   size_t size() const { return lf.size(); }
 
@@ -90,16 +93,21 @@ struct linear_feature_on_canvas {
 };
 
 // parses the xml object, appends peaks
-void parse_peaks_gpx(const xmlpp::Node* node, std::vector<point_feature>& peaks);
+template <typename T>
+void parse_peaks_gpx(const xmlpp::Node* node, std::vector<point_feature<T>>& peaks);
 
 // parses the xml object, first gathers all coordinates with IDs, and all
 // ways/realtions with lists of ID; then compiles vectors of points, ie linear
 // features
-void parse_coast_gpx(const xmlpp::Node* node, std::vector<linear_feature>& coasts);
+template <typename T>
+void parse_coast_gpx(const xmlpp::Node* node, std::vector<linear_feature<T>>& coasts);
 
 // read plain xml
-std::vector<point_feature> read_peaks_osm(const std::string& filename);
+template <typename T>
+std::vector<point_feature<T>> read_peaks_osm(const std::string& filename);
 
-std::vector<linear_feature> read_coast_osm(const std::string& filename);
+template <typename T>
+std::vector<linear_feature<T>> read_coast_osm(const std::string& filename);
 
-std::vector<linear_feature> read_islands_osm(const std::string& filename);
+template <typename T>
+std::vector<linear_feature<T>> read_islands_osm(const std::string& filename);

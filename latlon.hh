@@ -30,13 +30,13 @@ public:
   template <typename V = void>
   requires(UU == Unit::rad)
   constexpr auto to_deg() const noexcept {
-    return LatLon<T, Unit::deg>(lat(), lon()) * rad2deg;
+    return LatLon<T, Unit::deg>(lat(), lon()) * rad2deg_v<T>;
   }
 
   template <typename V = void>
   requires(UU == Unit::deg)
   constexpr auto to_rad() const noexcept {
-    return LatLon<T, Unit::rad>(lat(), lon()) * deg2rad;
+    return LatLon<T, Unit::rad>(lat(), lon()) * deg2rad_v<T>;
   }
 
   template <typename V>

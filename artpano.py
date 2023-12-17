@@ -142,7 +142,7 @@ def main():
     # signal.signal(signal.SIGINT, signal_handler)
     args = parseCommandline()
     print(args)
-    pos = ap.latlondouble(args.pos_lat, args.pos_lon)
+    pos = ap.latlonfp(args.pos_lat, args.pos_lon)
     requiredTiles_ll = ap.scene.determine_required_tiles(args.view_width, args.range, args.view_dir_h, pos)
     requiredTiles = ap.vll2vp_int64(requiredTiles_ll)
     print("required tiles: " + str(requiredTiles))

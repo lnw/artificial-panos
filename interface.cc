@@ -13,9 +13,9 @@ namespace py = pybind11;
 PYBIND11_MODULE(libartpano, m) {
   m.doc() = "documentation string"; // optional
 
-  py::class_<LatLon<double, Unit::rad>>(m, "latlondouble")
-      .def(py::init<double, double>());
-  py::class_<LatLon<int64_t, Unit::deg>>(m, "latlonint")
+  py::class_<LatLon<float, Unit::rad>>(m, "latlonfp")
+      .def(py::init<float, float>());
+  py::class_<LatLon<int64_t, Unit::deg>>(m, "latlonintegral")
       .def(py::init<int64_t, int64_t>());
 
   m.def("vll2vp_int64", &vll2vp);
@@ -27,12 +27,13 @@ PYBIND11_MODULE(libartpano, m) {
       .value("view3", elevation_source::view3);
 
   // class scene
-  py::class_<scene>(m, "scene")
-      .def(py::init<LatLon<double, Unit::rad>, double, double, double, double, double, double, std::vector<elevation_source>>())
-      .def_static("determine_required_tiles", &scene::determine_required_tiles_v); // double, double, double, latlon
+  using scene_type = scene<float>;
+  py::class_<scene_type>(m, "scene")
+      .def(py::init<LatLon<float, Unit::rad>, float, float, float, float, float, float, std::vector<elevation_source>>())
+      .def_static("determine_required_tiles", &scene_type::determine_required_tiles_v); // double, double, double, latlon
 
   // class canvas_t
-  using canvas_t_type = canvas_t<double>;
+  using canvas_t_type = canvas_t<float>;
   py::class_<canvas_t_type>(m, "canvas_t")
       .def(py::init<int, int>())
       .def("bucket_fill", &canvas_t_type::bucket_fill)   // int8, int8, int8
@@ -40,7 +41,7 @@ PYBIND11_MODULE(libartpano, m) {
       .def("highlight_edges", &canvas_t_type::highlight_edges);
 
   // class canvas
-  using canvas_type = canvas<double>;
+  using canvas_type = canvas<float>;
   py::class_<canvas_type>(m, "canvas")
       .def(py::init<std::string, canvas_t_type>())
       .def("draw_coast", &canvas_type::draw_coast)             // scene

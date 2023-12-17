@@ -11,11 +11,11 @@
 
 const int label_width = 18;
 
-template <typename dist_t>
-LabelGroups<dist_t>::LabelGroups(const std::vector<point_feature_on_canvas<dist_t>>& _pfocs, int cw): pfocs(_pfocs), canvas_width(cw) {
+template <typename T>
+LabelGroups<T>::LabelGroups(const std::vector<point_feature_on_canvas<T>>& _pfocs, int cw): pfocs(_pfocs), canvas_width(cw) {
   // sort by x from left to right
   std::sort(pfocs.begin(), pfocs.end(),
-            [](const point_feature_on_canvas<dist_t>& pfoc1, const point_feature_on_canvas<dist_t>& pfoc2) { return pfoc1.x < pfoc2.x; });
+            [](const point_feature_on_canvas<T>& pfoc1, const point_feature_on_canvas<T>& pfoc2) { return pfoc1.x < pfoc2.x; });
   // one new group for each label
   g.resize(pfocs.size());
   for (size_t i = 0; i < g.size(); i++) {
@@ -43,8 +43,8 @@ template LabelGroups<double>::LabelGroups(const std::vector<point_feature_on_can
 // gather groups from indices 'first' through 'last', in a selfconsistent way
 // first and last are indices of groups (not pfocs)
 // return number of resulting groups
-template <typename dist_t>
-int LabelGroups<dist_t>::gather_groups(int first, int last) {
+template <typename T>
+int LabelGroups<T>::gather_groups(int first, int last) {
   assert(last < static_cast<int>(g.size()));
   assert(first <= static_cast<int>(last));
   if (last == first)
@@ -90,8 +90,8 @@ int LabelGroups<dist_t>::gather_groups(int first, int last) {
 
 // assign xshifts to labels in one or more groups
 // first and last are indices of groups
-template <typename dist_t>
-void LabelGroups<dist_t>::assign_xshifts(int first, int last) {
+template <typename T>
+void LabelGroups<T>::assign_xshifts(int first, int last) {
   assert(last < static_cast<int>(g.size()));
   assert(first <= static_cast<int>(last));
   // std::cout << "assign XS " << first << " to " << last << " (from " << g.size()<< ")" << std::endl;
@@ -106,8 +106,8 @@ void LabelGroups<dist_t>::assign_xshifts(int first, int last) {
 
 
 // completely dissociate the group with index 'ind' into one-label groups
-template <typename dist_t>
-void LabelGroups<dist_t>::dissociate_group(const int64_t ind) {
+template <typename T>
+void LabelGroups<T>::dissociate_group(const int64_t ind) {
   assert(ind < std::ssize(g));
   const int64_t group_size(g[ind].last_index - g[ind].first_index + 1);
   std::vector<group> to_be_inserted;
@@ -124,10 +124,10 @@ void LabelGroups<dist_t>::dissociate_group(const int64_t ind) {
 
 
 // removes labels and returns them such that we have a list of which are omitted
-template <typename dist_t>
-std::vector<point_feature_on_canvas<dist_t>> LabelGroups<dist_t>::prune() {
+template <typename T>
+std::vector<point_feature_on_canvas<T>> LabelGroups<T>::prune() {
   // std::cout << "starting prune" << std::endl;
-  std::vector<point_feature_on_canvas<dist_t>> removed_labels;
+  std::vector<point_feature_on_canvas<T>> removed_labels;
 
   // iterate over labelgroups by index (because iterators will be invalidated)
   for (size_t lg = 0; lg < g.size(); lg++) {
@@ -148,16 +148,16 @@ std::vector<point_feature_on_canvas<dist_t>> LabelGroups<dist_t>::prune() {
       }
 
       if (delete_something) {
-        double slope = 0;
-        int ind_lower;
+        T slope = 0;
+        int64_t ind_lower;
         for (int m = g[lg].first_index; m < g[lg].last_index; m++) { // triangular w/o diagonal
           for (int n = m + 1; n <= g[lg].last_index; n++) {
-            const double e1 = pfocs[m].pf.elev,
+            const T e1 = pfocs[m].pf.elev,
                          e2 = pfocs[n].pf.elev;
-            const double d_ele = e1 - e2;
-            const auto pos1 = pfocs[m].pf.coords.to_rad(); /// FIXME rad/deg?
+            const T d_ele = e1 - e2;
+            const auto pos1 = pfocs[m].pf.coords.to_rad();
             const auto pos2 = pfocs[n].pf.coords.to_rad();
-            const dist_t d_dist = distance_atan<dist_t>(pos1, pos2);
+            const T d_dist = distance_atan(pos1, pos2);
             if (d_ele / d_dist > slope) {
               slope = d_ele / d_dist;
               ind_lower = n;
@@ -189,8 +189,8 @@ template std::vector<point_feature_on_canvas<double>> LabelGroups<double>::prune
 
 
 // remove label 'index' which is in labelgroup 'lg' from LabelGroups
-template <typename dist_t>
-void LabelGroups<dist_t>::remove_label(int index, int lg) {
+template <typename T>
+void LabelGroups<T>::remove_label(int index, int lg) {
   // std::cout << "remove " << index << " from " << lg << " ..." << flush;
   pfocs.erase(pfocs.begin() + index);
   g[lg].last_index--;

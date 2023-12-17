@@ -18,20 +18,24 @@ inline bool file_accessable(const fs::path& fp) {
   return f.good();
 }
 
-scene::scene(LatLon<double, Unit::rad> coords, double z, double vdirh, double vw, double vdirv, double vh, double vdist, const std::vector<elevation_source>& _sources): standpoint(coords), z_standpoint(z), view_dir_h(vdirh), view_width(vw), view_dir_v(vdirv), view_height(vh), view_range(vdist), sources(_sources) {
+template <typename T>
+scene<T>::scene(LatLon<T, Unit::rad> coords, T z, T vdirh, T vw, T vdirv, T vh, T vdist, const std::vector<elevation_source>& _sources): standpoint(coords), z_standpoint(z), view_dir_h(vdirh), view_width(vw), view_dir_v(vdirv), view_height(vh), view_range(vdist), sources(_sources) {
   const std::vector<LatLon<int64_t, Unit::deg>> required_tiles = determine_required_tiles_v(view_width, view_range, view_dir_h, standpoint);
   std::cout << "required_tiles: " << required_tiles << std::endl;
   tiles = read_elevation_data(required_tiles);
   if (z_standpoint == -1) {
-    const double z_offset = 10; // assume we are floating in some metres above ground to avoid artefacts
+    const T z_offset = 10.0; // assume we are floating in some metres above ground to avoid artefacts
     z_standpoint = elevation_at_standpoint() + z_offset;
     std::cout << "overwriting the elevation: " << z_standpoint << std::endl;
   }
 }
+template scene<float>::scene(LatLon<float, Unit::rad> coords, float z, float vdirh, float vw, float vdirv, float vh, float vdist, const std::vector<elevation_source>& _sources);
+template scene<double>::scene(LatLon<double, Unit::rad> coords, double z, double vdirh, double vw, double vdirv, double vh, double vdist, const std::vector<elevation_source>& _sources);
 
 
-std::vector<std::pair<tile<double>, tile<double>>> scene::read_elevation_data(const std::vector<LatLon<int64_t, Unit::deg>>& required_tiles) const {
-  std::vector<std::pair<tile<double>, tile<double>>> res(required_tiles.size());
+template <typename T>
+std::vector<std::pair<tile<T>, tile<T>>> scene<T>::read_elevation_data(const std::vector<LatLon<int64_t, Unit::deg>>& required_tiles) const {
+  std::vector<std::pair<tile<T>, tile<T>>> res(required_tiles.size());
 #pragma omp parallel for shared(res)
   for (const auto& [tile_index, required_tile] : std::ranges::views::enumerate(required_tiles)) {
     const auto [ref_lat, ref_lon] = required_tile;
@@ -78,7 +82,8 @@ std::vector<std::pair<tile<double>, tile<double>>> scene::read_elevation_data(co
 }
 
 
-double scene::elevation_at_standpoint() const {
+template <typename T>
+T scene<T>::elevation_at_standpoint() const {
   auto it = std::find_if(tiles.begin(), tiles.end(),
                          [&](const auto& p) { return (p.first.lat() == std::floor(standpoint.to_deg().lat())) && (p.first.lon() == std::floor(standpoint.to_deg().lon())); });
   if (it == tiles.end()) {
