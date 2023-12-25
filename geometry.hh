@@ -111,7 +111,7 @@ T angle_v(const T elevation_ref /* [m] */, const T elevation /* [m] */, const T 
 }
 
 template <typename T>
-T angle_v_scaled(const T elevation_ref, const T elevation, const T dist, float factor) {
+T angle_v_scaled(const T elevation_ref, const T elevation, const T dist, const T factor) {
   auto angle = angle_v(elevation_ref, elevation, dist); // [rad]
   if (angle < 0)
     angle *= factor;

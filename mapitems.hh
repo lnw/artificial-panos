@@ -8,8 +8,8 @@
 #include "auxiliary.hh"
 #include "latlon.hh"
 
-namespace xmlpp {
-class Node;
+namespace tinyxml2 {
+class XMLElement;
 }
 
 template <typename T>
@@ -94,13 +94,13 @@ struct linear_feature_on_canvas {
 
 // parses the xml object, appends peaks
 template <typename T>
-void parse_peaks_gpx(const xmlpp::Node* node, std::vector<point_feature<T>>& peaks);
+void parse_peaks_gpx(const tinyxml2::XMLElement* node, std::vector<point_feature<T>>& peaks);
 
 // parses the xml object, first gathers all coordinates with IDs, and all
 // ways/realtions with lists of ID; then compiles vectors of points, ie linear
 // features
 template <typename T>
-void parse_coast_gpx(const xmlpp::Node* node, std::vector<linear_feature<T>>& coasts);
+void parse_coast_gpx(const tinyxml2::XMLElement* node, std::vector<linear_feature<T>>& coasts);
 
 // read plain xml
 template <typename T>

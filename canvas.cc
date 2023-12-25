@@ -37,7 +37,11 @@ constexpr colour colour_scheme1(float dist) {
 template <typename T>
 int64_t get_tile_index(const scene<T>& S, LatLon<T, Unit::deg> point) {
   // find the tile in which the point is located, continue if none
+#ifdef __clang__
+  const auto lat = point.lat(), lon = point.lon();
+#else
   const auto [lat, lon] = point;
+#endif
   auto it = std::find_if(S.tiles.begin(), S.tiles.end(), [=](const auto& tile) { return tile.first.lat() == std::floor(lat) && tile.first.lon() == std::floor(lon); });
   const int64_t tile_index = (it != S.tiles.end()) ? std::distance(S.tiles.begin(), it) : -1;
   if (tile_index == -1) {

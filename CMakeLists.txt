@@ -16,9 +16,7 @@ set(CMAKE_CXX_FLAGS "-march=native")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall -Wshadow -Wpedantic -fsanitize=undefined")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 
-find_package(libxml++ REQUIRED)
-# message(STATUS "libxml++ incl dir ${libxml++_INCLUDE_DIR}")
-# message(STATUS "glibmm incl dir ${glibmm_INCLUDE_DIR}")
+find_package(tinyxml2 REQUIRED)
 
 find_package(GD REQUIRED)
 # message(STATUS "libGD libs ${GD_LIBRARY}")
@@ -43,9 +41,7 @@ add_library(ap SHARED
             tile.hh
 )
 # target_compile_definitions(ap PRIVATE GRAPHICS_DEBUG)
-target_include_directories(ap SYSTEM PRIVATE ${libxml++_INCLUDE_DIR} ${libxml++_config_INCLUDE_DIR})
-target_include_directories(ap SYSTEM PRIVATE ${glib_INCLUDE_DIR} ${glib_config_INCLUDE_DIR} ${glibmm_INCLUDE_DIR} ${glibmm_config_INCLUDE_DIR})
-target_link_libraries(ap ${libxml++_LIBRARIES})
+target_link_libraries(ap tinyxml2)
 target_link_libraries(ap ${GD_LIBRARY})
 target_link_libraries(ap OpenMP::OpenMP_CXX)
 

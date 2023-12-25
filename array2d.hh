@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <iostream>
 #include <vector>
 
 #include "auxiliary.hh"

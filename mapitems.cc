@@ -1,4 +1,3 @@
-
 #include <climits>
 #include <iomanip>
 #include <iostream>
@@ -12,14 +11,7 @@
 #include "scene.hh"
 #include "tile.hh"
 
-#define NO_DEPR_DECL_WARNINGS_START _Pragma("GCC diagnostic push")
-_Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
-#define NO_DEPR_DECL_WARNINGS_END _Pragma("GCC diagnostic pop")
-
-NO_DEPR_DECL_WARNINGS_START
-#include <libxml++/libxml++.h>
-NO_DEPR_DECL_WARNINGS_END
-
+#include <tinyxml2.h>
 
 template <typename T>
 linear_feature_on_canvas<T>::linear_feature_on_canvas(const linear_feature<T>& _lf, const canvas<T>& C, const scene<T>& S): lf(_lf) {
@@ -68,42 +60,35 @@ template linear_feature_on_canvas<double>::linear_feature_on_canvas(const linear
 
 // parses the xml object, appends peaks
 template <typename T>
-void parse_peaks_gpx(const xmlpp::Node* node, std::vector<point_feature<T>>& peaks) {
-  const auto* nodeContent = dynamic_cast<const xmlpp::ContentNode*>(node);
-  // const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(node);
-  // const xmlpp::CommentNode* nodeComment = dynamic_cast<const xmlpp::CommentNode*>(node);
+void parse_peaks_gpx(const tinyxml2::XMLElement* node, std::vector<point_feature<T>>& peaks) {
 
-  if (node->get_name() == "node") { // the only interesting leaf
-    const auto* nodeElement = dynamic_cast<const xmlpp::Element*>(node);
+  if (std::strcmp(node->Name(), "node") == 0) { // the only leaf interesting to us
     // lat und lon are attributes of 'node'
-    const LatLon<T, Unit::deg> ll{convert_from_stringish<T>(nodeElement->get_attribute("lat")->get_value()),
-                                  convert_from_stringish<T>(nodeElement->get_attribute("lon")->get_value())};
-    // std::cout << nodeElement->get_attribute("lat")->get_value() << std::endl;
-    // std::cout << nodeElement->get_attribute("lon")->get_value() << std::endl;
+    const T lat = node->FloatAttribute("lat");
+    const T lon = node->FloatAttribute("lon");
     // std::cout << lat << ", " << lon << std::endl;
     T ele = 0;
     std::string name;
-    for (const xmlpp::Node* child : node->get_children()) {
-      if (child->get_name() == "tag") {
-        const auto* child_el = dynamic_cast<const xmlpp::Element*>(child);
+    for (const auto* child = node->FirstChildElement(); child != 0; child = child->NextSiblingElement()) {
+      if (std::strcmp(child->Name(), "tag") == 0) {
         // std::cout << "looking at childnodes" << std::endl;
-        if (child_el->get_attribute("k")->get_value() == "ele") {
+        if (std::strcmp(child->Attribute("k"), "ele") == 0) {
           // std::cout << "ele found" << std::endl;
-          ele = convert_from_stringish<T>(child_el->get_attribute("v")->get_value());
+          ele = child->FloatAttribute("v");
           // std::cout << "ele: " << ele << std::endl;
         }
-        if (child_el->get_attribute("k")->get_value() == "name") {
+        if (std::strcmp(child->Attribute("k"), "name") == 0) {
           // std::cout << "name found" << std::endl;
-          name = child_el->get_attribute("v")->get_value();
+          name = child->Attribute("v");
           // std::cout << "name: " << name << std::endl;
         }
       }
     }
-    peaks.emplace_back(ll, name, ele);
+    peaks.emplace_back(LatLon<T, Unit::deg>(lat, lon), name, ele);
   }
-  else if (nodeContent == nullptr) { // not a leaf
+  else if (!node->NoChildren()) { // not a leaf
     // Recurse through child nodes:
-    for (const xmlpp::Node* child : node->get_children()) {
+    for (const auto* child = node->FirstChildElement(); child != 0; child = child->NextSiblingElement()) {
       parse_peaks_gpx(child, peaks);
     }
   }
@@ -114,23 +99,20 @@ void parse_peaks_gpx(const xmlpp::Node* node, std::vector<point_feature<T>>& pea
 // ways/realtions with lists of ID; then compiles vectors of points, ie linear
 // features
 template <typename T>
-void gather_points(const xmlpp::Node* node, std::unordered_map<size_t, LatLon<T, Unit::deg>>& points) {
-  const auto* nodeContent = dynamic_cast<const xmlpp::ContentNode*>(node);
-  // const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(node);
-  // const xmlpp::CommentNode* nodeComment = dynamic_cast<const xmlpp::CommentNode*>(node);
+void gather_points(const tinyxml2::XMLElement* node, std::unordered_map<uint64_t, LatLon<T, Unit::deg>>& points) {
 
-  if (node->get_name() == "node") {
-    const auto* nodeElement = dynamic_cast<const xmlpp::Element*>(node);
+  if (std::strcmp(node->Name(), "node") == 0) {
+    const auto* nodeElement = node->ToElement();
     // id, lat, and lon are attributes of 'node'
-    const size_t id = convert_from_stringish<size_t>(nodeElement->get_attribute("id")->get_value());
-    const T lat = convert_from_stringish<T>(nodeElement->get_attribute("lat")->get_value());
-    const T lon = convert_from_stringish<T>(nodeElement->get_attribute("lon")->get_value());
+    const uint64_t id = nodeElement->Unsigned64Attribute("id");
+    const T lat = nodeElement->FloatAttribute("lat");
+    const T lon = nodeElement->FloatAttribute("lon");
     // std::cout << id << ", " << lat << ", " << lon << std::endl;
     points.insert({id, LatLon<T, Unit::deg>(lat, lon)});
   }
-  else if (nodeContent == nullptr) {
+  else if (!node->NoChildren()) { // not a leaf
     // Recurse through child nodes:
-    for (const xmlpp::Node* child : node->get_children()) {
+    for (const auto* child = node->FirstChildElement(); child != 0; child = child->NextSiblingElement()) {
       gather_points(child, points);
     }
   }
@@ -139,20 +121,15 @@ void gather_points(const xmlpp::Node* node, std::unordered_map<size_t, LatLon<T,
 // parses the xml object, first gathers all coordinates with IDs, and all
 // ways/realtions with lists of ID; then compiles vectors of points, ie linear
 // features
-void gather_ways(const xmlpp::Node* node, std::vector<std::pair<std::vector<size_t>, size_t>>& ways) {
-  const auto* nodeContent = dynamic_cast<const xmlpp::ContentNode*>(node);
-  //   const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(node);
-  //   const xmlpp::CommentNode* nodeComment = dynamic_cast<const xmlpp::CommentNode*>(node);
-
+void gather_ways(const tinyxml2::XMLElement* node, std::vector<std::pair<std::vector<uint64_t>, uint64_t>>& ways) {
   // 'way' contains a list of 'nd'-nodes
-  if (node->get_name() == "way") {
-    const auto* el = dynamic_cast<const xmlpp::Element*>(node);
-    const size_t way_id = convert_from_stringish<size_t>(el->get_attribute("id")->get_value());
-    std::vector<size_t> way_tmp;
-    for (const xmlpp::Node* child : node->get_children()) {
-      if (child->get_name() == "nd") {
-        const auto* child_el = dynamic_cast<const xmlpp::Element*>(child);
-        const size_t id = convert_from_stringish<size_t>(child_el->get_attribute("ref")->get_value());
+  if (std::strcmp(node->Name(), "way") == 0) {
+    const auto* nodeElement = node->ToElement();
+    const uint64_t way_id = nodeElement->Unsigned64Attribute("id");
+    std::vector<uint64_t> way_tmp;
+    for (const auto* child = node->FirstChildElement(); child != 0; child = child->NextSiblingElement()) {
+      if (std::strcmp(child->Name(), "nd") == 0) {
+        const uint64_t id = child->ToElement()->Unsigned64Attribute("ref");
         way_tmp.push_back(id);
         // std::cout << id << std::endl;
       }
@@ -162,9 +139,9 @@ void gather_ways(const xmlpp::Node* node, std::vector<std::pair<std::vector<size
       ways.emplace_back(way_tmp, way_id);
     }
   }
-  else if (nodeContent == nullptr) {
+  else if (!node->NoChildren()) { // not a leaf
     // Recurse through child nodes:
-    for (const xmlpp::Node* child : node->get_children()) {
+    for (const auto* child = node->FirstChildElement(); child != 0; child = child->NextSiblingElement()) {
       gather_ways(child, ways);
     }
   }
@@ -178,13 +155,13 @@ std::vector<point_feature<T>> read_peaks_osm(const std::string& filename) {
   std::vector<point_feature<T>> peaks;
 
   try {
-    xmlpp::DomParser parser;
-    parser.parse_file(filename);
-    if (parser) {
-      // find root node
-      const xmlpp::Node* pNode = parser.get_document()->get_root_node();
-      // print recursively
-      parse_peaks_gpx(pNode, peaks);
+    tinyxml2::XMLDocument xml;
+    xml.LoadFile(filename.c_str());
+
+    if (!xml.Error()) {
+      const tinyxml2::XMLElement* rootNode = xml.RootElement();
+      // works recursively
+      parse_peaks_gpx(rootNode, peaks);
     }
   }
   catch (const std::exception& ex) {
@@ -202,20 +179,20 @@ template <typename T>
 std::vector<linear_feature<T>> read_coast_osm(const std::string& filename) {
   std::cout << "attempting to parse: " << filename << " ..." << std::flush;
 
-  std::unordered_map<size_t, LatLon<T, Unit::deg>> nodes;
-  std::vector<std::pair<std::vector<size_t>, size_t>> ways;
+  std::unordered_map<uint64_t, LatLon<T, Unit::deg>> nodes;
+  std::vector<std::pair<std::vector<uint64_t>, uint64_t>> ways;
   try {
-    xmlpp::DomParser parser;
-    parser.parse_file(filename);
-    if (parser) {
-      // find root node
-      const xmlpp::Node* root = parser.get_document()->get_root_node();
+    tinyxml2::XMLDocument xml;
+    xml.LoadFile(filename.c_str());
+
+    if (!xml.Error()) {
+      const tinyxml2::XMLElement* rootNode = xml.RootElement();
       // collect all coordinates/IDs
-      gather_points(root, nodes);
+      gather_points(rootNode, nodes);
       std::cout << "found " << nodes.size() << " nodes" << std::endl;
 
       // collect ways
-      gather_ways(root, ways);
+      gather_ways(rootNode, ways);
       std::cout << "found " << ways.size() << " ways" << std::endl;
     }
   }
@@ -229,7 +206,7 @@ std::vector<linear_feature<T>> read_coast_osm(const std::string& filename) {
   for (int64_t i = 0; i < std::size(ways); i++) {
     linear_feature<T> lf_tmp;
     for (int j = 0; j < static_cast<int>(ways[i].first.size()); j++) {
-      const size_t id = ways[i].first[j];
+      const uint64_t id = ways[i].first[j];
       lf_tmp.append(nodes[id]);
     }
     lf_tmp.id = ways[i].second;
@@ -250,13 +227,13 @@ std::vector<linear_feature<T>> read_islands_osm(const std::string& filename) {
   std::vector<linear_feature<T>> islands;
 
   try {
-    xmlpp::DomParser parser;
-    parser.parse_file(filename);
-    if (parser) {
+    tinyxml2::XMLDocument xml;
+    xml.LoadFile(filename.c_str());
+    if (!xml.Error()) {
       // find root node
-      const xmlpp::Node* pNode = parser.get_document()->get_root_node();
+      const tinyxml2::XMLElement* rootNode = xml.RootElement();
       // print recursively
-      //  parse_island_gpx(pNode, islands);
+      //  parse_island_gpx(rootNode, islands);
     }
   }
   catch (const std::exception& ex) {
