@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iomanip>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -8,9 +7,6 @@
 #include "auxiliary.hh"
 #include "latlon.hh"
 
-namespace tinyxml2 {
-class XMLElement;
-}
 
 template <typename T>
 class scene;
@@ -55,7 +51,7 @@ template <typename T>
 struct linear_feature {
   std::vector<LatLon<T, Unit::deg>> coords;
   std::string name;
-  size_t id = 0;       // so we can deduplicate between tiles
+  uint64_t id = 0;     // so we can deduplicate between tiles
   bool closed = false; // detect by comparing first and last element
 
   linear_feature() = default;
@@ -77,7 +73,8 @@ struct linear_feature {
 template <typename T>
 struct linear_feature_on_canvas {
   linear_feature<T> lf;
-  std::vector<T> xs, ys;
+  std::vector<T> xs;
+  std::vector<T> ys;
   std::vector<T> dists;
 
   linear_feature_on_canvas(const linear_feature<T>& _lf, const canvas<T>& C, const scene<T>& S);
@@ -92,17 +89,8 @@ struct linear_feature_on_canvas {
   }
 };
 
-// parses the xml object, appends peaks
-template <typename T>
-void parse_peaks_gpx(const tinyxml2::XMLElement* node, std::vector<point_feature<T>>& peaks);
 
-// parses the xml object, first gathers all coordinates with IDs, and all
-// ways/realtions with lists of ID; then compiles vectors of points, ie linear
-// features
-template <typename T>
-void parse_coast_gpx(const tinyxml2::XMLElement* node, std::vector<linear_feature<T>>& coasts);
-
-// read plain xml
+// read plain xml as provided by overpass
 template <typename T>
 std::vector<point_feature<T>> read_peaks_osm(const std::string& filename);
 

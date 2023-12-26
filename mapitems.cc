@@ -71,7 +71,6 @@ void parse_peaks_gpx(const tinyxml2::XMLElement* node, std::vector<point_feature
     std::string name;
     for (const auto* child = node->FirstChildElement(); child != 0; child = child->NextSiblingElement()) {
       if (std::strcmp(child->Name(), "tag") == 0) {
-        // std::cout << "looking at childnodes" << std::endl;
         if (std::strcmp(child->Attribute("k"), "ele") == 0) {
           // std::cout << "ele found" << std::endl;
           ele = child->FloatAttribute("v");
@@ -102,11 +101,10 @@ template <typename T>
 void gather_points(const tinyxml2::XMLElement* node, std::unordered_map<uint64_t, LatLon<T, Unit::deg>>& points) {
 
   if (std::strcmp(node->Name(), "node") == 0) {
-    const auto* nodeElement = node->ToElement();
     // id, lat, and lon are attributes of 'node'
-    const uint64_t id = nodeElement->Unsigned64Attribute("id");
-    const T lat = nodeElement->FloatAttribute("lat");
-    const T lon = nodeElement->FloatAttribute("lon");
+    const uint64_t id = node->Unsigned64Attribute("id");
+    const T lat = node->FloatAttribute("lat");
+    const T lon = node->FloatAttribute("lon");
     // std::cout << id << ", " << lat << ", " << lon << std::endl;
     points.insert({id, LatLon<T, Unit::deg>(lat, lon)});
   }
@@ -124,12 +122,11 @@ void gather_points(const tinyxml2::XMLElement* node, std::unordered_map<uint64_t
 void gather_ways(const tinyxml2::XMLElement* node, std::vector<std::pair<std::vector<uint64_t>, uint64_t>>& ways) {
   // 'way' contains a list of 'nd'-nodes
   if (std::strcmp(node->Name(), "way") == 0) {
-    const auto* nodeElement = node->ToElement();
-    const uint64_t way_id = nodeElement->Unsigned64Attribute("id");
+    const uint64_t way_id = node->Unsigned64Attribute("id");
     std::vector<uint64_t> way_tmp;
     for (const auto* child = node->FirstChildElement(); child != 0; child = child->NextSiblingElement()) {
       if (std::strcmp(child->Name(), "nd") == 0) {
-        const uint64_t id = child->ToElement()->Unsigned64Attribute("ref");
+        const uint64_t id = child->Unsigned64Attribute("ref");
         way_tmp.push_back(id);
         // std::cout << id << std::endl;
       }
@@ -203,9 +200,9 @@ std::vector<linear_feature<T>> read_coast_osm(const std::string& filename) {
 
   // assemble ways/coordinates
   std::vector<linear_feature<T>> coastlines(ways.size());
-  for (int64_t i = 0; i < std::size(ways); i++) {
+  for (int64_t i = 0; i < std::ssize(ways); i++) {
     linear_feature<T> lf_tmp;
-    for (int j = 0; j < static_cast<int>(ways[i].first.size()); j++) {
+    for (int64_t j = 0; j < std::ssize(ways[i].first); j++) {
       const uint64_t id = ways[i].first[j];
       lf_tmp.append(nodes[id]);
     }
