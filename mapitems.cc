@@ -22,6 +22,7 @@ linear_feature_on_canvas<T>::linear_feature_on_canvas(const linear_feature<T>& _
   const T view_height = S.view_height;
   const T pixels_per_rad_h = C.xs() / view_width;
   const T pixels_per_rad_v = C.ys() / view_height; // [px/rad]
+  const T pi = std::numbers::pi_v<T>;
 
   // iterate over points in linear feature
   for (const auto& point_d : lf.coords) {
@@ -42,9 +43,9 @@ linear_feature_on_canvas<T>::linear_feature_on_canvas(const linear_feature<T>& _
     // std::cout << "lat/lon: " << lat_ref<<", "<< lon_ref<<", "<< lat_r << ", " << lon_r << std::endl;
     const T dist = distance_atan<T>(S.standpoint, point_r);
     std::cout << " dist: " << dist << std::flush;
-    const T x = std::fmod(view_dir_h + view_width / 2.0 + bearing(S.standpoint, point_r) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
+    const T x = std::fmod(view_dir_h + view_width / 2 + bearing(S.standpoint, point_r) + T(1.5) * pi, 2 * pi) * pixels_per_rad_h;
     std::cout << " x: " << x << std::flush;
-    const T y = (view_height / 2.0 + view_dir_v - angle_v(z_ref, z, dist)) * pixels_per_rad_v; // [px]
+    const T y = (view_height / 2 + view_dir_v - angle_v(z_ref, z, dist)) * pixels_per_rad_v; // [px]
     std::cout << " y: " << y << std::flush;
     // std::cout << "peak x, y " << x_peak << ", " << y_peak << std::endl;
     // if(x < 0 || x > C.xs ) continue;

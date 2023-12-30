@@ -8,7 +8,8 @@
 #include "latlon.hh"
 
 // angle = (2*a + b)/3
-constexpr double average_radius_earth = (2 * 6378.137 + 6356.752) / 3.0 * 1000; // 6371.009 km [m]
+template <typename T>
+constexpr T average_radius_earth = (2 * 6378.137 + 6356.752) / 3.0 * 1000; // 6371.009 km [m]
 
 // distance between two points on a sphere, without elevation
 // phi is the latitude, theta the longitude
@@ -17,13 +18,13 @@ constexpr double average_radius_earth = (2 * 6378.137 + 6356.752) / 3.0 * 1000; 
 template <typename T>
 constexpr T distance_acos(const LatLon<T, Unit::rad> A, const LatLon<T, Unit::rad> B) {
   const T angle = central_angle_acos(A, B);
-  return average_radius_earth * angle; // [m]
+  return average_radius_earth<T> * angle; // [m]
 }
 
 template <typename T>
 constexpr T distance_atan(const LatLon<T, Unit::rad> A, const LatLon<T, Unit::rad> B) {
   const T angle = central_angle_atan(A, B);
-  return average_radius_earth * angle; // [m]
+  return average_radius_earth<T> * angle; // [m]
 }
 
 template <typename T>
@@ -37,8 +38,8 @@ template <typename T>
 constexpr T central_angle_atan(LatLon<T, Unit::rad> A, LatLon<T, Unit::rad> B) {
   const auto [latA, lonA] = A;
   const auto [latB, lonB] = B;
-  const T latDiff_half = (latA - latB) / 2.0;
-  const T longDiff_half = (lonA - lonB) / 2.0;
+  const T latDiff_half = (latA - latB) / 2;
+  const T longDiff_half = (lonA - lonB) / 2;
   const T a = std::sin(latDiff_half) * std::sin(latDiff_half) + std::sin(longDiff_half) * std::sin(longDiff_half) * std::cos(latB) * std::cos(latA);
   return 2 * std::atan2(std::sqrt(a), std::sqrt(1 - a)); // [rad]
 }
@@ -61,16 +62,17 @@ template <typename T>
 constexpr T horizontal_direction(LatLon<T, Unit::rad> ref, LatLon<T, Unit::rad> dest) {
   const auto [ref_lat, ref_lon] = ref;
   const auto [lat, lon] = dest;
-  const LatLon<T, Unit::rad> north(M_PI / 2, 0);
+  const T pi = std::numbers::pi_v<T>;
+  const LatLon<T, Unit::rad> north(1, 0);
   const T angle = angle_h(north, ref, dest);
   if (lat > ref_lat && lon > ref_lon)
-    return M_PI / 2 - angle; // looking North East
+    return pi / 2 - angle; // looking North East
   if (lat > ref_lat && lon < ref_lon)
-    return M_PI / 2 + angle; // looking North West
+    return pi / 2 + angle; // looking North West
   if (lat < ref_lat && lon < ref_lon)
-    return 3 * M_PI / 2 - angle; // looking South West
+    return 3 * pi / 2 - angle; // looking South West
   // (lat<ref_lat && lon>ref_lon)
-  return 3 * M_PI / 2 + angle; // looking South East
+  return 3 * pi / 2 + angle; // looking South East
 }
 
 // bearing, starting from ref
@@ -92,7 +94,7 @@ constexpr T bearing(const LatLon<T, Unit::rad> ref, const LatLon<T, Unit::rad> d
 template <typename T>
 constexpr LatLon<T, Unit::rad> destination(LatLon<T, Unit::rad> point_ref, const T dist, const T b) {
   const auto [ref_lat, ref_lon] = point_ref;
-  const T central_angle = dist / average_radius_earth; // central angle
+  const T central_angle = dist / average_radius_earth<T>; // central angle
   const T lat = std::asin(std::sin(ref_lat) * std::cos(central_angle) + std::cos(ref_lat) * std::sin(central_angle) * std::cos(b));
   const T lon = ref_lon + std::atan2(std::sin(b) * std::sin(central_angle) * std::cos(ref_lat),
                                      std::cos(central_angle) - std::sin(ref_lat) * std::sin(lat));

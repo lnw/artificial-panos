@@ -34,12 +34,13 @@ public:
 
   static std::set<LatLon<int64_t, Unit::deg>> determine_required_tiles(const T view_width, const T view_range, const T view_dir_h, const LatLon<T, Unit::rad> standpoint) {
     const int samples_per_ray = 10;
+    const T pi = std::numbers::pi_v<T>;
     std::set<LatLon<int64_t, Unit::deg>> rt;
     for (int i = 0; i < samples_per_ray; i++) {
       const int n_ray = 20;
       const T dist = i * view_range / (samples_per_ray - 1);
       for (int j = 0; j < n_ray; j++) {
-        const T bearing = std::fmod(-view_dir_h - view_width / 2 + M_PI / 2 + j * view_width / (n_ray - 1) + 3 * M_PI, 2 * M_PI) - M_PI;
+        const T bearing = std::fmod(-view_dir_h - view_width / 2 + pi / 2 + j * view_width / (n_ray - 1) + 3 * pi, 2 * pi) - pi;
         const LatLon<T, Unit::rad> dest = destination(standpoint, dist, bearing);
         rt.insert(floor(dest.to_deg()));
       }

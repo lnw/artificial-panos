@@ -15,12 +15,6 @@
 #include "scene.hh"
 #include "tile.hh"
 
-namespace {
-constexpr colour colour_scheme1(float dist) {
-  return colour{uint8_t(5 * std::cbrt(dist)), 50, 150};
-}
-} // namespace
-
 
 #pragma omp declare reduction(arraymin : array2D<float> : omp_out = omp_out.pointwise_min(omp_in)) \
     initializer(omp_priv = array2D<float>(omp_orig))
@@ -64,7 +58,7 @@ void canvas_t<T>::draw_triangle(const T x1, const T y1,
   const int64_t ymin = std::max<int64_t>(0, std::floor(std::min({y1, y2, y3})));
   const int64_t ymax = std::min<int64_t>(std::ceil(std::max({y1, y2, y3})), ys());
 
-  if (xmax - xmin > xs() / 2.0) { // avoid drawing triangles that wrap around the edge
+  if (xmax - xmin > xs() / 2) { // avoid drawing triangles that wrap around the edge
     return;
   }
 
@@ -135,8 +129,8 @@ bool canvas<T>::would_draw_line(const T x1, const T y1,
 template <typename T>
 void canvas<T>::draw_tick(int x_tick, int tick_length, const std::string& str1, const std::string& str2) {
   const int black = gdImageColorResolve(img_ptr.get(), 0, 0, 0);
-  const double fontsize = 20.;
-  const double text_orientation = 0;
+  const float fontsize = 20.;
+  const float text_orientation = 0;
 
   // std::cout << "deg90: " << deg << std::endl;
   gdImageLine(img_ptr.get(), x_tick - 1, 0, x_tick - 1, tick_length, black);
@@ -195,11 +189,12 @@ template <typename T>
 void canvas<T>::label_axis(const scene<T>& S) {
   std::cout << "labelling axis ..." << std::flush;
   // const int width = core.get_width();
-  const T view_width = S.view_width;                                                             // [rad]
-  const T pixels_per_deg_h = xs() / (view_width * rad2deg_v<T>);                                 // [px/deg]
-  const T view_direction_h = S.view_dir_h;                                                       // [rad]
-  const T left_border = std::fmod((view_direction_h + view_width / 2), 2 * M_PI) * rad2deg_v<T>; // [deg]
-  // const T right_border = std::fmod((view_direction_h-view_width/2)+2*M_PI,2*M_PI)*rad2deg_v<T>; // [deg]
+  const T view_width = S.view_width;                             // [rad]
+  const T pixels_per_deg_h = xs() / (view_width * rad2deg_v<T>); // [px/deg]
+  const T view_direction_h = S.view_dir_h;                       // [rad]
+  const T pi = std::numbers::pi_v<T>;
+  const T left_border = std::fmod((view_direction_h + view_width / 2), 2 * pi) * rad2deg_v<T>; // [deg]
+  // const T right_border = std::fmod((view_direction_h-view_width/2)+2*pi,2*pi)*rad2deg_v<T>; // [deg]
   // std::cout << left_border << ", " << right_border << std::endl;
 
   int deg = std::floor(left_border);                                               // the leftmost std::absolute integer degree on the canvas
@@ -252,6 +247,13 @@ template void canvas<float>::label_axis(const scene<float>& S);
 template void canvas<double>::label_axis(const scene<double>& S);
 
 
+namespace {
+constexpr colour colour_scheme1(float dist) {
+  return colour{uint8_t(5 * std::cbrt(dist)), 50, 150};
+}
+} // namespace
+
+
 template <typename T>
 void canvas_t<T>::render_scene(const scene<T>& S) {
   std::ofstream debug("debug-render_scene", std::ofstream::out | std::ofstream::app);
@@ -287,7 +289,8 @@ void canvas_t<T>::render_scene(const scene<T>& S) {
     debug << "ys: " << yst << std::endl;
     debug << "xs: " << xst << std::endl;
     debug << (yst - 1) * (xst - 1) * 2 << " triangles in tile " << t << std::endl;
-    const T invis_angle = std::max(2 * M_PI - view_width, 0.0);
+    const T pi = std::numbers::pi_v<T>;
+    const T invis_angle = std::max(2 * pi - view_width, T(0));
     const int64_t inc = 1; // render fewer triangles
     for (int64_t y = 0; y < yst - inc; y += inc) {
       for (int64_t x = 0; x < xst - inc; x += inc) {
@@ -300,13 +303,13 @@ void canvas_t<T>::render_scene(const scene<T>& S) {
         // get horizontal and vertical angles for all four points of the two triangles
         // translate to image coordinates
         const LatLon<T, Unit::deg> target_ij(H.lat() + 1 - y / T(yst - 1), H.lon() + x / T(xst - 1));
-        const T h_ij = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_ij.to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const T h_ij = (std::fmod(view_direction_h + view_width / 2 + bearing(S.standpoint, target_ij.to_rad()) + T(1.5) * pi + invis_angle / 2, 2 * pi) - invis_angle / 2) * pixels_per_rad_h;
         const LatLon<T, Unit::deg> target_ijj(H.lat() + 1 - y / T(yst - 1), H.lon() + (x + inc) / T(xst - 1));
-        const T h_ijj = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_ijj.to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const T h_ijj = (std::fmod(view_direction_h + view_width / 2 + bearing(S.standpoint, target_ijj.to_rad()) + T(1.5) * pi + invis_angle / 2, 2 * pi) - invis_angle / 2) * pixels_per_rad_h;
         const LatLon<T, Unit::deg> target_iij(H.lat() + 1 - (y + inc) / T(yst - 1), H.lon() + x / T(xst - 1));
-        const T h_iij = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_iij.to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const T h_iij = (std::fmod(view_direction_h + view_width / 2 + bearing(S.standpoint, target_iij.to_rad()) + T(1.5) * pi + invis_angle / 2, 2 * pi) - invis_angle / 2) * pixels_per_rad_h;
         const LatLon<T, Unit::deg> target_iijj(H.lat() + 1 - (y + inc) / T(yst - 1), H.lon() + (x + inc) / T(xst - 1));
-        const T h_iijj = (std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_iijj.to_rad()) + 1.5 * M_PI + invis_angle / 2.0, 2.0 * M_PI) - invis_angle / 2.0) * pixels_per_rad_h;
+        const T h_iijj = (std::fmod(view_direction_h + view_width / 2 + bearing(S.standpoint, target_iijj.to_rad()) + T(1.5) * pi + invis_angle / 2, 2 * pi) - invis_angle / 2) * pixels_per_rad_h;
         // debug << "("<<y<<","<<x<< ") h: " << h_ij << ", " << h_ijj << ", " << h_iij << ", " << h_iijj << std::endl;
 
         // are any points inside the canvas?
@@ -318,10 +321,10 @@ void canvas_t<T>::render_scene(const scene<T>& S) {
         // it's only tested in draw_triangle
 
         // std::cout << S.z_standpoint << ", " << H(y,x) << ", " <<  D(y,x) << std::endl;
-        const T v_ij = (view_height / 2.0 + view_direction_v - angle_v(S.z_standpoint, H[x, y], D[x, y])) * pixels_per_rad_v;                           // [px]
-        const T v_ijj = (view_height / 2.0 + view_direction_v - angle_v(S.z_standpoint, H[x + inc, y], D[x + inc, y])) * pixels_per_rad_v;              //[px]
-        const T v_iij = (view_height / 2.0 + view_direction_v - angle_v(S.z_standpoint, H[x, y + inc], D[x, y + inc])) * pixels_per_rad_v;              // [px]
-        const T v_iijj = (view_height / 2.0 + view_direction_v - angle_v(S.z_standpoint, H[x + inc, y + inc], D[x + inc, y + inc])) * pixels_per_rad_v; // [px]
+        const T v_ij = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x, y], D[x, y])) * pixels_per_rad_v;                           // [px]
+        const T v_ijj = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x + inc, y], D[x + inc, y])) * pixels_per_rad_v;              //[px]
+        const T v_iij = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x, y + inc], D[x, y + inc])) * pixels_per_rad_v;              // [px]
+        const T v_iijj = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x + inc, y + inc], D[x + inc, y + inc])) * pixels_per_rad_v; // [px]
         // debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << std::endl;
 
         if (!is_in_range(v_iij, 0, ys()) || !is_in_range(v_ijj, 0, ys())) {
@@ -329,12 +332,12 @@ void canvas_t<T>::render_scene(const scene<T>& S) {
         }
 
         if (is_in_range(v_ij, 0, ys())) {
-          const T dist = (D[x, y] + D[x, y + inc] + D[x + inc, y]) / 3.0;
+          const T dist = (D[x, y] + D[x, y + inc] + D[x + inc, y]) / 3;
           draw_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist, colour_scheme1(dist));
         }
 
         if (is_in_range(v_iijj, 0, ys())) {
-          const T dist = (D[x, y + inc] + D[x + inc, y] + D[x + inc, y + inc]) / 3.0;
+          const T dist = (D[x, y + inc] + D[x + inc, y] + D[x + inc, y + inc]) / 3;
           draw_triangle(h_ijj, v_ijj, h_iij, v_iij, h_iijj, v_iijj, dist, colour_scheme1(dist));
         }
       }
@@ -480,6 +483,7 @@ bool canvas<T>::peak_is_visible_v1(const scene<T>& S, const point_feature<T>& pe
   bool visible = false;
 #endif
   const int64_t inc = 1;
+  const T pi = std::numbers::pi_v<T>;
   for (int64_t y = yy; y < yy + diameter; y++) {
     if (!is_in_range(y, 0, tile_size_m1))
       continue; // FIXME
@@ -487,39 +491,39 @@ bool canvas<T>::peak_is_visible_v1(const scene<T>& S, const point_feature<T>& pe
       if (!is_in_range(x, 0, tile_size_m1))
         continue; // FIXME
       const LatLon<T, Unit::deg> target_ij(H.lat() + 1 - y / T(yst - 1), H.lon() + x / T(xst - 1));
-      const T h_ij = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_ij.to_rad()) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
+      const T h_ij = std::fmod(view_direction_h + view_width / 2 + bearing(S.standpoint, target_ij.to_rad()) + T(1.5) * pi, 2 * pi) * pixels_per_rad_h;
       if (!is_in_range(h_ij, 0, xs()))
         continue;
       const LatLon<T, Unit::deg> target_ijj(H.lat() + 1 - y / T(yst - 1), H.lon() + (x + inc) / T(xst - 1));
-      const T h_ijj = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_ijj.to_rad()) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
+      const T h_ijj = std::fmod(view_direction_h + view_width / 2 + bearing(S.standpoint, target_ijj.to_rad()) + T(1.5) * pi, 2 * pi) * pixels_per_rad_h;
       if (!is_in_range(h_ijj, 0, xs()))
         continue;
       const LatLon<T, Unit::deg> target_iij(H.lat() + 1 - (y + inc) / T(yst - 1), H.lon() + x / T(xst - 1));
-      const T h_iij = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_iij.to_rad()) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
+      const T h_iij = std::fmod(view_direction_h + view_width / 2 + bearing(S.standpoint, target_iij.to_rad()) + T(1.5) * pi, 2 * pi) * pixels_per_rad_h;
       if (!is_in_range(h_iij, 0, xs()))
         continue;
       const LatLon<T, Unit::deg> target_iijj(H.lat() + 1 - (y + inc) / T(yst - 1), H.lon() + (x + inc) / T(xst - 1));
-      const T h_iijj = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, target_iijj.to_rad()) + 1.5 * M_PI, 2.0 * M_PI) * pixels_per_rad_h;
+      const T h_iijj = std::fmod(view_direction_h + view_width / 2 + bearing(S.standpoint, target_iijj.to_rad()) + T(1.5) * pi, 2 * pi) * pixels_per_rad_h;
       if (!is_in_range(h_iijj, 0, xs()))
         continue;
 
       // std::cout << S.z_standpoint << ", " << H(y,x) << ", " <<  D(y,x) << std::endl;
-      const T v_ij = (view_height / 2.0 + view_direction_v - angle_v(S.z_standpoint, H[x, y], D[x, y])) * pixels_per_rad_v; // [px]
+      const T v_ij = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x, y], D[x, y])) * pixels_per_rad_v; // [px]
       if (!is_in_range(v_ij, 0, ys()))
         continue;
-      const T v_ijj = (view_height / 2.0 + view_direction_v - angle_v(S.z_standpoint, H[x + inc, y], D[x + inc, y])) * pixels_per_rad_v; //[px]
+      const T v_ijj = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x + inc, y], D[x + inc, y])) * pixels_per_rad_v; //[px]
       if (!is_in_range(v_ijj, 0, ys()))
         continue;
-      const T v_iij = (view_height / 2.0 + view_direction_v - angle_v(S.z_standpoint, H[x, y + inc], D[x, y + inc])) * pixels_per_rad_v; // [px]
+      const T v_iij = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x, y + inc], D[x, y + inc])) * pixels_per_rad_v; // [px]
       if (!is_in_range(v_iij, 0, ys()))
         continue;
-      const T v_iijj = (view_height / 2.0 + view_direction_v - angle_v(S.z_standpoint, H[x + inc, y + inc], D[x + inc, y + inc])) * pixels_per_rad_v; // [px]
+      const T v_iijj = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x + inc, y + inc], D[x + inc, y + inc])) * pixels_per_rad_v; // [px]
       if (!is_in_range(v_iijj, 0, ys()))
         continue;
       // debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << std::endl;
 
-      const T dist1 = (D[x, y] + D[x, y + inc] + D[x + inc, y]) / 3.0; // -2 ???
-      const T dist2 = (D[x, y + inc] + D[x + inc, y] + D[x + inc, y + inc]) / 3.0;
+      const T dist1 = (D[x, y] + D[x, y + inc] + D[x + inc, y]) / 3;
+      const T dist2 = (D[x, y + inc] + D[x + inc, y] + D[x + inc, y + inc]) / 3;
       if (would_draw_triangle(h_ij, v_ij, h_ijj, v_ijj, h_iij, v_iij, dist1))
 #ifdef GRAPHICS_DEBUG
         visible = true;
@@ -570,6 +574,7 @@ bool canvas<T>::peak_is_visible_v2(const scene<T>& S, const point_feature<T>& pe
   const T seg_length = 30.0; // [m]
   const T n_segs = dist_peak / seg_length;
   // std::cout << "seg no/length: " << n_segs << ", " << seg_length << std::endl;
+  const T pi = std::numbers::pi_v<T>;
 
   T prev_height = 10000.0;  // [m]
   T prev_x = 1, prev_y = 1; // [px]
@@ -599,18 +604,17 @@ bool canvas<T>::peak_is_visible_v2(const scene<T>& S, const point_feature<T>& pe
     }
 
     // get coords on canvas
-    // std::cout << view_direction_h << ", " <<  view_width/2.0 << ", " <<  bearing_rad << ", " << 1.5*M_PI << std::endl;
-    const T x_point = std::fmod(view_direction_h + view_width / 2.0 + bearing_rad + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;        // [px]
-    const T y_point = (view_direction_v + view_height / 2.0 - angle_v(S.z_standpoint, height_point, dist_point)) * pixels_per_rad_v; // [px]
+    const T x_point = std::fmod(view_direction_h + view_width / 2 + bearing_rad + T(1.5) * pi, 2 * pi) * pixels_per_rad_h;         // [px]
+    const T y_point = (view_direction_v + view_height / 2 - angle_v(S.z_standpoint, height_point, dist_point)) * pixels_per_rad_v; // [px]
 
     // draw?
     // std::cout << prev_x << ", " << prev_y << ", " << x_point << ", " << y_point << ", " << dist_point+seg_length/2.0 << std::endl;
     if (seg > 0) {
 #ifdef GRAPHICS_DEBUG
       const colour col = {0, 255, 0};
-      visible |= draw_line(prev_x, prev_y, x_point, y_point, dist_point + seg_length / 2.0, col);
+      visible |= draw_line(prev_x, prev_y, x_point, y_point, dist_point + seg_length / 2, col);
 #else
-      if (would_draw_line(prev_x, prev_y, x_point, y_point, dist_point + seg_length / 2.0))
+      if (would_draw_line(prev_x, prev_y, x_point, y_point, dist_point + seg_length / 2))
         return true;
 #endif
     }
@@ -632,16 +636,16 @@ bool canvas<T>::peak_is_visible_v2(const scene<T>& S, const point_feature<T>& pe
 // if the zbuffer admits any pixel to be drawn, the peak is visible
 template <typename T>
 std::tuple<std::vector<point_feature_on_canvas<T>>, std::vector<point_feature_on_canvas<T>>> canvas<T>::get_visible_peaks(std::vector<point_feature<T>>& peaks, const scene<T>& S) {
-  const double view_direction_h = S.view_dir_h;       // [rad]
-  const double view_width = S.view_width;             // [rad]
-  const double pixels_per_rad_h = xs() / view_width;  // [px/rad]
-  const double view_direction_v = S.view_dir_v;       // [rad]
-  const double view_height = S.view_height;           // [rad]
-  const double pixels_per_rad_v = ys() / view_height; // [px/rad]
-  // std::cout << "pprh: " << pixels_per_rad_h << std::endl;
+  const T view_direction_h = S.view_dir_h;       // [rad]
+  const T view_width = S.view_width;             // [rad]
+  const T pixels_per_rad_h = xs() / view_width;  // [px/rad]
+  const T view_direction_v = S.view_dir_v;       // [rad]
+  const T view_height = S.view_height;           // [rad]
+  const T pixels_per_rad_v = ys() / view_height; // [px/rad]
 
   std::vector<point_feature_on_canvas<T>> visible_peaks;
   std::vector<point_feature_on_canvas<T>> obscured_peaks;
+  const T pi = std::numbers::pi_v<T>;
   for (int64_t p = 0; p < std::ssize(peaks); p++) {
     // std::cout << "--- p=" << p << " ---" << std::endl;
     // distance from the peak
@@ -666,8 +670,8 @@ std::tuple<std::vector<point_feature_on_canvas<T>>, std::vector<point_feature_on
       peaks[p].elev = height_peak + coeff * dist_peak * dist_peak; // revert earth's curvature
 
     // get position of peak on canvas, continue if outside
-    const T x_peak = std::fmod(view_direction_h + view_width / 2.0 + bearing(S.standpoint, peaks[p].coords.to_rad()) + 1.5 * M_PI, 2 * M_PI) * pixels_per_rad_h;
-    const T y_peak = (view_direction_v + view_height / 2.0 - angle_v(S.z_standpoint, height_peak, dist_peak)) * pixels_per_rad_v; // [px]
+    const T x_peak = std::fmod(view_direction_h + view_width / 2 + bearing(S.standpoint, peaks[p].coords.to_rad()) + T(1.5) * pi, 2 * pi) * pixels_per_rad_h;
+    const T y_peak = (view_direction_v + view_height / 2 - angle_v(S.z_standpoint, height_peak, dist_peak)) * pixels_per_rad_v; // [px]
     // std::cout << "peak x, y " << x_peak << ", " << y_peak << std::endl;
     if (x_peak < 0 || x_peak > xs())
       continue;
@@ -711,10 +715,10 @@ std::vector<point_feature_on_canvas<T>> canvas<T>::draw_visible_peaks(const std:
       name += ", ";
     name += std::to_string(lgs[p].pf.elev) + "m, " + std::to_string(int(std::round(dist_peak / 1000))) + "km";
     char* s = const_cast<char*>(name.c_str());
-    const double fontsize = 12.;
+    const float fontsize = 12.;
     // char font[] = "./palatino-59330a4da3d64.ttf";
     char font[] = "./fonts/vera.ttf";
-    const double text_orientation = M_PI / 2;
+    const float text_orientation = std::numbers::pi_v<float> / 2;
 
     // get bb of blank string
     int bb[8];
@@ -727,7 +731,7 @@ std::vector<point_feature_on_canvas<T>> canvas<T>::draw_visible_peaks(const std:
 
     err = gdImageStringFT(img_ptr.get(), &bb[0],
                           black, font, fontsize, text_orientation,
-                          x_peak + lgs[p].xshift + fontsize / 2.0,
+                          x_peak + lgs[p].xshift + fontsize / 2,
                           y_peak - y_offset, s);
     if (err) {
       fprintf(stderr, "%s", err);

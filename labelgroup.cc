@@ -153,7 +153,7 @@ std::vector<point_feature_on_canvas<T>> LabelGroups<T>::prune() {
         for (int m = g[lg].first_index; m < g[lg].last_index; m++) { // triangular w/o diagonal
           for (int n = m + 1; n <= g[lg].last_index; n++) {
             const T e1 = pfocs[m].pf.elev,
-                         e2 = pfocs[n].pf.elev;
+                    e2 = pfocs[n].pf.elev;
             const T d_ele = e1 - e2;
             const auto pos1 = pfocs[m].pf.coords.to_rad();
             const auto pos2 = pfocs[n].pf.coords.to_rad();
