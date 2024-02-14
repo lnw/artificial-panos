@@ -57,14 +57,15 @@ def getElevationTiles(requiredTiles, sources):
     for south, west in requiredTiles:
       for source in sources:
         # print(south, west)
-        path = 'hgt/' + folder[source] + '/N{:02}E{:03}.hgt'.format(south,west)
+        coordstring = '{}{:02}{}{:03}'.format('N' if south >= 0 else 'S',abs(south),'E' if west >=0 else 'W',abs(west))
+        path = 'hgt/' + folder[source] + '/' + coordstring + '.hgt'
         if (os.path.isfile(path)):
           print(path + " already exists")
           break
         else:
           subprocess.run(["phyghtmap", "--earthexplorer-user=lnwz", "--earthexplorer-password=f73x8qGFzmwT", "--download-only", "--source={}".format(folder[source]), "-a {:03}:{:02}:{:03}:{:02}".format(west,south,west+1,south+1)])
-          inpath = 'hgt/' + folder[source] + '/N{:02}E{:03}.tif'.format(south,west)
-          outpath = 'hgt/' + folder[source] + '/N{:02}E{:03}.hgt'.format(south,west)
+          inpath = 'hgt/' + folder[source] + '/' + coordstring + '.tif'
+          outpath = 'hgt/' + folder[source] + '/' + coordstring + '.hgt'
           if (os.path.isfile(outpath)): # loaded hgt
               break
           if (os.path.isfile(inpath)): # loaded geotif
