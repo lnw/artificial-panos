@@ -606,6 +606,9 @@ bool canvas<T>::peak_is_visible_v2(const scene<T>& S, const point_feature<T>& pe
     // get coords on canvas
     const T x_point = std::fmod(view_direction_h + view_width / 2 + bearing_rad + T(1.5) * pi, 2 * pi) * pixels_per_rad_h;         // [px]
     const T y_point = (view_direction_v + view_height / 2 - angle_v(S.z_standpoint, height_point, dist_point)) * pixels_per_rad_v; // [px]
+    if (y_point < 0) {
+      break;
+    }
 
     // draw?
     // std::cout << prev_x << ", " << prev_y << ", " << x_point << ", " << y_point << ", " << dist_point+seg_length/2.0 << std::endl;
@@ -614,8 +617,9 @@ bool canvas<T>::peak_is_visible_v2(const scene<T>& S, const point_feature<T>& pe
       const colour col = {0, 255, 0};
       visible |= draw_line(prev_x, prev_y, x_point, y_point, dist_point + seg_length / 2, col);
 #else
-      if (would_draw_line(prev_x, prev_y, x_point, y_point, dist_point + seg_length / 2))
+      if (would_draw_line(prev_x, prev_y, x_point, y_point, dist_point + seg_length / 2)) {
         return true;
+      }
 #endif
     }
     prev_x = x_point;
