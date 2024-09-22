@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <print>
 #include <ranges>
 #include <string>
 #include <vector>
@@ -41,8 +42,7 @@ public:
       ifs.read(std::bit_cast<char*>(array2D<T>::data().data()), size * sizeof(int16_t));
     }
     catch (const std::ifstream::failure& e) {
-      std::cout << "Exception opening/reading file"
-                << " " << fn.string();
+      std::print("Exception opening/reading file {}\n", fn.string());
     }
     ifs.close();
 

@@ -60,6 +60,7 @@ PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 60
 PointerAlignment: Left
 RequiresClausePosition: OwnLine
+RemoveSemicolon: True
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeParens: ControlStatements
 

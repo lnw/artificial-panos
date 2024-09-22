@@ -700,6 +700,8 @@ std::vector<point_feature_on_canvas<T>> canvas<T>::draw_visible_peaks(const std:
   std::vector<point_feature_on_canvas<T>> omitted_peaks = lgs.prune();
   const colour red = {255, 0, 0};
 
+  gdFontCacheSetup();
+
   for (int64_t p = 0; p < lgs.size(); p++) {
     const int64_t x_peak = lgs[p].x;
     const int64_t y_peak = lgs[p].y;
@@ -718,15 +720,14 @@ std::vector<point_feature_on_canvas<T>> canvas<T>::draw_visible_peaks(const std:
     if (!lgs[p].pf.name.empty())
       name += ", ";
     name += std::to_string(lgs[p].pf.elev) + "m, " + std::to_string(int(std::round(dist_peak / 1000))) + "km";
-    char* s = const_cast<char*>(name.c_str());
-    const float fontsize = 12.;
-    // char font[] = "./palatino-59330a4da3d64.ttf";
-    char font[] = "./fonts/vera.ttf";
-    const float text_orientation = std::numbers::pi_v<float> / 2;
+    const double fontsize = 12.;
+    // const char font[] = "./fonts/palatino-59330a4da3d64.ttf";
+    const char font[] = "./fonts/vera.ttf";
+    const double text_orientation = std::numbers::pi_v<float> / 2;
 
     // get bb of blank string
     int bb[8];
-    char* err = gdImageStringFT(nullptr, &bb[0], 0, font, fontsize, 0., 0, 0, s);
+    char* err = gdImageStringFT(nullptr, &bb[0], 0, font, fontsize, 0., 0, 0, name.c_str());
     if (err) {
       fprintf(stderr, "%s", err);
       std::cout << "not good" << std::endl;
@@ -736,13 +737,15 @@ std::vector<point_feature_on_canvas<T>> canvas<T>::draw_visible_peaks(const std:
     err = gdImageStringFT(img_ptr.get(), &bb[0],
                           black, font, fontsize, text_orientation,
                           x_peak + lgs[p].xshift + fontsize / 2,
-                          y_peak - y_offset, s);
+                          y_peak - y_offset, name.c_str());
     if (err) {
       fprintf(stderr, "%s", err);
       std::cout << "not good" << std::endl;
     }
   }
   // print number drawn and number omitted
+
+  gdFontCacheShutdown();
 
   return omitted_peaks;
 }
