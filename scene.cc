@@ -1,13 +1,13 @@
+#include "scene.hh"
+#include "tile.hh"
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <exception>
 #include <filesystem>
 #include <fstream>
 #include <ranges>
 #include <utility>
-
-#include "scene.hh"
-#include "tile.hh"
 
 namespace fs = std::filesystem;
 

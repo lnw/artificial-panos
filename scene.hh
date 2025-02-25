@@ -1,12 +1,11 @@
 #pragma once
 
+#include "latlon.hh"
+#include "tile.hh"
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
 #include <utility>
-
-#include "latlon.hh"
-#include "tile.hh"
 
 namespace fs = std::filesystem;
 

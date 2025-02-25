@@ -1,3 +1,10 @@
+#include "canvas.hh"
+#include "array2d.hh"
+#include "geometry.hh"
+#include "labelgroup.hh"
+#include "mapitems.hh"
+#include "scene.hh"
+#include "tile.hh"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -6,14 +13,6 @@
 #include <vector>
 
 #include <gd.h>
-
-#include "array2d.hh"
-#include "canvas.hh"
-#include "geometry.hh"
-#include "labelgroup.hh"
-#include "mapitems.hh"
-#include "scene.hh"
-#include "tile.hh"
 
 
 #pragma omp declare reduction(arraymin : array2D<float> : omp_out = omp_out.pointwise_min(omp_in)) \

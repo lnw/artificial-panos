@@ -1,11 +1,10 @@
 #pragma once
 
+#include "auxiliary.hh"
+#include "latlon.hh"
 #include <iostream>
 #include <string>
 #include <vector>
-
-#include "auxiliary.hh"
-#include "latlon.hh"
 
 
 template <typename T>
@@ -55,9 +54,9 @@ struct linear_feature {
   bool closed = false; // detect by comparing first and last element
 
   linear_feature() = default;
-  explicit linear_feature(int N): coords(N){};
+  explicit linear_feature(int N): coords(N) {}
 
-  bool operator<(const linear_feature& lf) const { return this->id < lf.id; };
+  bool operator<(const linear_feature& lf) const { return this->id < lf.id; }
 
   size_t size() const { return coords.size(); }
   void append(const LatLon<T, Unit::deg>& p) {
@@ -81,7 +80,7 @@ struct linear_feature_on_canvas {
 
   size_t size() const { return lf.size(); }
 
-  bool operator<(const linear_feature_on_canvas& lfoc) const { return this->lf.id < lfoc.lf.id; };
+  bool operator<(const linear_feature_on_canvas& lfoc) const { return this->lf.id < lfoc.lf.id; }
 
   friend std::ostream& operator<<(std::ostream& S, const linear_feature_on_canvas& lfoc) {
     S << "[" << lfoc.lf << ", " << lfoc.dists << "]";

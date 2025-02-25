@@ -1,12 +1,11 @@
-#include <algorithm> // sort
+#include "labelgroup.hh"
+#include "geometry.hh"
+#include "mapitems.hh"
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <utility>
 #include <vector>
-
-#include "geometry.hh"
-#include "labelgroup.hh"
-#include "mapitems.hh"
 
 
 const int label_width = 18;

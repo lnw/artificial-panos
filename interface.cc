@@ -1,12 +1,11 @@
+#include "canvas.hh"
+#include "latlon.hh"
+#include "scene.hh"
 #include <string>
 #include <vector>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-
-#include "canvas.hh"
-#include "latlon.hh"
-#include "scene.hh"
 
 namespace py = pybind11;
 

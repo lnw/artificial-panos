@@ -1,9 +1,8 @@
 #pragma once
 
+#include "mapitems.hh"
 #include <iostream>
 #include <vector>
-
-#include "mapitems.hh"
 
 
 struct group {

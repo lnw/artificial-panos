@@ -2,13 +2,12 @@
 #define CATCH_CONFIG_MAIN
 #include "/home/lukas/bin/Catch/single_include/catch.hpp"
 
-#include <cassert>
-#include <fstream>
-#include <vector>
-
 #include "auxiliary.hh"
 #include "colour.hh"
 #include "geometry.hh"
+#include <cassert>
+#include <fstream>
+#include <vector>
 
 using namespace std;
 

@@ -1,12 +1,11 @@
 #pragma once
 
+#include "auxiliary.hh"
+#include "geometry.hh"
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <vector>
-
-#include "auxiliary.hh"
-#include "geometry.hh"
 
 
 template <typename T>

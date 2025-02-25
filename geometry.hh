@@ -1,11 +1,10 @@
 #pragma once
 
-#include <cmath>
-#include <numbers>
-
 #include "auxiliary.hh"
 #include "degrad.hh"
 #include "latlon.hh"
+#include <cmath>
+#include <numbers>
 
 // angle = (2*a + b)/3
 template <typename T>

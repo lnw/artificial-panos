@@ -1,11 +1,12 @@
 #pragma once
 
+#include "degrad.hh"
 #include <array>
+#include <cmath>
 #include <cstdint>
+#include <ostream>
 #include <utility>
 #include <vector>
-
-#include "degrad.hh"
 
 
 template <typename T, Unit UU>

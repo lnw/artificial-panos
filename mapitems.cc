@@ -1,15 +1,14 @@
-#include <climits>
+#include "mapitems.hh"
+#include "auxiliary.hh"
+#include "canvas.hh"
+#include "scene.hh"
+#include "tile.hh"
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include "auxiliary.hh"
-#include "canvas.hh"
-#include "mapitems.hh"
-#include "scene.hh"
-#include "tile.hh"
 
 #include <tinyxml2.h>
 

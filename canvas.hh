@@ -1,5 +1,7 @@
 #pragma once
 
+#include "array2d.hh"
+#include "colour.hh"
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
@@ -11,9 +13,6 @@
 #include <vector>
 
 #include <gd.h>
-
-#include "array2d.hh"
-#include "colour.hh"
 
 template <typename T>
 class scene;
