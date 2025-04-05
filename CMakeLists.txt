@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.26)
 project(artpano CXX)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
@@ -6,7 +6,7 @@ message(STATUS "cmake mod path ${CMAKE_MODULE_PATH}")
 
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
-set(CMAKE_VERBOSE_MAKEFILE NO)
+set(CMAKE_VERBOSE_MAKEFILE YES)
 
 # set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-fix")
 
@@ -16,11 +16,17 @@ find_package(OpenMP REQUIRED)
 add_library(compiler_options INTERFACE)
 target_compile_options(compiler_options INTERFACE
   "-march=native"
+  # "-stdlib=libc++"
   "$<$<CONFIG:Debug>:-O0>"
   "$<$<CONFIG:Debug>:-Wall>"
   "$<$<CONFIG:Debug>:-Wshadow>"
   "$<$<CONFIG:Debug>:-Wpedantic>"
   "$<$<CONFIG:Debug>:-fsanitize=undefined>"
+  # "$<$<CONFIG:Debug>:-fsanitize=thread>"
+)
+target_link_options(compiler_options INTERFACE
+  "$<$<CONFIG:Debug>:-fsanitize=undefined>"
+  # "$<$<CONFIG:Debug>:-fsanitize=thread>"
 )
 
 find_package(tinyxml2 REQUIRED)
@@ -29,6 +35,8 @@ find_package(GD REQUIRED)
 # message(STATUS "libGD libs ${GD_LIBRARY}")
 
 find_package(Python3 COMPONENTS Development REQUIRED)
+
+find_package(Boost CONFIG COMPONENTS program_options)
 
 add_library(ap SHARED)
 target_sources(ap PRIVATE
@@ -70,10 +78,11 @@ else()
 endif()
 
 add_executable(pano pano.cc)
-target_link_libraries(pano 
+target_link_libraries(pano
                       PRIVATE
                       ap
                       compiler_options
+                      Boost::program_options
 )
 
 add_library(artpano SHARED)

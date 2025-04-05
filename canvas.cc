@@ -15,9 +15,9 @@
 #include <gd.h>
 
 
-#pragma omp declare reduction(arraymin : array2D<float> : omp_out = omp_out.pointwise_min(omp_in)) \
+#pragma omp declare reduction(arraymin : array2D<float> : omp_out = pointwise_min(omp_out, omp_in)) \
     initializer(omp_priv = array2D<float>(omp_orig))
-#pragma omp declare reduction(arraymin : array2D<double> : omp_out = omp_out.pointwise_min(omp_in)) \
+#pragma omp declare reduction(arraymin : array2D<double> : omp_out = pointwise_min(omp_out, omp_in)) \
     initializer(omp_priv = array2D<double>(omp_orig))
 #pragma omp declare reduction(+ : array2D<int32_t> : omp_out += omp_in) \
     initializer(omp_priv = array2D<int32_t>(omp_orig))
@@ -30,11 +30,7 @@
 template <typename T>
 int64_t get_tile_index(const scene<T>& S, LatLon<T, Unit::deg> point) {
   // find the tile in which the point is located, continue if none
-#ifdef __clang__
-  const auto lat = point.lat(), lon = point.lon();
-#else
   const auto [lat, lon] = point;
-#endif
   auto it = std::find_if(S.tiles.begin(), S.tiles.end(), [=](const auto& tile) { return tile.first.lat() == std::floor(lat) && tile.first.lon() == std::floor(lon); });
   const int64_t tile_index = (it != S.tiles.end()) ? std::distance(S.tiles.begin(), it) : -1;
   if (tile_index == -1) {

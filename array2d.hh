@@ -47,12 +47,6 @@ public:
     return *this;
   }
 
-  array2D pointwise_min(const array2D& B) const {
-    array2D Tnew(*this);
-    std::transform(begin(), end(), Tnew.begin(), Tnew.begin(), [](auto v1, auto v2) { return std::min(v1, v2); });
-    return Tnew;
-  }
-
   constexpr void transpose() {
     std::swap(size_[0], size_[1]);
     array2D<T> A(ys(), xs());
@@ -80,3 +74,11 @@ protected:
   std::array<int64_t, 2> size_;
   std::vector<T> dat_;
 };
+
+template <typename T>
+constexpr array2D<T> pointwise_min(const array2D<T>& A, const array2D<T>& B) {
+  assert(A.size() == B.size());
+  array2D<T> Tnew(A.xs(), A.ys());
+  std::transform(A.begin(), A.end(), B.begin(), Tnew.begin(), [](auto v1, auto v2) { return std::min(v1, v2); });
+  return Tnew;
+}
