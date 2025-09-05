@@ -14,7 +14,7 @@
 
 template <typename T>
 linear_feature_on_canvas<T>::linear_feature_on_canvas(const linear_feature<T>& _lf, const canvas<T>& C, const scene<T>& S): lf(_lf) {
-  const T z_ref = S.z_standpoint;
+  const T z_ref = S.z_standpoint_m;
   const T view_dir_h = S.view_dir_h;
   const T view_dir_v = S.view_dir_v;
   const T view_width = S.view_width;

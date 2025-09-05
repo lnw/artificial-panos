@@ -19,14 +19,14 @@ inline bool file_accessable(const fs::path& fp) {
 }
 
 template <typename T>
-scene<T>::scene(LatLon<T, Unit::rad> coords, T z, T vdirh, T vw, T vdirv, T vh, T vdist, const std::vector<elevation_source>& _sources): standpoint(coords), z_standpoint(z), view_dir_h(vdirh), view_width(vw), view_dir_v(vdirv), view_height(vh), view_range(vdist), sources(_sources) {
-  const std::vector<LatLon<int64_t, Unit::deg>> required_tiles = determine_required_tiles_v(view_width, view_range, view_dir_h, standpoint);
+scene<T>::scene(LatLon<T, Unit::rad> coords, T z, T vdirh, T vw, T vdirv, T vh, T vdist, const std::vector<elevation_source>& _sources): standpoint(coords), z_standpoint_m(z), view_dir_h(vdirh), view_width(vw), view_dir_v(vdirv), view_height(vh), view_range_m(vdist), sources(_sources) {
+  const std::vector<LatLon<int64_t, Unit::deg>> required_tiles = determine_required_tiles_v(view_width, view_range_m, view_dir_h, standpoint);
   std::cout << "required_tiles: " << required_tiles << std::endl;
   tiles = read_elevation_data(required_tiles);
-  if (z_standpoint == -1) {
+  if (z_standpoint_m == -1) {
     const T z_offset = 10.0; // assume we are floating in some metres above ground to avoid artefacts
-    z_standpoint = elevation_at_standpoint() + z_offset;
-    std::cout << "overwriting the elevation: " << z_standpoint << std::endl;
+    z_standpoint_m = elevation_at_standpoint() + z_offset;
+    std::cout << "overwriting the elevation: " << z_standpoint_m << std::endl;
   }
 }
 template scene<float>::scene(LatLon<float, Unit::rad> coords, float z, float vdirh, float vw, float vdirv, float vh, float vdist, const std::vector<elevation_source>& _sources);

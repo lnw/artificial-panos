@@ -23,15 +23,15 @@ template <typename T>
 class scene {
 public:
   LatLon<T, Unit::rad> standpoint;
-  T z_standpoint;                                    // [m]
+  T z_standpoint_m;
   T view_dir_h, view_width, view_dir_v, view_height; // [rad], [rad], [rad], [rad]
-  T view_range;                                      // [m]
-  std::vector<elevation_source> sources;             // list of subset of view1, view3, srtm1, srtm3 in some order: these are considered as source
-  std::vector<std::pair<tile<T>, tile<T>>> tiles;    // heights, distances
+  T view_range_m;
+  std::vector<elevation_source> sources;          // list of subset of view1, view3, srtm1, srtm3 in some order: these are considered as source
+  std::vector<std::pair<tile<T>, tile<T>>> tiles; // heights, distances
 
   scene(LatLon<T, Unit::rad> standpoint, T z, T vdirh, T vw, T vdirv, T vh, T vdist, const std::vector<elevation_source>& _sources);
 
-  static std::set<LatLon<int64_t, Unit::deg>> determine_required_tiles(const T view_width, const T view_range, const T view_dir_h, const LatLon<T, Unit::rad> standpoint) {
+  static std::set<LatLon<int64_t, Unit::deg>> determine_required_tiles(const T view_width, const T view_range, const T view_dir_h_rad, const LatLon<T, Unit::rad> standpoint) {
     const int samples_per_ray = 10;
     const T pi = std::numbers::pi_v<T>;
     std::set<LatLon<int64_t, Unit::deg>> rt;
@@ -39,7 +39,7 @@ public:
       const int n_ray = 20;
       const T dist = i * view_range / (samples_per_ray - 1);
       for (int j = 0; j < n_ray; j++) {
-        const T bearing = std::fmod(-view_dir_h - view_width / 2 + pi / 2 + j * view_width / (n_ray - 1) + 3 * pi, 2 * pi) - pi;
+        const T bearing = std::fmod(-view_dir_h_rad - view_width / 2 + pi / 2 + j * view_width / (n_ray - 1) + 3 * pi, 2 * pi) - pi;
         const LatLon<T, Unit::rad> dest = destination(standpoint, dist, bearing);
         rt.insert(floor(dest.to_deg()));
       }

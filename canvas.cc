@@ -265,7 +265,7 @@ void canvas_t<T>::render_scene(const scene<T>& S) {
   debug << "view height [rad]: " << view_height << std::endl;
   debug << "canvas width: " << xs() << std::endl;
   debug << "canvas height: " << ys() << std::endl;
-  std::cout << "horizantal resolution [px/rad]: " << pixels_per_rad_h << std::endl;
+  std::cout << "horizontal resolution [px/rad]: " << pixels_per_rad_h << std::endl;
   std::cout << "vertical resolution [px/rad]: " << pixels_per_rad_v << std::endl;
 
   // iterate over tiles in scene
@@ -289,7 +289,7 @@ void canvas_t<T>::render_scene(const scene<T>& S) {
     const int64_t inc = 1; // render fewer triangles
     for (int64_t y = 0; y < yst - inc; y += inc) {
       for (int64_t x = 0; x < xst - inc; x += inc) {
-        if (D[x, y] > S.view_range) // too far
+        if (D[x, y] > S.view_range_m) // too far
           continue;
         if (D[x, y] < 100) // too close, avoid artifacts
           continue;
@@ -316,10 +316,10 @@ void canvas_t<T>::render_scene(const scene<T>& S) {
         // it's only tested in draw_triangle
 
         // std::cout << S.z_standpoint << ", " << H(y,x) << ", " <<  D(y,x) << std::endl;
-        const T v_ij = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x, y], D[x, y])) * pixels_per_rad_v;                           // [px]
-        const T v_ijj = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x + inc, y], D[x + inc, y])) * pixels_per_rad_v;              //[px]
-        const T v_iij = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x, y + inc], D[x, y + inc])) * pixels_per_rad_v;              // [px]
-        const T v_iijj = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x + inc, y + inc], D[x + inc, y + inc])) * pixels_per_rad_v; // [px]
+        const T v_ij = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint_m, H[x, y], D[x, y])) * pixels_per_rad_v;                           // [px]
+        const T v_ijj = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint_m, H[x + inc, y], D[x + inc, y])) * pixels_per_rad_v;              //[px]
+        const T v_iij = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint_m, H[x, y + inc], D[x, y + inc])) * pixels_per_rad_v;              // [px]
+        const T v_iijj = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint_m, H[x + inc, y + inc], D[x + inc, y + inc])) * pixels_per_rad_v; // [px]
         // debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << std::endl;
 
         if (!is_in_range(v_iij, 0, ys()) || !is_in_range(v_ijj, 0, ys())) {
@@ -503,16 +503,16 @@ bool canvas<T>::peak_is_visible_v1(const scene<T>& S, const point_feature<T>& pe
         continue;
 
       // std::cout << S.z_standpoint << ", " << H(y,x) << ", " <<  D(y,x) << std::endl;
-      const T v_ij = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x, y], D[x, y])) * pixels_per_rad_v; // [px]
+      const T v_ij = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint_m, H[x, y], D[x, y])) * pixels_per_rad_v; // [px]
       if (!is_in_range(v_ij, 0, ys()))
         continue;
-      const T v_ijj = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x + inc, y], D[x + inc, y])) * pixels_per_rad_v; //[px]
+      const T v_ijj = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint_m, H[x + inc, y], D[x + inc, y])) * pixels_per_rad_v; //[px]
       if (!is_in_range(v_ijj, 0, ys()))
         continue;
-      const T v_iij = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x, y + inc], D[x, y + inc])) * pixels_per_rad_v; // [px]
+      const T v_iij = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint_m, H[x, y + inc], D[x, y + inc])) * pixels_per_rad_v; // [px]
       if (!is_in_range(v_iij, 0, ys()))
         continue;
-      const T v_iijj = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint, H[x + inc, y + inc], D[x + inc, y + inc])) * pixels_per_rad_v; // [px]
+      const T v_iijj = (view_height / 2 + view_direction_v - angle_v(S.z_standpoint_m, H[x + inc, y + inc], D[x + inc, y + inc])) * pixels_per_rad_v; // [px]
       if (!is_in_range(v_iijj, 0, ys()))
         continue;
       // debug << "v: " << v_ij << ", " << v_ijj << ", " << v_iij << ", " << v_iijj << std::endl;
@@ -599,8 +599,8 @@ bool canvas<T>::peak_is_visible_v2(const scene<T>& S, const point_feature<T>& pe
     }
 
     // get coords on canvas
-    const T x_point = std::fmod(view_direction_h + view_width / 2 + bearing_rad + T(1.5) * pi, 2 * pi) * pixels_per_rad_h;         // [px]
-    const T y_point = (view_direction_v + view_height / 2 - angle_v(S.z_standpoint, height_point, dist_point)) * pixels_per_rad_v; // [px]
+    const T x_point = std::fmod(view_direction_h + view_width / 2 + bearing_rad + T(1.5) * pi, 2 * pi) * pixels_per_rad_h;           // [px]
+    const T y_point = (view_direction_v + view_height / 2 - angle_v(S.z_standpoint_m, height_point, dist_point)) * pixels_per_rad_v; // [px]
     if (y_point < 0) {
       break;
     }
@@ -649,7 +649,7 @@ std::tuple<std::vector<point_feature_on_canvas<T>>, std::vector<point_feature_on
     // std::cout << "--- p=" << p << " ---" << std::endl;
     // distance from the peak
     const T dist_peak = distance_atan(S.standpoint, peaks[p].coords.to_rad());
-    if (dist_peak > S.view_range || dist_peak < 1000)
+    if (dist_peak > S.view_range_m || dist_peak < 1000)
       continue;
 
     const int64_t tile_index = get_tile_index<T>(S, peaks[p].coords);
@@ -670,7 +670,7 @@ std::tuple<std::vector<point_feature_on_canvas<T>>, std::vector<point_feature_on
 
     // get position of peak on canvas, continue if outside
     const T x_peak = std::fmod(view_direction_h + view_width / 2 + bearing(S.standpoint, peaks[p].coords.to_rad()) + T(1.5) * pi, 2 * pi) * pixels_per_rad_h;
-    const T y_peak = (view_direction_v + view_height / 2 - angle_v(S.z_standpoint, height_peak, dist_peak)) * pixels_per_rad_v; // [px]
+    const T y_peak = (view_direction_v + view_height / 2 - angle_v(S.z_standpoint_m, height_peak, dist_peak)) * pixels_per_rad_v; // [px]
     // std::cout << "peak x, y " << x_peak << ", " << y_peak << std::endl;
     if (x_peak < 0 || x_peak > xs())
       continue;
