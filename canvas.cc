@@ -114,7 +114,7 @@ template <typename T>
 bool canvas<T>::would_draw_line(const T x1, const T y1,
                                 const T x2, const T y2,
                                 const T z) const {
-  if (z - 30 > zbuffer[x1, y1] || z - 30 > zbuffer[x2, y2]) { // one or both of the points are obscured
+  if (zbuffer[x1, y1] < z - 30 || zbuffer[x2, y2] < z - 30) { // one or both of the points are obscured
     return false;
   }
   return true;
@@ -415,13 +415,12 @@ void canvas<T>::annotate_peaks(const scene<T>& S) {
   }
   std::cout << "peaks in db: " << peaks.size() << std::endl;
   // which of those are visible?
-  std::vector<point_feature_on_canvas<T>> omitted_peaks;
   auto [visible_peaks, obscured_peaks] = get_visible_peaks(peaks, S);
   std::cout << "number of visible peaks: " << visible_peaks.size() << std::endl;
   std::cout << "number of obscured peaks: " << obscured_peaks.size() << std::endl;
   std::cout << "number of out-of-range/wrong direction peaks: " << peaks.size() - visible_peaks.size() - obscured_peaks.size() << std::endl;
   // label
-  omitted_peaks = draw_visible_peaks(visible_peaks);
+  const std::vector<point_feature_on_canvas<T>> omitted_peaks = draw_visible_peaks(visible_peaks);
   std::cout << "number of visible+drawn peaks: " << visible_peaks.size() - omitted_peaks.size() << std::endl;
   std::cout << "number of visible+omitted peaks: " << omitted_peaks.size() << std::endl;
 #ifdef GRAPHICS_DEBUG
@@ -561,7 +560,7 @@ bool canvas<T>::peak_is_visible_v2(const scene<T>& S, const point_feature<T>& pe
   const T pixels_per_rad_v = ys() / view_height; // [px/rad]
 
   // bearing to peak
-  // std::cout << ref_lat << "," << ref_lon <<", "<< peak.lat() <<","<< peak.lon() << std::endl;
+  // std::cout << S.standpoint << ", " << peak.lat() << "," << peak.lon() << std::endl;
   const T bearing_rad = bearing(S.standpoint, peak.coords.to_rad());
   // std::cout << "bearing " << bearing_rad << " / " << bearing_rad*rad2deg_v<T> << std::endl;
 
@@ -601,7 +600,7 @@ bool canvas<T>::peak_is_visible_v2(const scene<T>& S, const point_feature<T>& pe
     // get coords on canvas
     const T x_point = std::fmod(view_direction_h + view_width / 2 + bearing_rad + T(1.5) * pi, 2 * pi) * pixels_per_rad_h;           // [px]
     const T y_point = (view_direction_v + view_height / 2 - angle_v(S.z_standpoint_m, height_point, dist_point)) * pixels_per_rad_v; // [px]
-    if (y_point < 0) {
+    if (y_point < 0 || y_point >= ys()) {
       break;
     }
 
@@ -665,23 +664,26 @@ std::tuple<std::vector<point_feature_on_canvas<T>>, std::vector<point_feature_on
     // std::cout << "peak height and dist: " << height_peak << ", " << dist_peak << std::endl;
     // if the osm doesn't know the height, take from elevation data
     const T coeff = 0.065444 / 1000000.0; // = 0.1695 / 1.609^2  // m
-    if (peaks[p].elev == 0)
+    if (peaks[p].elev == 0) {
       peaks[p].elev = height_peak + coeff * dist_peak * dist_peak; // revert earth's curvature
+    }
 
     // get position of peak on canvas, continue if outside
     const T x_peak = std::fmod(view_direction_h + view_width / 2 + bearing(S.standpoint, peaks[p].coords.to_rad()) + T(1.5) * pi, 2 * pi) * pixels_per_rad_h;
     const T y_peak = (view_direction_v + view_height / 2 - angle_v(S.z_standpoint_m, height_peak, dist_peak)) * pixels_per_rad_v; // [px]
     // std::cout << "peak x, y " << x_peak << ", " << y_peak << std::endl;
-    if (x_peak < 0 || x_peak > xs())
+    if (x_peak < 0 || x_peak >= xs())
       continue;
-    if (y_peak < 0 || y_peak > ys())
+    if (y_peak < 0 || y_peak >= ys())
       continue;
 
     // if(peak_is_visible_v1(S, peaks[p], dist_peak, tile_index))
-    if (peak_is_visible_v2(S, peaks[p], dist_peak))
+    if (peak_is_visible_v2(S, peaks[p], dist_peak)) {
       visible_peaks.emplace_back(peaks[p], x_peak, y_peak, dist_peak);
-    else
+    }
+    else {
       obscured_peaks.emplace_back(peaks[p], x_peak, y_peak, dist_peak);
+    }
   }
   return {visible_peaks, obscured_peaks};
 }
@@ -692,7 +694,7 @@ std::vector<point_feature_on_canvas<T>> canvas<T>::draw_visible_peaks(const std:
   LabelGroups<T> lgs(peaks_vis, xs());
 
   // prune ... if the offsets in one group get too large, some of the lower peaks should be omitted
-  std::vector<point_feature_on_canvas<T>> omitted_peaks = lgs.prune();
+  const std::vector<point_feature_on_canvas<T>> omitted_peaks = lgs.prune();
   const colour red = {255, 0, 0};
 
   gdFontCacheSetup();

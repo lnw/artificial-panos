@@ -10,7 +10,6 @@ namespace po = boost::program_options;
 
 int main(int ac, char** av) {
 
-
   // const double pos_lat(59.9374*deg2rad), pos_lon(10.7168*deg2rad), pos_z(100), view_direction_h(270*deg2rad), view_width(355*deg2rad), view_height(20*deg2rad), view_direction_v(0*deg2rad), range(80000); // oslo, uni
   // const double pos_lat(49.4*deg2rad), pos_lon(8.6*deg2rad), pos_z(200), view_direction_h(50*deg2rad), view_width(355*deg2rad), view_height(15*deg2rad), view_direction_v(3*deg2rad), range(100000); // hd
   // const double pos_lat(47.3664*deg2rad), pos_lon(8.5413*deg2rad), pos_z(408), view_direction_h(290*deg2rad), view_width(60*deg2rad), view_height(12*deg2rad), view_direction_v(0*deg2rad), range(100000); // zurich
@@ -28,8 +27,8 @@ int main(int ac, char** av) {
   po::options_description desc("options");
   // clang-format off
   desc.add_options()("help", "produce help message")
-                    ("pos_lat", po::value<float>()->default_value(pos_lat), "latitude [deg]")
-                    ("pos_lon", po::value<float>()->default_value(pos_lon), "longitude [deg]")
+                    ("pos_lat", po::value<float>(), "latitude [deg]")
+                    ("pos_lon", po::value<float>(), "longitude [deg]")
                     ("pos_z", po::value<float>()->default_value(pos_z), "elevation [m]")
                     ("view_direction_h", po::value<float>()->default_value(view_direction_h), "horizontal view direction [deg]")
                     ("view_direction_v", po::value<float>()->default_value(view_direction_v), "vertical view direction [deg]")

@@ -9,7 +9,7 @@
 
 namespace fs = std::filesystem;
 
-enum class elevation_source { srtm1 = 0,
+enum class elevation_source { srtm1,
                               srtm3,
                               view1,
                               view3 };
@@ -55,5 +55,6 @@ public:
   }
 
   std::vector<std::pair<tile<T>, tile<T>>> read_elevation_data(const std::vector<LatLon<int64_t, Unit::deg>>& required_tiles) const;
+
   T elevation_at_standpoint() const;
 };
