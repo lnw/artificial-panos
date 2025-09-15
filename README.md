@@ -23,13 +23,15 @@ make
 
 An example from Liptovsky Mikulas/Slovakia:
 ```
-./artpano.py --lat 49.07980 --lon 19.62611 --view-dir-h 230 --view-width 290 --view-dir-v 8 --range 40000 --canvas-height 1000 --canvas-width 10000
+./artpano.py --lat 49.07980 --lon 19.62611 --view-dir-h 230 --view-width 290 --view-dir-v 8 --range 40 --canvas-height 1000 --canvas-width 10000
+artpano --lat 49.07980 --lon 19.62611 --view-dir-h 230 --view-width 290 --view-dir-v 8 --range 40 --canvas-height 1000 --canvas-width 10000
 ```
 ![alt text](examples/190205-liptovski-mikulas.png)
 
 An example from Zurich/Switzerland:
 ```
-./artpano.py --lat 47.38242 --lon 8.56752 --view-dir-h 270 --view-width 70 --range 110000 --canvas-height 1700 --canvas-width 5000
+./artpano.py --lat 47.38242 --lon 8.56752 --view-dir-h 270 --view-width 70 --range 110 --canvas-height 1700 --canvas-width 5000
+artpano --lat 47.38242 --lon 8.56752 --view-dir-h 270 --view-width 70 --range 110 --canvas-height 1700 --canvas-width 5000
 ```
 
 ![alt text](examples/190205_zurich.png)

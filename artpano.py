@@ -22,8 +22,8 @@ def parseCommandline():
     parser.add_argument("--view-dir-v", help=" ", dest="view_dir_v", action="store", type=float, default=0.0)
     parser.add_argument("--view-width", help=" ", dest="view_width", action="store", type=float, default=100.0)
     parser.add_argument("--view-height", help=" ", dest="view_height", action="store", type=float, default=0.0) # 20.0
-    parser.add_argument("--range", help="visibility range in meters",
-                        dest="range", action="store", type=float, default=10000.0)
+    parser.add_argument("--range", help="visibility range [km]",
+                        dest="range_km", action="store", type=float, default=20.0)
     parser.add_argument("--canvas-width", help="width of the rendered picture in pixels",
                         dest="canvas_width", action="store", type=int, default="10000")
     parser.add_argument("--canvas-height", help="height of the rendered picture in pixels",
@@ -144,14 +144,14 @@ def main():
     args = parseCommandline()
     print(args)
     pos = ap.latlonfp(args.pos_lat, args.pos_lon)
-    requiredTiles_ll = ap.scene.determine_required_tiles(args.view_width, args.range, args.view_dir_h, pos)
+    requiredTiles_ll = ap.scene.determine_required_tiles(args.view_width, 1000 * args.range_km, args.view_dir_h, pos)
     requiredTiles = ap.vll2vp_int64(requiredTiles_ll)
     print("required tiles: " + str(requiredTiles))
     getElevationTiles(requiredTiles, args.source)
     getOSMTiles(requiredTiles)
     # print('init S:')
     # print(args.source)
-    S = ap.scene(pos, args.pos_ele, args.view_dir_h, args.view_width, args.view_dir_v, args.view_height, args.range, strings2enums(args.source))
+    S = ap.scene(pos, args.pos_ele, args.view_dir_h, args.view_width, args.view_dir_v, args.view_height, 1000 * args.range_km, strings2enums(args.source))
     # print(S)
     C = ap.canvas_t(args.canvas_width, args.canvas_height)
     C.bucket_fill(100,100,100)

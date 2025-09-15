@@ -84,6 +84,7 @@ target_link_libraries(pano
                       compiler_options
                       Boost::program_options
 )
+set_target_properties(pano PROPERTIES OUTPUT_NAME "artpano")
 
 add_library(artpano SHARED)
 target_sources(artpano
